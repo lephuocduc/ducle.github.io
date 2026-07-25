@@ -31,8 +31,14 @@ export function renderCeremonies(containerId, ceremoniesData) {
                 <i class="fas fa-route"></i> Mở Google Maps
             </a>` : '';
 
-        const calendarBtn = item.calendarUrl ? `
-            <a href="${item.calendarUrl}" target="_blank" rel="noopener noreferrer" class="btn-copy" style="text-decoration:none; display:inline-block; padding:8px 20px; background: var(--color-gold-dark);">
+        // Detect mobile (touchscreen) để chọn đúng link calendar
+        const isMobile = window.matchMedia('(pointer: coarse)').matches;
+        const resolvedCalendarUrl = isMobile
+            ? (item.calendarIcsUrl || item.calendarUrl)
+            : (item.calendarUrl || item.calendarIcsUrl);
+
+        const calendarBtn = resolvedCalendarUrl ? `
+            <a href="${resolvedCalendarUrl}" target="_blank" rel="noopener noreferrer" class="btn-copy" style="text-decoration:none; display:inline-block; padding:8px 20px; background: var(--color-gold-dark);">
                 <i class="far fa-calendar-plus"></i> Thêm vào Lịch
             </a>` : '';
 

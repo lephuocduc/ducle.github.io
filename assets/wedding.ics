@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Wedding Invitation//VI
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:wedding-phuocduc-thusuong-20261025@lephuocduc.github.io
+DTSTAMP:20260726T000000Z
+DTSTART:20261025T103000Z
+DTEND:20261025T130000Z
+SUMMARY:Tiệc Cưới Phước Đức & Thu Sương
+DESCRIPTION:Trân trọng kính mời quý khách tới tham dự Tiệc Mừng Đám Cưới của Lê Phước Đức & Trần Thị Thu Sương.
+LOCATION:Asiana Plaza Tân Phú - 284-286 Vườn Lài\, Phường Phú Thọ Hòa\, TP. Hồ Chí Minh
+URL:https://maps.app.goo.gl/72WEiNhb1SKsr6C28
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
