@@ -1,0 +1,98 @@
+/* ==========================================================================
+   RESPONSIVE.CSS - RESPONSIVE STYLES FOR DESKTOP, TABLET & MOBILE
+   ========================================================================== */
+
+/* Tablet (max-width: 992px) */
+@media (max-width: 992px) {
+    .navbar {
+        padding: 15px 25px;
+    }
+
+    .hero-title {
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        white-space: nowrap;
+    }
+
+    .ceremony-card {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .map-wrapper {
+        height: 220px;
+    }
+
+    .timeline-wrapper::before {
+        left: 30px;
+    }
+
+    .timeline-item {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 15px;
+        text-align: left !important;
+    }
+
+    .timeline-item:nth-child(even) {
+        left: 0;
+    }
+
+    .timeline-item:nth-child(odd) .timeline-badge,
+    .timeline-item:nth-child(even) .timeline-badge {
+        left: 19px;
+        right: auto;
+    }
+}
+
+/* Mobile Devices (max-width: 600px) */
+@media (max-width: 600px) {
+    .navbar {
+        padding: 12px 18px;
+    }
+
+    .nav-menu {
+        display: none; /* Mobile navigation simplified */
+    }
+
+    .hero-card {
+        padding: 35px 20px;
+    }
+
+    .hero-title {
+        font-size: clamp(1.6rem, 5.5vw, 2.5rem);
+        white-space: nowrap;
+    }
+
+    .section-title {
+        font-size: 2.8rem;
+    }
+
+    .countdown-card {
+        min-width: 75px;
+        padding: 15px;
+    }
+
+    .countdown-number {
+        font-size: 2.2rem;
+    }
+
+    .couple-card {
+        padding: 25px 18px;
+    }
+
+    .avatar-frame {
+        width: 150px;
+        height: 150px;
+    }
+
+    .floating-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 1rem;
+    }
+
+    .gift-qr-img {
+        width: 180px;
+        height: 180px;
+    }
+}

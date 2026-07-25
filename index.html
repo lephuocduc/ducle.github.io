@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Open Graph (Nạp và ghi đè tự động bởi config-loader.js) -->
+    <title>Thiệp Mời Cưới - Phước Đức & Thu Sương</title>
+    <meta name="description" content="Trân trọng kính mời quý quan khách cùng tới tham dự ngày vui của chúng tôi.">
+    <meta property="og:title" content="Thiệp Mời Cưới - Phước Đức & Thu Sương">
+    <meta property="og:description" content="Trân trọng kính mời quý quan khách cùng tới tham dự ngày vui của chúng tôi.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/hero.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+
+    <!-- Third-party Icons & Styling -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <!-- Preloader Screen -->
+    <div id="preloader" class="preloader" aria-label="Đang tải thiệp cưới">
+        <div class="preloader-symbol">囍</div>
+        <div class="preloader-spinner"></div>
+    </div>
+
+    <!-- Canvas Hiệu Ứng Particle (Floating Hearts & Leaves) -->
+    <canvas id="effects-canvas"></canvas>
+
+    <!-- Navigation Header -->
+    <nav class="navbar" id="navbar">
+        <a href="#hero-section" class="nav-brand">囍 Song Hỷ</a>
+        <ul class="nav-menu">
+            <li><a href="#hero-section" class="nav-link">Trang Chủ</a></li>
+            <li><a href="#couple-section" class="nav-link">Cặp Đôi</a></li>
+            <li><a href="#countdown-section" class="nav-link">Đếm Ngược</a></li>
+            <li><a href="#story-section" class="nav-link">Hành Trình</a></li>
+            <li><a href="#ceremony-section" class="nav-link">Lễ Cưới</a></li>
+            <li><a href="#gallery-section" class="nav-link">Album</a></li>
+            <li><a href="#gift-section" class="nav-link">Mừng Cưới</a></li>
+        </ul>
+    </nav>
+
+    <!-- 1. Hero Section -->
+    <header id="hero-section" class="hero-section">
+        <!-- Rendered dynamically by main.js from config.js -->
+    </header>
+
+    <!-- 2. Couple Section (Groom & Bride) -->
+    <section id="couple-section" class="section">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">CHÚ RỂ & CÔ DÂU</span>
+            <h2 class="section-title">Cặp Đôi Hạnh Phúc</h2>
+            <div class="section-divider"><i class="fas fa-crown"></i></div>
+        </div>
+        <div id="couple-container" class="couple-grid">
+            <!-- Rendered dynamically by main.js -->
+        </div>
+    </section>
+
+    <!-- 3. Countdown Section -->
+    <section id="countdown-section" class="section countdown-section">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">CÙNG ĐẾM NGƯỢC THỜI GIAN</span>
+            <h2 class="section-title">Ngày Trọng Đại</h2>
+        </div>
+        <div id="countdown-container" class="countdown-grid">
+            <!-- Rendered dynamically by countdown.js -->
+        </div>
+    </section>
+
+    <!-- 4. Love Story Section -->
+    <section id="story-section" class="section">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">KHOẢNH KHẮC KỶ NIỆM</span>
+            <h2 class="section-title">Hành Trình Yêu Thương</h2>
+            <div class="section-divider"><i class="fas fa-infinity"></i></div>
+        </div>
+        <div id="timeline-container" class="timeline-wrapper">
+            <!-- Rendered dynamically by timeline.js -->
+        </div>
+    </section>
+
+    <!-- 5. Ceremony & Google Maps Section -->
+    <section id="ceremony-section" class="section" style="background: rgba(212, 175, 55, 0.04);">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">LỊCH TRÌNH NGHI LỄ</span>
+            <h2 class="section-title">Thông Tin Tiệc Cưới</h2>
+            <div class="section-divider"><i class="fas fa-gem"></i></div>
+        </div>
+        <div id="ceremonies-container" class="ceremony-grid">
+            <!-- Rendered dynamically by map.js -->
+        </div>
+    </section>
+
+    <!-- 6. Gallery Section (Masonry Grid & Lightbox) -->
+    <section id="gallery-section" class="section">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">ALBUM HÌNH CƯỚI</span>
+            <h2 class="section-title">Góc Kỷ Niệm</h2>
+            <div class="section-divider"><i class="fas fa-camera-retro"></i></div>
+        </div>
+        <div id="gallery-container" class="gallery-grid">
+            <!-- Rendered dynamically by gallery.js -->
+        </div>
+    </section>
+
+    <!-- Lightbox Zoom Image Modal -->
+    <div id="lightbox-modal" class="lightbox-modal" tabindex="-1" role="dialog" aria-label="Xem hình ảnh phóng to">
+        <button id="lightbox-close-btn" class="lightbox-close-btn" aria-label="Đóng ảnh">&times;</button>
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Ảnh chi tiết">
+    </div>
+
+    <!-- 7. QR Mừng Cưới Section -->
+    <section id="gift-section" class="section" style="background: rgba(15, 76, 58, 0.03);">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">HỘP CHÚC PHÚC</span>
+            <h2 class="section-title">Mừng Cưới Cặp Đôi</h2>
+            <div class="section-divider"><i class="fas fa-gift"></i></div>
+        </div>
+        <div id="gift-container" class="gift-grid">
+            <!-- Rendered dynamically by main.js -->
+        </div>
+    </section>
+
+    <!-- Floating Buttons (Music Toggle & Back to Top) -->
+    <div class="floating-controls">
+        <button id="music-toggle-btn" class="floating-btn music-btn" aria-label="Bật/Tắt nhạc nền" title="Bật/Tắt nhạc nền">
+            <i id="music-icon" class="fas fa-music"></i>
+        </button>
+        <button id="back-to-top-btn" class="floating-btn back-to-top" aria-label="Về đầu trang" title="Về đầu trang">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+    </div>
+
+    <!-- 8. Footer Section -->
+    <footer id="footer-container" class="footer">
+        <!-- Rendered dynamically by main.js -->
+    </footer>
+
+    <!-- Main ES6 Entry Script -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
