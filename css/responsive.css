@@ -95,4 +95,9 @@
         width: 180px;
         height: 180px;
     }
+
+    .footer-brand {
+        font-size: clamp(1.8rem, 6.5vw, 2.6rem);
+        white-space: nowrap;
+    }
 }
