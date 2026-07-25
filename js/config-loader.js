@@ -25,13 +25,7 @@ export function loadConfig() {
         if (ogDesc) ogDesc.setAttribute('content', weddingConfig.seo.description || '');
 
         const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) {
-            let imgUrl = weddingConfig.seo.ogImage || '';
-            if (imgUrl && !imgUrl.startsWith('http')) {
-                imgUrl = new URL(imgUrl, window.location.href).href;
-            }
-            ogImage.setAttribute('content', imgUrl);
-        }
+        if (ogImage) ogImage.setAttribute('content', weddingConfig.seo.ogImage || '');
     }
 
     return weddingConfig;

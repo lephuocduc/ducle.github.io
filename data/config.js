@@ -9,7 +9,7 @@ export const weddingConfig = {
     seo: {
         title: "Thiệp Mời Cưới - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
         description: "Trân trọng kính mời quý quan khách, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Thành Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
-        ogImage: "assets/gallery/photo-1.jpg",
+        ogImage: "assets/hero.jpg",
         favicon: "assets/favicon.ico"
     },
 
@@ -55,7 +55,7 @@ export const weddingConfig = {
     hero: {
         subtitle: "SAVE THE DATE",
         title: "Lễ Thành Hôn & Tiệc Cưới",
-        backgroundImage: "assets/hero.jpg",
+        backgroundImage: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg",
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
@@ -73,35 +73,35 @@ export const weddingConfig = {
             date: "",
             title: "Lần Đầu Gặp Gỡ",
             content: "Giữa giảng đường Đại học tấp nập, ánh mắt ta vô tình chạm nhau và một tình yêu đẹp bắt đầu nảy nở.",
-            image: "assets/story-1.jpg"
+            image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2016",
             date: "12/12/2016",
             title: "Lời Tỏ Tình Ngọt Ngào",
             content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
-            image: "assets/story-2.jpg"
+            image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2026",
             date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
             content: "Chiếc nhẫn cầu hôn xinh xắn dưới ánh chiều hoàng hôn cùng câu trả lời \"Em đồng ý!\".",
-            image: "assets/story-3.jpg"
+            image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2026",
             date: "04/06/2026",
             title: "Lễ Dạm Ngõ",
             content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
-            image: "assets/story-1.jpg"
+            image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2026",
             date: "25/10/2026",
             title: "Ngày Về Chung Một Nhà",
             content: "Được sự chúc phúc của gia đình hai bên và bạn bè, chúng mình chính thức trở thành vợ chồng!",
-            image: "assets/story-4.jpg"
+            image: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=600&q=80"
         }
     ],
 
@@ -141,12 +141,12 @@ export const weddingConfig = {
 
     // Album ảnh cưới (Masonry Gallery)
     gallery: [
-        { src: "assets/gallery/photo-1.jpg", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
-        { src: "assets/gallery/photo-2.jpg", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
-        { src: "assets/gallery/photo-3.jpg", title: "Tay Trong Tay", aspect: "square" },
-        { src: "assets/gallery/photo-4.jpg", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
-        { src: "assets/gallery/photo-5.jpg", title: "Bình Yên Bên Em", aspect: "square" },
-        { src: "assets/hero.jpg", title: "Ngày Trọng Đại", aspect: "wide" }
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3511.jpg", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3256.jpg", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2934.jpg", title: "Tay Trong Tay", aspect: "square" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2843.jpg", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3632.jpg", title: "Bình Yên Bên Em", aspect: "square" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg", title: "Ngày Trọng Đại", aspect: "wide" }
     ],
 
     // Lời cảm ơn & Footer

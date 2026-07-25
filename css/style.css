@@ -709,11 +709,9 @@ body {
 
 .footer-brand {
     font-family: var(--font-script);
-    font-size: clamp(2.2rem, 7vw, 3.5rem);
+    font-size: 3.2rem;
     color: var(--color-gold);
     margin-bottom: 10px;
-    white-space: nowrap;
-    line-height: 1.2;
 }
 
 /* 13. Toast Notification */
