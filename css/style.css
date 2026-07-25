@@ -27,6 +27,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+body.no-scroll {
+    overflow: hidden !important;
+    height: 100vh;
+}
+
 /* Accessibility Focus Ring */
 :focus-visible {
     outline: 2px solid var(--color-gold);
@@ -45,7 +50,172 @@ body {
     border-radius: 4px;
 }
 
-/* 1. Loading Preloader */
+/* Intro Invitation Screen & Opening Animation */
+.intro-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #8B0000 0%, #3B0000 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+/* Background multiple floating slow 囍 symbols */
+.intro-bg-symbols {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+    z-index: 3;
+}
+
+.bg-xi {
+    position: absolute;
+    font-family: var(--font-heading);
+    color: rgba(212, 175, 55, 0.3);
+    animation: floatUpSlow linear infinite;
+    bottom: -60px;
+}
+
+.xi-1 { left: 8%; font-size: 2.2rem; animation-duration: 9s; animation-delay: -2s; }
+.xi-2 { left: 25%; font-size: 1.6rem; animation-duration: 12s; animation-delay: -5s; color: rgba(212, 175, 55, 0.25); }
+.xi-3 { left: 42%; font-size: 3rem; animation-duration: 10s; animation-delay: -1s; }
+.xi-4 { left: 60%; font-size: 2rem; animation-duration: 14s; animation-delay: -8s; color: rgba(212, 175, 55, 0.32); }
+.xi-5 { left: 78%; font-size: 1.8rem; animation-duration: 11s; animation-delay: -4s; }
+.xi-6 { left: 90%; font-size: 2.8rem; animation-duration: 13s; animation-delay: -7s; color: rgba(212, 175, 55, 0.28); }
+
+@keyframes floatUpSlow {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(0.9);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.85;
+    }
+    85% {
+        opacity: 0.85;
+    }
+    100% {
+        transform: translateY(-110vh) rotate(20deg) scale(1.1);
+        opacity: 0;
+    }
+}
+
+/* Red & Gold Invitation Card Content */
+.intro-content {
+    position: relative;
+    z-index: 10;
+    background: rgba(255, 253, 249, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 40px 25px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-gold);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.25);
+    max-width: 540px;
+    width: 92%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+    overflow: hidden;
+}
+
+.intro-symbol-top {
+    font-size: 2.8rem;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    animation: floatY 3s ease-in-out infinite;
+}
+
+.intro-content .intro-title {
+    font-family: var(--font-script);
+    font-size: clamp(1.8rem, 5vw, 2.7rem);
+    color: var(--color-primary);
+    line-height: 1.2;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+}
+
+.intro-content .intro-title .heart {
+    font-size: 0.7em;
+    color: #e74c3c;
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+}
+
+.intro-content .intro-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-gold-dark);
+    margin-bottom: 25px;
+}
+
+.btn-open-invite {
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+    color: var(--color-primary-dark);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    border: 1px solid var(--color-gold-light);
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    box-shadow: var(--shadow-gold);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-open-invite:hover {
+    transform: scale(1.06);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.5);
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+}
+
+/* Split Curtain Effect on opening */
+.curtain {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: var(--color-primary-dark);
+    z-index: 2;
+    transition: transform 0.9s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.curtain-left { left: 0; border-right: 1px solid var(--color-gold); }
+.curtain-right { right: 0; border-left: 1px solid var(--color-gold); }
+
+/* Animation triggered state */
+.intro-screen.opening .intro-content {
+    transform: scale(1.15);
+    opacity: 0;
+}
+
+.intro-screen.opening .curtain-left {
+    transform: translateX(-100%);
+}
+
+.intro-screen.opening .curtain-right {
+    transform: translateX(100%);
+}
+
+.intro-screen.hidden-intro {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 .preloader {
     position: fixed;
     inset: 0;

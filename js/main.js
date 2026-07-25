@@ -17,6 +17,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const config = loadConfig();
     if (!config) return;
 
+    // Intro screen button & opening curtain effect handling
+    const intro = document.getElementById('intro-screen');
+    const openBtn = document.getElementById('open-invite-btn');
+
+    if (intro) {
+        // Khóa cuộn trang khi đang hiển thị Intro
+        document.body.classList.add('no-scroll');
+        window.scrollTo(0, 0);
+    }
+
+    if (openBtn && intro) {
+        openBtn.addEventListener('click', () => {
+            intro.classList.add('opening');
+
+            // Thử phát nhạc nền tự động ngay khi người dùng tương tác bấm "Mở thiệp"
+            const audio = document.getElementById('bg-music');
+            if (audio) {
+                audio.play().catch(() => {});
+            }
+
+            setTimeout(() => {
+                intro.classList.add('hidden-intro');
+                // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
+                document.body.classList.remove('no-scroll');
+            }, 800);
+        });
+    }
+
     // 2. Render các Section chính hoàn toàn bằng JS
     renderHero(config);
     renderCouple(config);
