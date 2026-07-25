@@ -387,6 +387,12 @@ body {
     align-items: center;
 }
 
+.ceremony-card.no-map {
+    grid-template-columns: 1fr;
+    max-width: 620px;
+    margin: 0 auto;
+}
+
 .ceremony-info {
     text-align: left;
 }

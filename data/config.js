@@ -108,34 +108,36 @@ export const weddingConfig = {
     // Danh sách các nghi lễ & tiệc cưới
     ceremonies: [
         {
-            id: "nha-trai",
-            tag: "LỄ THÀNH HÔN - NHÀ TRAI",
-            title: "Lễ Tư Gia Nhà Trai",
-            time: "08:30 - Ngày 25/10/2026",
-            address: "Số 123 Đường Hạnh Phúc, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-            icon: "fa-house-chimney-heart",
-            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.469771694605!2d106.70280831533413!3d10.775317792322306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f46df3c07e7%3A0x6b63c22b10287a91!2zTmjDoCBow6F0IFRow6BuaCBwaOG7kSBIw7IgQ2jDrSBNaW5o!5e0!3m2!1svi!2s!4v1650000000000!5m2!1svi!2s",
-            mapDirectUrl: "https://maps.google.com"
-        },
-        {
             id: "nha-gai",
             tag: "LỄ VU QUY - NHÀ GÁI",
             title: "Lễ Tư Gia Nhà Gái",
-            time: "07:00 - Ngày 24/10/2026",
+            time: "07:00 - Ngày 25/10/2026",
             address: "Số 456 Đường Nguyễn Trãi, Phường 7, Quận 5, TP. Hồ Chí Minh",
             icon: "fa-hand-holding-heart",
-            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.689626359556!2d106.67133731533399!3d10.758362692333798!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752efd3d49265b%3A0x6eb722c2a0db7d47!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaW5oIHThur8gVFAuSENN!5e0!3m2!1svi!2s!4v1650000000000!5m2!1svi!2s",
-            mapDirectUrl: "https://maps.google.com"
+            mapEmbedUrl: null,
+            mapDirectUrl: null
         },
+        {
+            id: "nha-trai",
+            tag: "LỄ TÂN HÔN - NHÀ TRAI",
+            title: "Lễ Tư Gia Nhà Trai",
+            time: "11:00 - Ngày 25/10/2026",
+            address: "18 Nguyễn Văn Cự, Phường Tân Tạo, TP. Hồ Chí Minh",
+            icon: "fa-house-chimney-heart",
+            mapEmbedUrl: null,
+            mapDirectUrl: null
+        },
+
         {
             id: "tiec-cuoi",
             tag: "TIỆC CƯỚI MẬT NGỌT",
             title: "Tiệc Mừng Đám Cưới",
-            time: "11:30 - Ngày 25/10/2026",
-            address: "Trung Tâm Hội Nghị & Đám Cưới Song Hỷ - Sảnh Diamond, 789 Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
+            time: "17:30 - Ngày 25/10/2026",
+            address: "Trung tâm hội nghị tiệc cưới Asiana Plaza Tân Phú - 284-286 Vườn Lài, Phường Phú Thọ Hòa, TP. Hồ Chí Minh",
             icon: "fa-champagne-glasses",
-            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.431352458428!2d106.69766931533414!3d10.7782679923203!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3922619717%3A0x93309a4730623d91!2zRGluaCBUaOG7kXQgTmjhuqF0!5e0!3m2!1svi!2s!4v1650000000000!5m2!1svi!2s",
-            mapDirectUrl: "https://maps.google.com"
+            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3608.0043920387557!2d106.62297671015583!3d10.788072758935423!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752d9d5888fc19%3A0x172d76a84a0ca188!2zVHJ1bmcgdMOibSBo4buZaSBuZ2jhu4cgdGnhu4djIGPGsOG7m2kgQXNpYW5hIFBsYXphIFbGsOG7nW4gTMOgaQ!5e1!3m2!1sen!2s!4v1785003723847!5m2!1sen!2s",
+            mapDirectUrl: "https://maps.app.goo.gl/72WEiNhb1SKsr6C28",
+            calendarUrl: "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Ti%E1%BB%87c%20C%C6%B0%E1%BB%9Bi%20Ph%C6%B0%E1%BB%9Bc%20%C4%90%E1%BB%A9c%20%26%20Thu%20S%C6%B0%C6%A1ng&dates=20261025T103000Z%2F20261025T130000Z&details=Ti%E1%BB%87c%20M%E1%BB%ABng%20%C4%90%C3%A1m%20C%C6%B0%E1%BB%9Bi%20L%C3%AA%20Ph%C6%B0%E1%BB%9Bc%20%C4%90%E1%BB%A9c%20%26%20Tr%E1%BA%A7n%20Th%E1%BB%8B%20Thu%20S%C6%B0%C6%A1ng&location=Asiana%20Plaza%20T%C3%A2n%20Ph%C3%BA%2C%20284-286%20V%C6%B0%E1%BB%9Dn%20L%C3%A0i%2C%20TP.%20H%E1%BB%93%20Ch%C3%AD%20Minh&sf=true&output=xml"
         }
     ],
 

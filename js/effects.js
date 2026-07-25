@@ -90,15 +90,7 @@ export function initCanvasEffects(canvasId) {
     requestAnimationFrame(renderLoop);
 }
 
-// Parallax nhẹ khi cuộn trang
+// Parallax đã tắt — overlay cố định, không dịch chuyển khi cuộn
 export function initParallax() {
-    const heroOverlay = document.querySelector(".hero-overlay");
-    if (!heroOverlay) return;
-
-    window.addEventListener("scroll", () => {
-        const scrolled = window.pageYOffset;
-        if (scrolled < window.innerHeight) {
-            heroOverlay.style.transform = `translateY(${scrolled * 0.25}px)`;
-        }
-    }, { passive: true });
+    // disabled
 }

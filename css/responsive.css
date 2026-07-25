@@ -63,8 +63,12 @@
         white-space: nowrap;
     }
 
+    /* Fix section title "Hành Trình Yêu Thương" xuống dòng */
     .section-title {
-        font-size: 2.8rem;
+        font-size: 2.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .countdown-card {
@@ -78,6 +82,12 @@
 
     .couple-card {
         padding: 25px 18px;
+    }
+
+    /* Fix tên cô dâu chú rể xuống dòng */
+    .couple-name {
+        font-size: 2.2rem;
+        white-space: nowrap;
     }
 
     .avatar-frame {
@@ -94,5 +104,11 @@
     .gift-qr-img {
         width: 180px;
         height: 180px;
+    }
+
+    /* Fix footer brand "Phước Đức & Thu Sương" xuống dòng */
+    .footer-brand {
+        font-size: 2.2rem;
+        white-space: nowrap;
     }
 }
