@@ -18,8 +18,8 @@ export const weddingConfig = {
         name: "Lê Phước Đức",
         shortName: "Phước Đức",
         title: "Chú Rể",
-        father: "Lê Văn An",
-        mother: "Nguyễn Thị Bình",
+        father: "Lê Phước Thành",
+        mother: "Lê Thị Kim Tâm",
         avatar: "assets/groom.jpg",
         story: "Một người đàn ông điềm tĩnh, luôn quan tâm và hết lòng vì gia đình.",
         bank: {
@@ -34,15 +34,15 @@ export const weddingConfig = {
         name: "Trần Thị Thu Sương",
         shortName: "Thu Sương",
         title: "Cô Dâu",
-        father: "Nguyễn Văn Cường",
-        mother: "Trần Thị Dung",
+        father: "Trần Văn Tèo",
+        mother: "Bùi Thị Hiền",
         avatar: "assets/bride.jpg",
         story: "Cô gái dịu dàng, yêu đời và luôn mang đến nụ cười ấm áp.",
         bank: {
             bankName: "Vietcombank (VCB)",
             accountNumber: "999888777666",
             accountOwner: "TRAN THI THU SUONG",
-            qrImage: "assets/qr.png"
+            qrImage: "assets/qr2.png"
         }
     },
 
@@ -55,7 +55,7 @@ export const weddingConfig = {
     hero: {
         subtitle: "SAVE THE DATE",
         title: "Lễ Thành Hôn & Tiệc Cưới",
-        backgroundImage: "assets/hero.jpg",
+        backgroundImage: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg",
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
@@ -69,25 +69,32 @@ export const weddingConfig = {
     // Hành trình yêu thương (Timeline)
     story: [
         {
-            year: "2022",
-            date: "15/02/2022",
+            year: "",
+            date: "",
             title: "Lần Đầu Gặp Gỡ",
-            content: "Tại một quán cà phê nhỏ giữa lòng thành phố, ánh mắt ta chạm nhau và một tình yêu đẹp bắt đầu nảy nở.",
+            content: "Giữa giảng đường Đại học tấp nập, ánh mắt ta vô tình chạm nhau và một tình yêu đẹp bắt đầu nảy nở.",
             image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80"
         },
         {
-            year: "2023",
-            date: "24/12/2023",
+            year: "2016",
+            date: "12/12/2016",
             title: "Lời Tỏ Tình Ngọt Ngào",
-            content: "Dưới ánh đèn lung linh đêm Giáng Sinh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
+            content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
             image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2026",
-            date: "14/02/2026",
+            date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
-            content: "Chiếc nhẫn cầu hôn xinh xắn dưới bãi biển chiều hoàng hôn cùng câu trả lời 'Em đồng ý!'.",
+            content: "Chiếc nhẫn cầu hôn xinh xắn dưới ánh chiều hoàng hôn cùng câu trả lời \"Em đồng ý!\".",
             image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80"
+        },
+        {
+            year: "2026",
+            date: "04/06/2026",
+            title: "Lễ Dạm Ngõ",
+            content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
+            image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80"
         },
         {
             year: "2026",
@@ -134,17 +141,17 @@ export const weddingConfig = {
 
     // Album ảnh cưới (Masonry Gallery)
     gallery: [
-        { src: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
-        { src: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
-        { src: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80", title: "Tay Trong Tay", aspect: "square" },
-        { src: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
-        { src: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=80", title: "Bình Yên Bên Em", aspect: "square" },
-        { src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80", title: "Ngày Trọng Đại", aspect: "wide" }
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3511.jpg", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3256.jpg", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2934.jpg", title: "Tay Trong Tay", aspect: "square" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2843.jpg", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3632.jpg", title: "Bình Yên Bên Em", aspect: "square" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg", title: "Ngày Trọng Đại", aspect: "wide" }
     ],
 
     // Lời cảm ơn & Footer
     footer: {
-        thankYouMessage: "Cảm ơn sự hiện diện và những lời chúc phúc ý nghĩa từ Quý vị quan khách. Sự hiện diện của bạn là niềm vui lớn nhất cho tình yêu của chúng mình!",
+        thankYouMessage: "Cảm ơn sự hiện diện và những lời chúc phúc ý nghĩa từ Quý vị quan khách. Sự hiện diện của quý khách là niềm vui lớn nhất cho tình yêu của chúng con!",
         copyright: "© 2026 Phước Đức & Thu Sương Wedding. Designed with ❤️."
     }
 };

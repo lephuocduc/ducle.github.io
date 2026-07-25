@@ -34,9 +34,9 @@ export function initCanvasEffects(canvasId) {
             this.rotation = Math.random() * 360;
             this.rotationSpeed = Math.random() * 1.5 - 0.75;
             this.opacity = Math.random() * 0.5 + 0.4;
-            // 2 loại: Trái tim màu rose/gold hoặc Lá xanh lục bảo Emerald
+            // 2 loại: Trái tim / Cánh hoa màu Đỏ Crimson (#B22222, #8B0000) hoặc Gold (#D4AF37)
             this.type = Math.random() > 0.5 ? "heart" : "leaf";
-            this.color = this.type === "heart" ? (Math.random() > 0.5 ? "#C48B9F" : "#D4AF37") : "#1D6F56";
+            this.color = this.type === "heart" ? (Math.random() > 0.5 ? "#D87093" : "#D4AF37") : (Math.random() > 0.5 ? "#B22222" : "#8B0000");
         }
 
         update() {

@@ -3,22 +3,22 @@
    ========================================================================== */
 
 :root {
-    /* Color Palette - Emerald Teal & Luxury Champagne Gold */
-    --color-primary: #0F4C3A;          /* Deep Emerald Teal */
-    --color-primary-light: #1D6F56;    /* Soft Teal */
-    --color-primary-dark: #0A3427;     /* Dark Forest Teal */
+    /* Color Palette - Traditional Crimson / Ruby Red & Luxury Champagne Gold */
+    --color-primary: #8B0000;          /* Deep Crimson Red */
+    --color-primary-light: #B22222;    /* Vibrant Ruby Red */
+    --color-primary-dark: #580000;     /* Dark Burgundy Red */
     
     --color-gold: #D4AF37;             /* Champagne Gold Accent */
     --color-gold-light: #F4E5B8;       /* Light Warm Gold */
     --color-gold-dark: #A88622;        /* Rich Gold */
 
-    --color-rose: #C48B9F;             /* Soft Warm Rose */
-    --color-bg-warm: #FAF7F2;          /* Cream Champagne Warm White */
-    --color-card-bg: rgba(255, 255, 255, 0.94);
+    --color-rose: #D87093;             /* Soft Warm Rose */
+    --color-bg-warm: #FFFDF9;          /* Cream Warm White */
+    --color-card-bg: rgba(255, 255, 255, 0.95);
     
-    --color-text-main: #2C3531;        /* Deep Slate Neutral */
-    --color-text-muted: #5C6B66;       /* Soft Muted Teal Grey */
-    --color-text-light: #F4F7F6;       /* Off White */
+    --color-text-main: #2B1810;        /* Deep Warm Slate Neutral */
+    --color-text-muted: #6B4E4E;       /* Soft Muted Red Grey */
+    --color-text-light: #FFF5F5;       /* Off White Soft Pink */
 
     /* Fonts */
     --font-heading: 'Cormorant Garamond', 'Playfair Display', serif;
@@ -39,8 +39,8 @@
     --radius-lg: 24px;
     --radius-full: 9999px;
 
-    --shadow-soft: 0 10px 30px rgba(15, 76, 58, 0.08);
-    --shadow-hover: 0 18px 40px rgba(15, 76, 58, 0.16);
+    --shadow-soft: 0 10px 30px rgba(139, 0, 0, 0.08);
+    --shadow-hover: 0 18px 40px rgba(139, 0, 0, 0.16);
     --shadow-gold: 0 8px 25px rgba(212, 175, 55, 0.3);
 
     /* Transitions & Z-Indexes */
