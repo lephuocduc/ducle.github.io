@@ -12,9 +12,15 @@ import { renderTimeline } from './timeline.js';
 import { renderCeremonies } from './map.js';
 import { initCanvasEffects, initParallax } from './effects.js';
 
+// Tải cấu hình & Preload toàn bộ hình ảnh ngay khi JS nạp xong (trước cả khi người dùng bấm Mở thiệp)
+const initialConfig = loadConfig();
+if (initialConfig) {
+    preloadImages(initialConfig);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Tải cấu hình dữ liệu từ config.js
-    const config = loadConfig();
+    const config = initialConfig || loadConfig();
     if (!config) return;
 
     // Intro screen button & opening curtain effect handling
@@ -69,6 +75,35 @@ document.addEventListener("DOMContentLoaded", () => {
     hidePreloader();
 });
 
+// Preload tất cả hình ảnh trước khi mở thiệp
+function preloadImages(config) {
+    const urls = new Set();
+
+    if (config.hero?.backgroundImage) urls.add(config.hero.backgroundImage);
+    if (config.groom?.avatar) urls.add(config.groom.avatar);
+    if (config.bride?.avatar) urls.add(config.bride.avatar);
+
+    if (Array.isArray(config.story)) {
+        config.story.forEach(item => {
+            if (item.image) urls.add(item.image);
+        });
+    }
+
+    if (Array.isArray(config.gallery)) {
+        config.gallery.forEach(item => {
+            if (item.src) urls.add(item.src);
+        });
+    }
+
+    if (config.groom?.bank?.qrImage) urls.add(config.groom.bank.qrImage);
+    if (config.bride?.bank?.qrImage) urls.add(config.bride.bank.qrImage);
+
+    urls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+    });
+}
+
 // Render Hero Section
 function renderHero(config) {
     const heroSection = document.getElementById("hero-section");
@@ -106,7 +141,7 @@ function renderCouple(config) {
         <!-- Chú Rể -->
         <div class="couple-card reveal-slide-left">
             <div class="avatar-frame">
-                <img src="${config.groom.avatar}" alt="Chú Rể ${config.groom.name}" loading="lazy" />
+                <img src="${config.groom.avatar}" alt="Chú Rể ${config.groom.name}" />
             </div>
             <span class="couple-role">${config.groom.title || 'CHÚ RỂ'}</span>
             <h3 class="couple-name">${config.groom.name}</h3>
@@ -124,7 +159,7 @@ function renderCouple(config) {
         <!-- Cô Dâu -->
         <div class="couple-card reveal-slide-right">
             <div class="avatar-frame">
-                <img src="${config.bride.avatar}" alt="Cô Dâu ${config.bride.name}" loading="lazy" />
+                <img src="${config.bride.avatar}" alt="Cô Dâu ${config.bride.name}" />
             </div>
             <span class="couple-role">${config.bride.title || 'CÔ DÂU'}</span>
             <h3 class="couple-name">${config.bride.name}</h3>
@@ -145,18 +180,21 @@ function renderGiftSection(config) {
     const groomBank = config.groom.bank;
     const brideBank = config.bride.bank;
 
-    // VietQR fallback generator
-    const groomQrSrc = groomBank.qrImage && !groomBank.qrImage.includes("assets/") ? groomBank.qrImage : 
-        `https://img.vietqr.io/image/MB-${groomBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.groom.name)}`;
+    const groomBankCode = groomBank.bankCode || "TPB";
+    const brideBankCode = brideBank.bankCode || "VCB";
 
-    const brideQrSrc = brideBank.qrImage && !brideBank.qrImage.includes("assets/") ? brideBank.qrImage : 
-        `https://img.vietqr.io/image/VCB-${brideBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.bride.name)}`;
+    // VietQR fallback generator
+    const groomQrSrc = groomBank.qrImage || 
+        `https://img.vietqr.io/image/${groomBankCode}-${groomBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.groom.name)}`;
+
+    const brideQrSrc = brideBank.qrImage || 
+        `https://img.vietqr.io/image/${brideBankCode}-${brideBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.bride.name)}`;
 
     giftContainer.innerHTML = `
         <!-- Thẻ mừng chú rể -->
         <div class="gift-card reveal-slide-left">
             <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Chú Rể</h3>
-            <img src="${groomQrSrc}" alt="Mã QR Chuyển Khoản Chú Rể" class="gift-qr-img" loading="lazy" />
+            <img src="${groomQrSrc}" alt="Mã QR Chuyển Khoản Chú Rể" class="gift-qr-img" />
             <div class="bank-info-box">
                 <p><strong>Ngân hàng:</strong> ${groomBank.bankName}</p>
                 <p>
@@ -170,7 +208,7 @@ function renderGiftSection(config) {
         <!-- Thẻ mừng cô dâu -->
         <div class="gift-card reveal-slide-right">
             <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Cô Dâu</h3>
-            <img src="${brideQrSrc}" alt="Mã QR Chuyển Khoản Cô Dâu" class="gift-qr-img" loading="lazy" />
+            <img src="${brideQrSrc}" alt="Mã QR Chuyển Khoản Cô Dâu" class="gift-qr-img" />
             <div class="bank-info-box">
                 <p><strong>Ngân hàng:</strong> ${brideBank.bankName}</p>
                 <p>

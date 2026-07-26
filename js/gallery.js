@@ -29,6 +29,8 @@ let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
 let touchStartTime = 0;
+let startTouchX = 0;
+let startTouchY = 0;
 let isMultiTouch = false;
 
 export function renderGallery(containerId, galleryData) {
@@ -46,9 +48,8 @@ export function renderGallery(containerId, galleryData) {
         card.setAttribute("tabindex", "0");
         card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${galleryData.length}: ${item.title || 'Ảnh kỷ niệm'}`);
 
-        // Đã xóa biểu tượng kính lúp theo yêu cầu
         card.innerHTML = `
-            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" loading="lazy" />
+            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" />
             <div class="gallery-hover-overlay">
                 <span style="font-family:var(--font-heading); font-size:1.1rem;">${item.title || ''}</span>
             </div>
@@ -81,13 +82,15 @@ function updateCursor() {
 
 function clampPan() {
     const img = document.getElementById("lightbox-img");
-    if (!img || currentScale <= 1.05) {
+    if (!img || currentScale <= 1.01) {
         panX = 0;
         panY = 0;
         return;
     }
-    const maxPanX = (img.clientWidth * (currentScale - 1)) / 2 + 150;
-    const maxPanY = (img.clientHeight * (currentScale - 1)) / 2 + 150;
+    const imgWidth = img.offsetWidth || img.clientWidth || window.innerWidth;
+    const imgHeight = img.offsetHeight || img.clientHeight || window.innerHeight;
+    const maxPanX = Math.max(0, (imgWidth * currentScale - window.innerWidth) / 2) + 120;
+    const maxPanY = Math.max(0, (imgHeight * currentScale - window.innerHeight) / 2) + 120;
     panX = Math.min(Math.max(panX, -maxPanX), maxPanX);
     panY = Math.min(Math.max(panY, -maxPanY), maxPanY);
 }
@@ -231,7 +234,7 @@ function initLightboxEvents() {
         // Double click trên máy tính: Phóng to / Thu nhỏ 1x <-> 2.5x
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
-            if (currentScale > 1.1) {
+            if (currentScale > 1.05) {
                 resetImageZoom();
             } else {
                 currentScale = 2.5;
@@ -288,7 +291,7 @@ function initLightboxEvents() {
                 const now = Date.now();
                 // Double tap check
                 if (now - lastTapTime < 300) {
-                    if (currentScale > 1.1) {
+                    if (currentScale > 1.05) {
                         resetImageZoom();
                     } else {
                         currentScale = 2.5;
@@ -297,6 +300,7 @@ function initLightboxEvents() {
                         updateImageTransform(true);
                     }
                     lastTapTime = 0;
+                    if (e.cancelable) e.preventDefault();
                     return;
                 }
                 lastTapTime = now;
@@ -307,11 +311,12 @@ function initLightboxEvents() {
                 startTouchX = e.touches[0].clientX - panX;
                 startTouchY = e.touches[0].clientY - panY;
 
-                if (currentScale > 1.1) {
+                if (currentScale > 1.01) {
                     isPanning = true;
+                    if (e.cancelable) e.preventDefault();
                 }
             }
-        }, { passive: true });
+        }, { passive: false });
 
         img.addEventListener("touchmove", (e) => {
             if (e.touches.length > 1) {
@@ -322,9 +327,10 @@ function initLightboxEvents() {
                 const currentDist = getDistance(e.touches[0], e.touches[1]);
                 const factor = currentDist / startDistance;
                 currentScale = Math.min(Math.max(initialScale * factor, 1), 5);
+                clampPan();
                 updateImageTransform(false);
                 if (e.cancelable) e.preventDefault();
-            } else if (e.touches.length === 1 && isPanning && currentScale > 1.1) {
+            } else if (e.touches.length === 1 && (isPanning || currentScale > 1.01)) {
                 panX = e.touches[0].clientX - startTouchX;
                 panY = e.touches[0].clientY - startTouchY;
                 clampPan();
@@ -350,9 +356,6 @@ function initLightboxEvents() {
                 touchEndX = e.changedTouches[0].clientX;
                 touchEndY = e.changedTouches[0].clientY;
 
-                // CHỈ cho phép vuốt chuyển ảnh khi:
-                // 1. Không dùng multi-touch (pinch) trong thao tác này
-                // 2. Không ở chế độ zoom (currentScale <= 1.05)
                 if (!isMultiTouch && currentScale <= 1.05) {
                     handleSwipeGesture();
                 }

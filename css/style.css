@@ -798,6 +798,7 @@ body.no-scroll {
     padding: 20px;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: none;
 }
 
 .lightbox-modal.active {
@@ -811,6 +812,7 @@ body.no-scroll {
     justify-content: center;
     max-width: 85vw;
     max-height: 85vh;
+    touch-action: none;
 }
 
 .lightbox-img {
@@ -825,6 +827,7 @@ body.no-scroll {
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
+    touch-action: none;
 }
 
 .lightbox-caption {
