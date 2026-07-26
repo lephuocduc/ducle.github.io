@@ -204,12 +204,36 @@ function initCopyButtons() {
         if (btn) {
             const stk = btn.getAttribute("data-stk");
             if (stk) {
-                navigator.clipboard.writeText(stk).then(() => {
-                    showToast("Đã sao chép số tài khoản thành công! ✨");
-                });
+                // Fallback copy cho cả iOS/Android
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(stk).then(() => {
+                        showToast("Đã sao chép số tài khoản thành công! ✨");
+                    }).catch(() => {
+                        fallbackCopyText(stk);
+                    });
+                } else {
+                    fallbackCopyText(stk);
+                }
             }
         }
     });
+}
+
+function fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand("copy");
+        showToast("Đã sao chép số tài khoản thành công! ✨");
+    } catch (err) {
+        showToast("Không thể sao chép tự động, vui lòng chọn thủ công.");
+    }
+    document.body.removeChild(textArea);
 }
 
 // Xử lý Back to top button
@@ -231,6 +255,7 @@ function initBackToTop() {
 }
 
 // Toast notification helper
+let toastTimer = null;
 function showToast(msg) {
     let toast = document.getElementById("toast-msg");
     if (!toast) {
@@ -240,11 +265,14 @@ function showToast(msg) {
         document.body.appendChild(toast);
     }
     toast.innerText = msg;
+    toast.classList.remove("show");
+    void toast.offsetWidth; // Force reflow
     toast.classList.add("show");
 
-    setTimeout(() => {
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
         toast.classList.remove("show");
-    }, 3000);
+    }, 2500);
 }
 
 // Preloader Hide

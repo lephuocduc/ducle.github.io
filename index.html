@@ -133,7 +133,12 @@
     <!-- Lightbox Zoom Image Modal -->
     <div id="lightbox-modal" class="lightbox-modal" tabindex="-1" role="dialog" aria-label="Xem hình ảnh phóng to">
         <button id="lightbox-close-btn" class="lightbox-close-btn" aria-label="Đóng ảnh">&times;</button>
-        <img id="lightbox-img" class="lightbox-img" src="" alt="Ảnh chi tiết">
+        <button id="lightbox-prev-btn" class="lightbox-nav-btn prev-btn" aria-label="Ảnh trước"><i class="fas fa-chevron-left"></i></button>
+        <div class="lightbox-content-wrapper">
+            <img id="lightbox-img" class="lightbox-img" src="" alt="Ảnh chi tiết">
+            <div id="lightbox-caption" class="lightbox-caption"></div>
+        </div>
+        <button id="lightbox-next-btn" class="lightbox-nav-btn next-btn" aria-label="Ảnh tiếp theo"><i class="fas fa-chevron-right"></i></button>
     </div>
 
     <!-- 7. QR Mừng Cưới Section -->

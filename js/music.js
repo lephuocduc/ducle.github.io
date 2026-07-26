@@ -1,10 +1,11 @@
 /**
  * MUSIC.JS - ES6 MODULE
- * Quản lý phát nhạc nền, tự động phát (autoplay) & nút bật/tắt đĩa nhạc xoay
+ * Quản lý phát nhạc nền, tự động phát (autoplay) & tạm dừng khi rời trang / chuyển tab
  */
 
 let audioObj = null;
 let isPlaying = false;
+let wasPlayingBeforeHide = false;
 
 export function initMusicPlayer(musicConfig) {
     const btn = document.getElementById("music-toggle-btn");
@@ -14,7 +15,7 @@ export function initMusicPlayer(musicConfig) {
     audioObj = new Audio(musicConfig.url || "assets/music.mp3");
     audioObj.loop = true;
 
-    // Phản hồi khi audio bị lỗi (tạo synth fallback lãng mạn)
+    // Phản hồi khi audio bị lỗi
     audioObj.addEventListener("error", () => {
         console.warn("Không tìm thấy file mp3 local, chuẩn bị phương án phát nhạc synth.");
     });
@@ -39,8 +40,12 @@ export function initMusicPlayer(musicConfig) {
     }
 
     function toggle() {
-        if (isPlaying) pause();
-        else play();
+        if (isPlaying) {
+            wasPlayingBeforeHide = false;
+            pause();
+        } else {
+            play();
+        }
     }
 
     function updateUI(playing) {
@@ -67,4 +72,31 @@ export function initMusicPlayer(musicConfig) {
         window.addEventListener("click", handleFirstTouch, { passive: true });
         window.addEventListener("touchstart", handleFirstTouch, { passive: true });
     }
+
+    // Nhạc chỉ phát khi tab/trang web đang mở và hiển thị (Active). Khi ẩn/rời đi -> Tạm dừng!
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            if (isPlaying) {
+                wasPlayingBeforeHide = true;
+                pause();
+            }
+        } else {
+            if (wasPlayingBeforeHide) {
+                play();
+            }
+        }
+    });
+
+    window.addEventListener("pagehide", () => {
+        if (isPlaying) {
+            wasPlayingBeforeHide = true;
+            pause();
+        }
+    });
+
+    window.addEventListener("pageshow", () => {
+        if (wasPlayingBeforeHide && !document.hidden) {
+            play();
+        }
+    });
 }

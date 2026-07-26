@@ -42,6 +42,16 @@
         left: 19px;
         right: auto;
     }
+
+    /* Gallery Grid Tablet */
+    .gallery-grid {
+        column-count: 2;
+        column-gap: 15px;
+    }
+
+    .gallery-card {
+        margin-bottom: 15px;
+    }
 }
 
 /* Mobile Devices (max-width: 600px) */
@@ -110,5 +120,54 @@
     .footer-brand {
         font-size: 2.2rem;
         white-space: nowrap;
+    }
+
+    /* Gallery Grid Mobile */
+    .gallery-grid {
+        column-count: 2;
+        column-gap: 10px;
+    }
+
+    .gallery-card {
+        margin-bottom: 10px;
+    }
+
+    /* Lightbox Modal Mobile Tweaks */
+    .lightbox-modal {
+        padding: 10px 5px;
+    }
+
+    .lightbox-nav-btn {
+        position: absolute;
+        bottom: 25px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .lightbox-nav-btn.prev-btn {
+        left: 20px;
+    }
+
+    .lightbox-nav-btn.next-btn {
+        right: 20px;
+    }
+
+    .lightbox-content-wrapper {
+        max-width: 96vw;
+        max-height: 80vh;
+    }
+
+    .lightbox-img {
+        max-height: 68vh;
+    }
+
+    .lightbox-close-btn {
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 2rem;
     }
 }

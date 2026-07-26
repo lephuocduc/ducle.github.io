@@ -47,7 +47,7 @@ export const weddingConfig = {
     },
 
     // Ngày cưới & Đếm ngược
-    weddingDate: "2026-10-25T10:00:00", // Định dạng ISO: YYYY-MM-DDTHH:mm:ss
+    weddingDate: "2026-10-25T00:00:00", // Định dạng ISO: YYYY-MM-DDTHH:mm:ss
     weddingDateDisplay: "25.10.2026",
     lunarDateDisplay: "16 Tháng 9 Năm Bính Ngọ (Âm Lịch)",
 
@@ -147,9 +147,15 @@ export const weddingConfig = {
         { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3511.jpg", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
         { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3256.jpg", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
         { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2934.jpg", title: "Tay Trong Tay", aspect: "square" },
+        { src: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1000&q=80", title: "Lời Thề Hứa", aspect: "wide" },
         { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_2843.jpg", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
         { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/NAM_3632.jpg", title: "Bình Yên Bên Em", aspect: "square" },
-        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg", title: "Ngày Trọng Đại", aspect: "wide" }
+        { src: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1000&q=80", title: "Nụ Hôn Ngọt Ngào", aspect: "square" },
+        { src: "https://6a64e8242a4b54c07b27ba72.imgix.net/sandbox/NAM_3954.jpg", title: "Ngày Trọng Đại", aspect: "wide" },
+        { src: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=80", title: "Sóng Đôi Cùng Nhau", aspect: "tall" },
+        { src: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1000&q=80", title: "Vũ Điệu Hạnh Phúc", aspect: "tall" },
+        { src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1000&q=80", title: "Trọn Đời Bên Nhau", aspect: "wide" },
+        { src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1000&q=80", title: "Khởi Đầu Mới", aspect: "square" }
     ],
 
     // Lời cảm ơn & Footer
