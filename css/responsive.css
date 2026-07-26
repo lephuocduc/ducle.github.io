@@ -142,23 +142,28 @@
         justify-content: center;
     }
 
+    /* Đưa nút mũi tên trái/phải lên giữa 2 bên màn hình để không bị thanh home/bottom bar che */
     .lightbox-nav-btn {
         position: absolute;
-        bottom: 25px;
-        top: auto;
-        transform: none;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
         width: 44px;
         height: 44px;
-        font-size: 1.1rem;
-        background: rgba(0, 0, 0, 0.6);
+        font-size: 1.2rem;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        z-index: 20;
     }
 
     .lightbox-nav-btn.prev-btn {
-        left: 20px;
+        left: 10px;
     }
 
     .lightbox-nav-btn.next-btn {
-        right: 20px;
+        right: 10px;
     }
 
     .lightbox-content-wrapper {
@@ -171,10 +176,11 @@
     }
 
     .lightbox-close-btn {
-        top: 15px;
+        top: max(15px, env(safe-area-inset-top));
         right: 15px;
         width: 40px;
         height: 40px;
         font-size: 2rem;
+        z-index: 20;
     }
 }

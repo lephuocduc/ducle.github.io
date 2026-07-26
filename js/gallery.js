@@ -127,7 +127,7 @@ function initLightboxEvents() {
         if (e.key === "ArrowRight") showNextImage();
     };
 
-    // Lướt vuốt tay trên điện thoại (Swipe Touch gestures)
+    // Lướt vuốt tay trên điện thoại (Swipe Touch gestures) & ngăn cuộn trang ngầm
     modal.ontouchstart = (e) => {
         touchStartX = e.changedTouches[0].screenX;
     };
@@ -136,6 +136,13 @@ function initLightboxEvents() {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipeGesture();
     };
+
+    // Chặn tuyệt đối cuộn trang ngầm bên dưới khi modal đang mở trên di động
+    modal.addEventListener("touchmove", (e) => {
+        if (modal.classList.contains("active")) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 }
 
 function handleSwipeGesture() {
