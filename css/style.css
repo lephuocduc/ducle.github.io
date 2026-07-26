@@ -15,6 +15,9 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -22,6 +25,8 @@ body {
     background-color: var(--color-bg-warm);
     color: var(--color-text-main);
     line-height: 1.7;
+    width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
     position: relative;
     -webkit-font-smoothing: antialiased;
@@ -29,7 +34,6 @@ body {
 
 body.no-scroll {
     overflow: hidden !important;
-    height: 100vh;
 }
 
 /* Accessibility Focus Ring */
@@ -138,9 +142,8 @@ body.no-scroll {
     color: var(--color-primary);
     line-height: 1.2;
     margin-bottom: 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
     padding: 0 5px;
 }
 
@@ -781,13 +784,15 @@ body.no-scroll {
 .lightbox-modal {
     position: fixed;
     inset: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.78);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     z-index: var(--z-modal);
     display: none;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 20px;
     user-select: none;
     -webkit-user-select: none;
@@ -855,6 +860,9 @@ body.no-scroll {
 
 /* Nút chuyển ảnh trái / phải trong Lightbox */
 .lightbox-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -871,6 +879,14 @@ body.no-scroll {
     transition: var(--transition-fast);
     z-index: 10;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.lightbox-nav-btn.prev-btn {
+    left: 25px;
+}
+
+.lightbox-nav-btn.next-btn {
+    right: 25px;
 }
 
 .lightbox-nav-btn:hover {

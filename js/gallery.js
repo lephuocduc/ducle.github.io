@@ -46,9 +46,13 @@ export function renderGallery(containerId, galleryData) {
     initLightboxEvents();
 }
 
+let savedScrollPosition = 0;
+
 function openLightbox(index) {
     const modal = document.getElementById("lightbox-modal");
     if (!modal || currentGalleryData.length === 0) return;
+
+    savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
     currentImageIndex = index;
     updateLightboxImage();
@@ -66,6 +70,7 @@ function closeLightbox() {
         const intro = document.getElementById("intro-screen");
         if (!intro || intro.classList.contains("hidden-intro")) {
             document.body.classList.remove("no-scroll");
+            window.scrollTo({ top: savedScrollPosition, behavior: 'instant' });
         }
     }
 }
