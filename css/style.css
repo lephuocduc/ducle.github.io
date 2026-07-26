@@ -32,8 +32,10 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+html.no-scroll,
 body.no-scroll {
     overflow: hidden !important;
+    touch-action: none;
 }
 
 /* Accessibility Focus Ring */
@@ -818,7 +820,11 @@ body.no-scroll {
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(212, 175, 55, 0.4);
     object-fit: contain;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s ease;
+    cursor: zoom-in;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
 }
 
 .lightbox-caption {
