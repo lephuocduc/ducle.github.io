@@ -185,4 +185,16 @@
         font-size: 2rem;
         z-index: 20;
     }
+
+    /* Google Drive Link Card – mobile stack */
+    .gallery-drive-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 18px 20px;
+        gap: 14px;
+    }
+
+    .gallery-drive-text {
+        text-align: center;
+    }
 }

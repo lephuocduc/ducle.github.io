@@ -77,7 +77,7 @@ export const weddingConfig = {
             year: "",
             date: "",
             title: "Lần Đầu Gặp Gỡ",
-            content: "Giữa giảng đường Đại học tấp nập, ánh mắt ta vô tình chạm nhau và một tình yêu đẹp bắt đầu nảy nở.",
+            content: "Giữa dòng đời tấp nập, thật may mắn khi anh gặp em. Từ khoảnh khắc ấy, hai trái tim dần đồng điệu và cùng nhau viết nên câu chuyện tình yêu của riêng mình.",
             image: "assets/img/IMG_1781.webp"
         },
         {
