@@ -49,7 +49,7 @@ export function renderGallery(containerId, galleryData) {
         card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${galleryData.length}: ${item.title || 'Ảnh kỷ niệm'}`);
 
         card.innerHTML = `
-            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" />
+            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" loading="lazy" />
             <div class="gallery-hover-overlay">
                 <span style="font-family:var(--font-heading); font-size:1.1rem;">${item.title || ''}</span>
             </div>

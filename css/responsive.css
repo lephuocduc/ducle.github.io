@@ -95,11 +95,10 @@
         padding: 25px 18px;
     }
 
-    /* Fix tên cô dâu chú rể xuống dòng linh hoạt */
+    /* Giữ tên cô dâu chú rể trên 1 dòng ngay cả khi phóng to chữ */
     .couple-name {
-        font-size: clamp(1.7rem, 5.5vw, 2.2rem);
-        white-space: normal;
-        word-break: break-word;
+        font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+        white-space: nowrap;
     }
 
     .avatar-frame {
@@ -120,9 +119,8 @@
 
     /* Fix footer brand */
     .footer-brand {
-        font-size: clamp(1.7rem, 5.5vw, 2.2rem);
-        white-space: normal;
-        word-break: break-word;
+        font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+        white-space: nowrap;
     }
 
     /* Gallery Grid Mobile */
