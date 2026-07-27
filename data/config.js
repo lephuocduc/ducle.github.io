@@ -57,7 +57,7 @@ export const weddingConfig = {
     hero: {
         subtitle: "SAVE THE DATE",
         title: "Lễ Thành Hôn & Tiệc Cưới",
-        backgroundImage: "assets/img/cover.jpeg",
+        backgroundImage: "assets/img/cover.webp",
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
@@ -65,6 +65,9 @@ export const weddingConfig = {
     music: {
         url: "assets/music.mp3",
         title: "Beautiful in White - Instrumental",
+        specialUrl: "assets/Tonight I celebrate my love.mp3",
+        specialTitle: "Tonight I Celebrate My Love",
+        specialDate: "10-25",
         autoplay: true
     },
 
@@ -75,35 +78,35 @@ export const weddingConfig = {
             date: "",
             title: "Lần Đầu Gặp Gỡ",
             content: "Giữa giảng đường Đại học tấp nập, ánh mắt ta vô tình chạm nhau và một tình yêu đẹp bắt đầu nảy nở.",
-            image: "assets/img/IMG_1781.jpg"
+            image: "assets/img/IMG_1781.webp"
         },
         {
             year: "2016",
             date: "12/12/2016",
             title: "Lời Tỏ Tình Ngọt Ngào",
             content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
-            image: "assets/img/LoiToTinhNgotNgao.jpg"
+            image: "assets/img/LoiToTinhNgotNgao.webp"
         },
         {
             year: "2026",
             date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
             content: "Chiếc nhẫn cầu hôn xinh xắn dưới ánh chiều hoàng hôn cùng câu trả lời \"Em đồng ý!\".",
-            image: "assets/img/NAM_3230.jpg"
+            image: "assets/img/NAM_3230.webp"
         },
         {
             year: "2026",
             date: "04/06/2026",
             title: "Lễ Dạm Ngõ",
             content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
-            image: "assets/img/DSCF5692.jpg"
+            image: "assets/img/DSCF5692.webp"
         },
         {
             year: "2026",
             date: "25/10/2026",
             title: "Ngày Về Chung Một Nhà",
             content: "Được sự chúc phúc của gia đình hai bên và bạn bè, chúng mình chính thức trở thành vợ chồng!",
-            image: "assets/img/NAM_3641.jpg"
+            image: "assets/img/NAM_3641.webp"
         }
     ],
 
@@ -146,18 +149,18 @@ export const weddingConfig = {
 
     // Album ảnh cưới (Masonry Gallery)
     gallery: [
-        { src: "assets/img/NAM_2906.jpg", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
-        { src: "assets/img/NAM_3318.jpg", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
-        { src: "assets/img/NAM_3103.jpg", title: "Tay Trong Tay", aspect: "square" },
-        { src: "assets/img/NAM_3230.jpg", title: "Lời Thề Hứa", aspect: "wide" },
-        { src: "assets/img/NAM_3814.jpg", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
-        { src: "assets/img/NAM_2934.jpg", title: "Bình Yên Bên Em", aspect: "square" },
-        { src: "assets/img/NAM_3954.jpg", title: "Nụ Hôn Ngọt Ngào", aspect: "square" },
-        { src: "assets/img/NAM_3511.jpg", title: "Ngày Trọng Đại", aspect: "wide" },
-        { src: "assets/img/NAM_3648.jpg", title: "Sóng Đôi Cùng Nhau", aspect: "tall" },
-        { src: "assets/img/NAM_4087.jpg", title: "Vũ Điệu Hạnh Phúc", aspect: "tall" },
-        { src: "assets/img/NAM_3632.jpg", title: "Trọn Đời Bên Nhau", aspect: "wide" },
-        { src: "assets/img/NAM_2843.jpg", title: "Khởi Đầu Mới", aspect: "square" }
+        { src: "assets/img/NAM_2906.webp", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
+        { src: "assets/img/NAM_3318.webp", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
+        { src: "assets/img/NAM_3103.webp", title: "Tay Trong Tay", aspect: "square" },
+        { src: "assets/img/NAM_3230.webp", title: "Lời Thề Hứa", aspect: "wide" },
+        { src: "assets/img/NAM_3814.webp", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
+        { src: "assets/img/NAM_2934.webp", title: "Bình Yên Bên Em", aspect: "square" },
+        { src: "assets/img/NAM_3954.webp", title: "Nụ Hôn Ngọt Ngào", aspect: "square" },
+        { src: "assets/img/NAM_3511.webp", title: "Ngày Trọng Đại", aspect: "wide" },
+        { src: "assets/img/NAM_3648.webp", title: "Sóng Đôi Cùng Nhau", aspect: "tall" },
+        { src: "assets/img/NAM_4087.webp", title: "Vũ Điệu Hạnh Phúc", aspect: "tall" },
+        { src: "assets/img/NAM_3632.webp", title: "Trọn Đời Bên Nhau", aspect: "wide" },
+        { src: "assets/img/NAM_2843.webp", title: "Khởi Đầu Mới", aspect: "square" }
     ],
 
     // Lời cảm ơn & Footer

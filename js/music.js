@@ -12,7 +12,15 @@ export function initMusicPlayer(musicConfig) {
     const icon = document.getElementById("music-icon");
     if (!btn || !musicConfig) return;
 
-    audioObj = new Audio(musicConfig.url || "assets/music.mp3");
+    // Kiểm tra nếu hôm nay là ngày 25/10 (Tháng 10 trong JS Date là index 9, Ngày 25)
+    const today = new Date();
+    const isOct25 = (today.getMonth() === 9 && today.getDate() === 25);
+
+    const musicUrl = isOct25
+        ? (musicConfig.specialUrl || "assets/Tonight I celebrate my love.mp3")
+        : (musicConfig.url || "assets/music.mp3");
+
+    audioObj = new Audio(musicUrl);
     audioObj.loop = true;
 
     // Phản hồi khi audio bị lỗi
