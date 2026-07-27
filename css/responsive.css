@@ -139,8 +139,10 @@
 
     /* Lightbox Modal Mobile Tweaks */
     .lightbox-modal {
-        padding: max(10px, env(safe-area-inset-top)) 5px max(10px, env(safe-area-inset-bottom));
-        justify-content: center;
+        padding: max(10px, env(safe-area-inset-top)) 5px max(calc(env(safe-area-inset-bottom) + 10px), 20px);
+        justify-content: space-between;
+        flex-direction: column;
+        align-items: center;
     }
 
     /* Đưa nút mũi tên trái/phải lên giữa 2 bên màn hình để không bị thanh home/bottom bar che */
@@ -169,26 +171,27 @@
 
     .lightbox-content-wrapper {
         width: 96vw;
-        height: calc(100dvh - 30px);
+        flex: 1;
+        min-height: 0;
         max-width: 96vw;
-        max-height: calc(100dvh - 30px);
-        justify-content: space-between;
-        padding-bottom: env(safe-area-inset-bottom, 10px);
+        justify-content: flex-start;
     }
 
     .lightbox-img {
-        height: calc(100dvh - 180px);
-        max-height: calc(100dvh - 180px);
+        flex: 1;
+        min-height: 0;
         width: 100%;
+        height: auto;
+        max-height: 100%;
         object-fit: contain;
-        flex-shrink: 1;
     }
 
     .lightbox-thumbs-strip {
         height: 54px;
-        max-width: 92vw;
         flex-shrink: 0;
-        margin-bottom: 5px;
+        max-width: 96vw;
+        margin-top: 8px;
+        margin-bottom: 0;
     }
 
     .lightbox-close-btn {
