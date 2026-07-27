@@ -41,18 +41,22 @@ export function renderCeremonies(containerId, ceremoniesData) {
                 <i class="far fa-calendar-plus"></i> Thêm vào Lịch
             </a>` : '';
 
+        const actions = mapsBtn || calendarBtn ? `
+            <div class="ceremony-actions">
+                ${mapsBtn}
+                ${calendarBtn}
+            </div>` : '';
+
         card.innerHTML = `
             <div class="ceremony-info">
                 <div class="ceremony-icon"><i class="fas ${item.icon || 'fa-calendar-heart'}"></i></div>
                 <span class="ceremony-tag">${item.tag || 'LỄ CƯỚI'}</span>
-                <h3 class="ceremony-title">${item.title}</h3>
+                ${item.title ? `<h3 class="ceremony-title">${item.title}</h3>` : ''}
                 <div class="ceremony-time"><i class="far fa-clock"></i> ${item.time}</div>
                 <div class="ceremony-address"><i class="fas fa-location-dot"></i> ${item.address}</div>
-                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;">
-                    ${mapsBtn}
-                    ${calendarBtn}
-                </div>
+                ${actions}
             </div>
+            ${item.blessing ? `<div class="ceremony-blessing"><i class="fas fa-quote-left" aria-hidden="true"></i><p>${item.blessing}</p></div>` : ''}
             ${mapSection}
         `;
 

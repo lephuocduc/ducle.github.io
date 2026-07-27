@@ -18,6 +18,12 @@
         gap: 20px;
     }
 
+    .ceremony-blessing {
+        padding: 20px;
+        border-top: 1px dashed rgba(212, 175, 55, 0.55);
+        border-left: 0;
+    }
+
     .map-wrapper {
         height: 220px;
     }

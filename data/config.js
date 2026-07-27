@@ -113,22 +113,36 @@ export const weddingConfig = {
     // Danh sách các nghi lễ & tiệc cưới
     ceremonies: [
         {
+            id: "tiec-mung-vu-quy",
+            tag: "TIỆC MỪNG VU QUY - NHÀ GÁI",
+            title: "Tiệc Mừng Vu Quy",
+            time: "09:00 - Ngày 24/10/2026",
+            address: "Tư gia nhà gái - Ấp Giồng Kiến, Xã Thạnh Trị, tỉnh Vĩnh Long",
+            icon: "fa-champagne-glasses",
+            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d2327.911756606885!2d106.58557065491705!3d10.198035858679557!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTDCsDExJzQ5LjYiTiAxMDbCsDM1JzA3LjEiRQ!5e0!3m2!1sen!2s!4v1785249568380!5m2!1sen!2s",
+            mapDirectUrl: "https://maps.app.goo.gl/KofqAs6EGaQ7jEza8",
+            calendarUrl: "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Ti%E1%BB%87c%20M%E1%BB%ABng%20Vu%20Quy&dates=20261024T090000%2F20261024T190000&ctz=Asia%2FHo_Chi_Minh&details=Tr%C3%A2n%20tr%E1%BB%8Dng%20k%C3%ADnh%20m%E1%BB%9Di%20qu%C3%BD%20kh%C3%A1ch%20%C4%91%E1%BA%BFn%20d%E1%BB%B1%20Ti%E1%BB%87c%20M%E1%BB%ABng%20Vu%20Quy%20t%E1%BA%A1i%20t%C6%B0%20gia%20nh%C3%A0%20g%C3%A1i.&location=T%C6%B0%20gia%20nh%C3%A0%20g%C3%A1i%20-%20%E1%BA%A4p%20Gi%E1%BB%93ng%20Ki%E1%BA%BFn%2C%20X%C3%A3%20Th%E1%BA%A1nh%20Tr%E1%BB%8B%2C%20t%E1%BB%89nh%20V%C4%A9nh%20Long&sf=true&output=xml",
+            calendarWebcalUrl: "webcal://wedding.phuocducthusuong.com/assets/ics/tiec-mung-vu-quy.ics",
+        },
+        {
             id: "nha-gai",
             tag: "LỄ VU QUY - NHÀ GÁI",
-            title: "Lễ Tư Gia Nhà Gái",
+            title: "Lễ Vu Quy",
             time: "07:00 - Ngày 25/10/2026",
             address: "Ấp Giồng Kiến, Xã Thạnh Trị, tỉnh Vĩnh Long",
             icon: "fa-hand-holding-heart",
+            blessing: "Vu quy duyên thắm trăm năm<br>Con về giữ trọn nghĩa ân gia đình",
             mapEmbedUrl: null,
             mapDirectUrl: null
         },
         {
             id: "nha-trai",
             tag: "LỄ TÂN HÔN - NHÀ TRAI",
-            title: "Lễ Tư Gia Nhà Trai",
+            title: "Lễ Tân Hôn",
             time: "10:00 - Ngày 25/10/2026",
             address: "18 Nguyễn Văn Cự, Phường Tân Tạo, TP. Hồ Chí Minh",
             icon: "fa-hand-holding-heart",
+            blessing: "Nhà trai rước dâu về nhà<br>Trăm năm hòa thuận, cửa nhà ấm êm",
             mapEmbedUrl: null,
             mapDirectUrl: null
         },
@@ -140,7 +154,7 @@ export const weddingConfig = {
             time: "17:30 - Ngày 25/10/2026",
             address: "Trung tâm hội nghị tiệc cưới Asiana Plaza Tân Phú - 284-286 Vườn Lài, Phường Phú Thọ Hòa, TP. Hồ Chí Minh",
             icon: "fa-champagne-glasses",
-            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3608.0043920387557!2d106.62297671015583!3d10.788072758935423!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752d9d5888fc19%3A0x172d76a84a0ca188!2zVHJ1bmcgdMOibSBo4buZaSBuZ2jhu4cgdGnhu4djIGPGsOG7m2kgQXNpYW5hIFBsYXphIFbGsOG7nW4gTMOgaQ!5e1!3m2!1sen!2s!4v1785003723847!5m2!1sen!2s",
+            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5067.536578916534!2d106.62298207601286!3d10.78807275897688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752d9d5888fc19%3A0x172d76a84a0ca188!2zVHJ1bmcgdMOibSBo4buZaSBuZ2jhu4sgdGnhu4djIGPGsOG7m2kgQXNpYW5hIFBsYXphIFbGsOG7nW4gTMOgaQ!5e0!3m2!1sen!2s!4v1785249616420!5m2!1sen!2s",
             mapDirectUrl: "https://maps.app.goo.gl/72WEiNhb1SKsr6C28",
             calendarUrl: "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Ti%E1%BB%87c%20C%C6%B0%E1%BB%9Bi%20Ph%C6%B0%E1%BB%9Bc%20%C4%90%E1%BB%A9c%20%26%20Thu%20S%C6%B0%C6%A1ng&dates=20261025T103000Z%2F20261025T140000Z&details=Ti%E1%BB%87c%20M%E1%BB%ABng%20%C4%90%C3%A1m%20C%C6%B0%E1%BB%9Bi&location=Asiana%20Plaza%20T%C3%A2n%20Ph%C3%BA%2C%20284-286%20V%C6%B0%E1%BB%9Dn%20L%C3%A0i%2C%20TP.%20H%E1%BB%93%20Ch%C3%AD%20Minh&sf=true&output=xml",
             calendarWebcalUrl: "webcal://wedding.phuocducthusuong.com/assets/ics/wedding.ics",

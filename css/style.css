@@ -465,6 +465,10 @@ body.no-scroll {
     margin: 0 auto;
 }
 
+.ceremony-within-countdown {
+    margin-top: 80px;
+}
+
 .countdown-card {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(10px);
@@ -567,6 +571,8 @@ body.no-scroll {
     gap: 40px;
     max-width: 1000px;
     margin: 0 auto;
+    container-type: inline-size;
+    container-name: ceremonies;
 }
 
 .ceremony-card {
@@ -582,9 +588,8 @@ body.no-scroll {
 }
 
 .ceremony-card.no-map {
-    grid-template-columns: 1fr;
-    max-width: 620px;
-    margin: 0 auto;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
 }
 
 .ceremony-info {
@@ -621,6 +626,51 @@ body.no-scroll {
     color: var(--color-text-muted);
     font-size: 0.95rem;
     margin-bottom: 20px;
+}
+
+.ceremony-blessing {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 28px 34px;
+    border-left: 1px dashed rgba(212, 175, 55, 0.55);
+    color: var(--color-primary-dark);
+    font-family: var(--font-heading);
+    font-style: italic;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.ceremony-blessing i {
+    color: var(--color-gold);
+    font-size: 1.4rem;
+}
+
+.ceremony-blessing p {
+    margin: 12px 0 0;
+    font-size: clamp(1rem, 3vw, 1.35rem);
+    white-space: nowrap;
+}
+
+.ceremony-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+@container ceremonies (max-width: 700px) {
+    .ceremony-card.no-map {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .ceremony-blessing {
+        padding: 20px;
+        border-top: 1px dashed rgba(212, 175, 55, 0.55);
+        border-left: 0;
+    }
 }
 
 .map-wrapper {
