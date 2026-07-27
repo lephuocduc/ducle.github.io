@@ -10,11 +10,17 @@ export function initCanvasEffects(canvasId) {
     const ctx = canvas.getContext("2d");
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+    let animFrameId = null;
+    let isRunning = false;
 
-    // Passive resize handler
+    // Debounced resize handler — tránh resize liên tục gây reflow
+    let resizeTimer;
     window.addEventListener("resize", () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }, 150);
     }, { passive: true });
 
     const particles = [];
@@ -84,10 +90,34 @@ export function initCanvasEffects(canvasId) {
             p.update();
             p.draw();
         });
-        requestAnimationFrame(renderLoop);
+        animFrameId = requestAnimationFrame(renderLoop);
     }
 
-    requestAnimationFrame(renderLoop);
+    function startLoop() {
+        if (!isRunning) {
+            isRunning = true;
+            animFrameId = requestAnimationFrame(renderLoop);
+        }
+    }
+
+    function stopLoop() {
+        if (isRunning && animFrameId) {
+            cancelAnimationFrame(animFrameId);
+            animFrameId = null;
+            isRunning = false;
+        }
+    }
+
+    // Tạm dừng khi tab ẩn, tiếp tục khi tab hiển thị → tiết kiệm CPU đáng kể
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            stopLoop();
+        } else {
+            startLoop();
+        }
+    });
+
+    startLoop();
 }
 
 // Parallax đã tắt — overlay cố định, không dịch chuyển khi cuộn

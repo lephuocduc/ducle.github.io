@@ -127,6 +127,7 @@ function openLightbox(index) {
     savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
     currentImageIndex = index;
+    renderLightboxThumbnails();
     updateLightboxImage();
 
     modal.classList.add("active");
@@ -149,6 +150,44 @@ function closeLightbox() {
     }
 }
 
+function renderLightboxThumbnails() {
+    const thumbsContainer = document.getElementById("lightbox-thumbs");
+    if (!thumbsContainer || currentGalleryData.length === 0) return;
+
+    thumbsContainer.innerHTML = "";
+    currentGalleryData.forEach((item, idx) => {
+        const thumb = document.createElement("img");
+        thumb.src = item.src;
+        thumb.alt = item.title || `Xem ảnh ${idx + 1}`;
+        thumb.className = `lightbox-thumb${idx === currentImageIndex ? ' active' : ''}`;
+        thumb.setAttribute("loading", "lazy");
+        thumb.setAttribute("decoding", "async");
+        thumb.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (currentImageIndex !== idx) {
+                currentImageIndex = idx;
+                updateLightboxImage();
+            }
+        });
+        thumbsContainer.appendChild(thumb);
+    });
+}
+
+function updateLightboxThumbnailsActive() {
+    const thumbsContainer = document.getElementById("lightbox-thumbs");
+    if (!thumbsContainer) return;
+
+    const thumbs = thumbsContainer.querySelectorAll(".lightbox-thumb");
+    thumbs.forEach((thumb, idx) => {
+        if (idx === currentImageIndex) {
+            thumb.classList.add("active");
+            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+            thumb.classList.remove("active");
+        }
+    });
+}
+
 function updateLightboxImage() {
     const img = document.getElementById("lightbox-img");
     const caption = document.getElementById("lightbox-caption");
@@ -162,6 +201,8 @@ function updateLightboxImage() {
     if (caption) {
         caption.innerHTML = `<span>${item.title || 'Ảnh kỷ niệm'}</span> <small>(${currentImageIndex + 1}/${currentGalleryData.length})</small>`;
     }
+
+    updateLightboxThumbnailsActive();
 }
 
 function showNextImage() {
@@ -202,12 +243,12 @@ function initLightboxEvents() {
     };
 
     // Điều hướng bàn phím (Mũi tên trái/phải, Esc)
-    window.onkeydown = (e) => {
+    window.addEventListener("keydown", (e) => {
         if (!modal.classList.contains("active")) return;
         if (e.key === "Escape") closeLightbox();
         if (e.key === "ArrowLeft") showPrevImage();
         if (e.key === "ArrowRight") showNextImage();
-    };
+    });
 
     // Chặn hoàn toàn cuộn trang web khi đang ở trong lightbox (trên cả Desktop và Mobile)
     modal.addEventListener("wheel", (e) => {

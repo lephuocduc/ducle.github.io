@@ -33,29 +33,26 @@ export function renderCountdown(containerId, weddingDateIso) {
 
     const targetTime = new Date(weddingDateIso).getTime();
 
+    const pad = (n) => n < 10 ? `0${n}` : `${n}`;
+
     function update() {
-        const now = new Date().getTime();
-        const diff = targetTime - now;
+        const diff = targetTime - Date.now();
 
         if (diff <= 0) {
-            daysEl.innerText = "00";
-            hoursEl.innerText = "00";
-            minutesEl.innerText = "00";
-            secondsEl.innerText = "00";
+            daysEl.textContent = "00";
+            hoursEl.textContent = "00";
+            minutesEl.textContent = "00";
+            secondsEl.textContent = "00";
+            clearInterval(intervalId); // Ngừng interval sau khi đến ngày cưới
             return;
         }
 
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-        daysEl.innerText = d < 10 ? `0${d}` : d;
-        hoursEl.innerText = h < 10 ? `0${h}` : h;
-        minutesEl.innerText = m < 10 ? `0${m}` : m;
-        secondsEl.innerText = s < 10 ? `0${s}` : s;
+        daysEl.textContent    = pad(Math.floor(diff / (1000 * 60 * 60 * 24)));
+        hoursEl.textContent   = pad(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+        minutesEl.textContent = pad(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+        secondsEl.textContent = pad(Math.floor((diff % (1000 * 60)) / 1000));
     }
 
     update();
-    setInterval(update, 1000);
+    const intervalId = setInterval(update, 1000);
 }

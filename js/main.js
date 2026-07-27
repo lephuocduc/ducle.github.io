@@ -36,13 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (openBtn && intro) {
         openBtn.addEventListener('click', () => {
             intro.classList.add('opening');
-
-            // Thử phát nhạc nền tự động ngay khi người dùng tương tác bấm "Mở thiệp"
-            const audio = document.getElementById('bg-music');
-            if (audio) {
-                audio.play().catch(() => {});
-            }
-
             setTimeout(() => {
                 intro.classList.add('hidden-intro');
                 // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
@@ -77,30 +70,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Preload tất cả hình ảnh trước khi mở thiệp
 function preloadImages(config) {
-    const urls = new Set();
+    const galleryUrls = [];
+    const otherUrls = new Set();
 
-    if (config.hero?.backgroundImage) urls.add(config.hero.backgroundImage);
-    if (config.groom?.avatar) urls.add(config.groom.avatar);
-    if (config.bride?.avatar) urls.add(config.bride.avatar);
+    if (config.hero?.backgroundImage) otherUrls.add(config.hero.backgroundImage);
+    if (config.groom?.avatar) otherUrls.add(config.groom.avatar);
+    if (config.bride?.avatar) otherUrls.add(config.bride.avatar);
 
     if (Array.isArray(config.story)) {
         config.story.forEach(item => {
-            if (item.image) urls.add(item.image);
+            if (item.image) otherUrls.add(item.image);
         });
     }
 
     if (Array.isArray(config.gallery)) {
         config.gallery.forEach(item => {
-            if (item.src) urls.add(item.src);
+            if (item.src) galleryUrls.push(item.src);
         });
     }
 
-    if (config.groom?.bank?.qrImage) urls.add(config.groom.bank.qrImage);
-    if (config.bride?.bank?.qrImage) urls.add(config.bride.bank.qrImage);
+    if (config.groom?.bank?.qrImage) otherUrls.add(config.groom.bank.qrImage);
+    if (config.bride?.bank?.qrImage) otherUrls.add(config.bride.bank.qrImage);
 
-    urls.forEach(url => {
+    // Preload images bình thường (hero, avatar, story...)
+    otherUrls.forEach(url => {
         const img = new Image();
         img.src = url;
+    });
+
+    // Preload tất cả ảnh gallery NGAY LẬP TỨC: tạo Image + decode() để browser
+    // giải mã sẵn trong bộ nhớ, tránh giật lag khi scroll xuống section ảnh
+    galleryUrls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+        img.decode().catch(() => {}); // decode() trả về Promise, lỗi thì bỏ qua
     });
 }
 

@@ -128,7 +128,7 @@ export const weddingConfig = {
             title: "Lễ Tư Gia Nhà Trai",
             time: "10:00 - Ngày 25/10/2026",
             address: "18 Nguyễn Văn Cự, Phường Tân Tạo, TP. Hồ Chí Minh",
-            icon: "fa-house-chimney-heart",
+            icon: "fa-hand-holding-heart",
             mapEmbedUrl: null,
             mapDirectUrl: null
         },

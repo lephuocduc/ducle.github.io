@@ -23,6 +23,14 @@
     <link rel="shortcut icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
 
+    <!-- Preconnect to external origins to reduce latency -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Preload LCP hero image for fastest first paint -->
+    <link rel="preload" as="image" href="assets/img/cover.webp">
+
     <!-- Third-party Icons & Styling -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -148,6 +156,7 @@
         <div class="lightbox-content-wrapper">
             <img id="lightbox-img" class="lightbox-img" src="" alt="Ảnh chi tiết">
             <div id="lightbox-caption" class="lightbox-caption"></div>
+            <div id="lightbox-thumbs" class="lightbox-thumbs-strip"></div>
         </div>
         <button id="lightbox-next-btn" class="lightbox-nav-btn next-btn" aria-label="Ảnh tiếp theo"><i
                 class="fas fa-chevron-right"></i></button>
