@@ -28,9 +28,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const openBtn = document.getElementById('open-invite-btn');
 
     if (intro) {
-        // Khóa cuộn trang khi đang hiển thị Intro
+        // Khóa cuộn trang khi đang hiển thị Intro (cả touch và scroll)
         document.body.classList.add('no-scroll');
+        document.documentElement.classList.add('no-scroll');
         window.scrollTo(0, 0);
+
+        intro.addEventListener('touchmove', (e) => {
+            if (!intro.classList.contains('hidden-intro')) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     if (openBtn && intro) {
@@ -40,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 intro.classList.add('hidden-intro');
                 // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
                 document.body.classList.remove('no-scroll');
+                document.documentElement.classList.remove('no-scroll');
             }, 800);
         });
     }
