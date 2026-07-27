@@ -735,7 +735,7 @@ body.no-scroll {
     margin-bottom: 20px;
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
-    transform: translateZ(0);
+    /* Keep cards in the normal paint layer. A forced GPU layer can drop images in Safari multi-column layouts. */
 }
 
 .gallery-card.tall { aspect-ratio: 3/4; }
