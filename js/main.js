@@ -92,18 +92,10 @@ function preloadImages(config) {
     if (config.groom?.bank?.qrImage) otherUrls.add(config.groom.bank.qrImage);
     if (config.bride?.bank?.qrImage) otherUrls.add(config.bride.bank.qrImage);
 
-    // Preload images bình thường (hero, avatar, story...)
-    otherUrls.forEach(url => {
+    // Preload các hình ảnh cơ bản (hero, avatar, story, gallery...)
+    [...otherUrls, ...galleryUrls].forEach(url => {
         const img = new Image();
         img.src = url;
-    });
-
-    // Preload tất cả ảnh gallery NGAY LẬP TỨC: tạo Image + decode() để browser
-    // giải mã sẵn trong bộ nhớ, tránh giật lag khi scroll xuống section ảnh
-    galleryUrls.forEach(url => {
-        const img = new Image();
-        img.src = url;
-        img.decode().catch(() => {}); // decode() trả về Promise, lỗi thì bỏ qua
     });
 }
 

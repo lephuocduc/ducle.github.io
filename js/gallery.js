@@ -33,6 +33,42 @@ let startTouchX = 0;
 let startTouchY = 0;
 let isMultiTouch = false;
 
+// Hàm tạo thumbnail độ phân giải thấp tự động bằng Canvas (không cần tạo folder riêng)
+function getAutoThumbnail(src, maxDim = 400) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let w = img.width;
+            let h = img.height;
+            if (w > h) {
+                if (w > maxDim) {
+                    h = Math.round((h * maxDim) / w);
+                    w = maxDim;
+                }
+            } else {
+                if (h > maxDim) {
+                    w = Math.round((w * maxDim) / h);
+                    h = maxDim;
+                }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            try {
+                // Xuất ảnh nén WebP chất lượng 0.65 siêu nhẹ
+                resolve(canvas.toDataURL("image/webp", 0.65));
+            } catch (e) {
+                resolve(src);
+            }
+        };
+        img.onerror = () => resolve(src);
+        img.src = src;
+    });
+}
+
 export function renderGallery(containerId, galleryData) {
     const container = document.getElementById(containerId);
     if (!container || !Array.isArray(galleryData)) return;
@@ -54,6 +90,12 @@ export function renderGallery(containerId, galleryData) {
                 <span style="font-family:var(--font-heading); font-size:1.1rem;">${item.title || ''}</span>
             </div>
         `;
+
+        // Tự động giảm độ phân giải tấm ảnh ở ngoài album bằng Canvas
+        getAutoThumbnail(item.src, 480).then(thumbDataUrl => {
+            const imgEl = card.querySelector("img");
+            if (imgEl) imgEl.src = thumbDataUrl;
+        });
 
         // Sự kiện click mở Lightbox
         card.addEventListener("click", () => openLightbox(index));
@@ -106,8 +148,8 @@ function resetImageZoom() {
     isMultiTouch = false;
     const img = document.getElementById("lightbox-img");
     if (img) {
-        img.style.transform = "translate(0px, 0px) scale(1)";
-        img.style.transition = "transform 0.25s ease";
+        img.style.transform = "translate3d(0px, 0px, 0px) scale(1)";
+        img.style.transition = "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)";
         img.style.cursor = "zoom-in";
     }
 }
@@ -115,8 +157,8 @@ function resetImageZoom() {
 function updateImageTransform(smooth = false) {
     const img = document.getElementById("lightbox-img");
     if (!img) return;
-    img.style.transition = smooth ? "transform 0.25s ease" : "none";
-    img.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+    img.style.transition = smooth ? "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)" : "none";
+    img.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${currentScale})`;
     updateCursor();
 }
 
@@ -157,11 +199,14 @@ function renderLightboxThumbnails() {
     thumbsContainer.innerHTML = "";
     currentGalleryData.forEach((item, idx) => {
         const thumb = document.createElement("img");
-        thumb.src = item.src;
         thumb.alt = item.title || `Xem ảnh ${idx + 1}`;
         thumb.className = `lightbox-thumb${idx === currentImageIndex ? ' active' : ''}`;
-        thumb.setAttribute("loading", "lazy");
-        thumb.setAttribute("decoding", "async");
+        
+        // Tự động tạo ảnh độ phân giải thấp (150px) siêu nhẹ cho dải preview bên dưới
+        getAutoThumbnail(item.src, 150).then(thumbUrl => {
+            thumb.src = thumbUrl;
+        });
+
         thumb.addEventListener("click", (e) => {
             e.stopPropagation();
             if (currentImageIndex !== idx) {
@@ -181,7 +226,11 @@ function updateLightboxThumbnailsActive() {
     thumbs.forEach((thumb, idx) => {
         if (idx === currentImageIndex) {
             thumb.classList.add("active");
-            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            // Căn giữa thumbnail active bằng scrollLeft tức thì thay vì scrollIntoView smooth gây block UI
+            const containerWidth = thumbsContainer.clientWidth;
+            const thumbOffset = thumb.offsetLeft;
+            const thumbWidth = thumb.clientWidth;
+            thumbsContainer.scrollLeft = thumbOffset - (containerWidth / 2) + (thumbWidth / 2);
         } else {
             thumb.classList.remove("active");
         }
@@ -195,14 +244,27 @@ function updateLightboxImage() {
 
     resetImageZoom();
     const item = currentGalleryData[currentImageIndex];
-    img.src = item.src;
-    img.alt = item.title || "Ảnh phóng to";
+    
+    // Đổi nguồn ảnh trong requestAnimationFrame để không bị đơ giao diện
+    requestAnimationFrame(() => {
+        img.src = item.src;
+        img.alt = item.title || "Ảnh phóng to";
 
-    if (caption) {
-        caption.innerHTML = `<span>${item.title || 'Ảnh kỷ niệm'}</span> <small>(${currentImageIndex + 1}/${currentGalleryData.length})</small>`;
-    }
+        if (caption) {
+            caption.innerHTML = `<span>${item.title || 'Ảnh kỷ niệm'}</span> <small>(${currentImageIndex + 1}/${currentGalleryData.length})</small>`;
+        }
+        updateLightboxThumbnailsActive();
+    });
 
-    updateLightboxThumbnailsActive();
+    // Chỉ load trước đúng 2 ảnh kế bên (Trước & Sau)
+    const nextIdx = (currentImageIndex + 1) % currentGalleryData.length;
+    const prevIdx = (currentImageIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
+    
+    const nextImg = new Image();
+    nextImg.src = currentGalleryData[nextIdx].src;
+
+    const prevImg = new Image();
+    prevImg.src = currentGalleryData[prevIdx].src;
 }
 
 function showNextImage() {
