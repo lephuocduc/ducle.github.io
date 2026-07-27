@@ -10,13 +10,17 @@ export function renderCountdown(containerId, weddingDateIso) {
     const targetTime = new Date(weddingDateIso).getTime();
 
     function renderRibbon() {
+        const sectionTag = container.closest('.section')?.querySelector('.section-tag');
+        if (sectionTag) sectionTag.style.display = 'none';
+
         container.innerHTML = `
             <div class="wedding-today-ribbon reveal-zoom">
                 <i class="fas fa-crown" style="font-size:2.2rem; color:var(--color-gold); margin-bottom:10px;"></i>
-                <h3 style="font-family:var(--font-script); font-size:clamp(1.8rem, 4.5vw, 2.8rem); color:var(--color-primary); margin-bottom:8px;">
-                    Hôm nay là Ngày Trọng Đại của Phước Đức & Thu Sương! 🥳🎉
+                <h3 style="font-family:var(--font-script); font-size:clamp(1.6rem, 4vw, 2.5rem); color:var(--color-primary); margin-bottom:10px; line-height:1.4;">
+                    Hôm nay là Ngày Trọng Đại của <br/>
+                    <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">Phước Đức &amp; Thu Sương! 🥳🎉</span>
                 </h3>
-                <p style="color:var(--color-text-muted); font-size:1.05rem;">
+                <p style="color:var(--color-text-muted); font-size:1.05rem; margin-top:8px;">
                     Cảm ơn tình cảm và sự hiện diện quý báu của tất cả quý vị quan khách! ✨
                 </p>
             </div>
