@@ -123,18 +123,32 @@
         white-space: nowrap;
     }
 
-    /* Gallery Grid Mobile - Chuyển sang CSS Grid cố định khung ảnh 2 cột đồng đều */
+    /* Mobile masonry: each column grows independently, so images never leave grid-row gaps. */
     .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        column-count: auto;
+        display: block;
+        column-count: 2;
+        column-gap: 10px;
     }
 
     .gallery-card {
-        margin-bottom: 0;
-        break-inside: auto;
-        -webkit-column-break-inside: auto;
+        display: inline-block;
+        width: 100%;
+        margin: 0 0 10px;
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        aspect-ratio: auto;
+    }
+
+    .gallery-card.tall,
+    .gallery-card.wide,
+    .gallery-card.square {
+        aspect-ratio: auto;
+    }
+
+    .gallery-card img {
+        height: auto;
+        aspect-ratio: auto;
+        object-fit: contain;
     }
 
     /* Lightbox Modal Mobile Tweaks */
