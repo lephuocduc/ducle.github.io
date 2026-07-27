@@ -65,11 +65,11 @@
     }
 
     .hero-card {
-        padding: 35px 20px;
+        padding: 30px 15px;
     }
 
     .hero-title {
-        font-size: clamp(1.8rem, 7.5vw, 3rem);
+        font-size: clamp(1.6rem, 8.8cqw, 3rem);
         white-space: nowrap;
         max-width: 100%;
     }
