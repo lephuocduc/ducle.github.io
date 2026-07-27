@@ -169,12 +169,25 @@
     }
 
     .lightbox-content-wrapper {
+        width: 96vw;
+        height: 82vh;
         max-width: 96vw;
-        max-height: 80vh;
+        max-height: 82vh;
+        justify-content: space-between;
     }
 
     .lightbox-img {
-        max-height: 68vh;
+        height: 58vh;
+        max-height: 58vh;
+        width: 100%;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .lightbox-thumbs-strip {
+        height: 60px;
+        max-width: 92vw;
+        flex-shrink: 0;
     }
 
     .lightbox-close-btn {

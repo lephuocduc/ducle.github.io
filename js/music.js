@@ -21,7 +21,7 @@ export function initMusicPlayer(musicConfig) {
         : (musicConfig.url || "assets/music.mp3");
 
     audioObj = new Audio(musicUrl);
-    audioObj.loop = true;
+    audioObj.loop = false;
 
     // Phản hồi khi audio bị lỗi
     audioObj.addEventListener("error", () => {

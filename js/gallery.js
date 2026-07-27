@@ -186,7 +186,8 @@ function updateLightboxThumbnailsActive() {
         const containerWidth = thumbsContainer.clientWidth;
         const thumbOffset = targetThumb.offsetLeft;
         const thumbWidth = targetThumb.clientWidth;
-        thumbsContainer.scrollLeft = thumbOffset - (containerWidth / 2) + (thumbWidth / 2);
+        const targetScrollLeft = thumbOffset - (containerWidth / 2) + (thumbWidth / 2);
+        thumbsContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
     }
 }
 

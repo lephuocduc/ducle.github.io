@@ -149,8 +149,8 @@ export const weddingConfig = {
 
     // Album ảnh cưới (Masonry Gallery)
     gallery: [
-        { src: "assets/img/NAM_2906.webp", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
         { src: "assets/img/NAM_3318.webp", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
+        { src: "assets/img/NAM_2906.webp", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
         { src: "assets/img/NAM_3103.webp", title: "Tay Trong Tay", aspect: "square" },
         { src: "assets/img/NAM_3230.webp", title: "Lời Thề Hứa", aspect: "wide" },
         { src: "assets/img/NAM_3814.webp", title: "Nụ Cười Hạnh Phúc", aspect: "tall" },
