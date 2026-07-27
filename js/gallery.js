@@ -43,13 +43,14 @@ export function renderGallery(containerId, galleryData) {
     galleryData.forEach((item, index) => {
         const card = document.createElement("div");
         const aspectClass = item.aspect || "square";
-        card.className = `gallery-card ${aspectClass} reveal-zoom`;
+        // Do not apply scroll-reveal to masonry items: Safari can leave fragmented columns at opacity 0.
+        card.className = `gallery-card ${aspectClass}`;
         card.setAttribute("role", "button");
         card.setAttribute("tabindex", "0");
         card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${galleryData.length}: ${item.title || 'Ảnh kỷ niệm'}`);
 
         card.innerHTML = `
-            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" loading="lazy" />
+            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" loading="eager" decoding="async" />
             <div class="gallery-hover-overlay">
                 <span style="font-family:var(--font-heading); font-size:1.1rem;">${item.title || ''}</span>
             </div>
