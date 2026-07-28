@@ -142,7 +142,7 @@ export const weddingConfig = {
             time: "10:00 - Ngày 25/10/2026",
             address: "18 Nguyễn Văn Cự, Phường Tân Tạo, TP. Hồ Chí Minh",
             icon: "fa-hand-holding-heart",
-            blessing: "Nhà trai rước dâu về nhà<br>Trăm năm hòa thuận, cửa nhà ấm êm",
+            blessing: "Tân hôn đẹp mối duyên lành<br>Trăm năm hòa thuận, gia đình ấm êm",
             mapEmbedUrl: null,
             mapDirectUrl: null
         },
