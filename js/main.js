@@ -3,14 +3,14 @@
  * Khởi tạo ứng dụng thiệp cưới SPA, render toàn bộ DOM từ config.js
  */
 
-import { loadConfig } from './config-loader.js';
-import { renderCountdown } from './countdown.js';
-import { renderGallery } from './gallery.js';
-import { initMusicPlayer } from './music.js';
-import { initScrollAnimations } from './animation.js';
-import { renderTimeline } from './timeline.js';
-import { renderCeremonies } from './map.js';
-import { initCanvasEffects, initParallax } from './effects.js';
+import { loadConfig } from './config-loader.js?v=20260728-3';
+import { renderCountdown } from './countdown.js?v=20260728-3';
+import { renderGallery } from './gallery.js?v=20260728-3';
+import { initMusicPlayer } from './music.js?v=20260728-3';
+import { initScrollAnimations } from './animation.js?v=20260728-3';
+import { renderTimeline } from './timeline.js?v=20260728-3';
+import { renderCeremonies } from './map.js?v=20260728-3';
+import { initCanvasEffects, initParallax } from './effects.js?v=20260728-3';
 
 // Tải cấu hình & Preload toàn bộ hình ảnh ngay khi JS nạp xong (trước cả khi người dùng bấm Mở thiệp)
 const initialConfig = loadConfig();
