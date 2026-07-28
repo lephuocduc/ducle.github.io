@@ -91,7 +91,7 @@ export const weddingConfig = {
             year: "2026",
             date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
-            content: "Chiếc nhẫn cầu hôn xinh xắn dưới ánh chiều hoàng hôn cùng câu trả lời \"Em đồng ý!\".",
+            content: "Dưới ánh hoàng hôn dịu dàng, chiếc nhẫn được trao cùng câu trả lời \“Em đồng ý!\” đã viết tiếp một chương mới cho chuyện tình của chúng mình.",
             image: "assets/img/NAM_3230.webp"
         },
         {
