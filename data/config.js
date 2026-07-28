@@ -74,7 +74,7 @@ export const weddingConfig = {
     // Hành trình yêu thương (Timeline)
     story: [
         {
-            year: "",
+            year: "2016",
             date: "",
             title: "Lần Đầu Gặp Gỡ",
             content: "Giữa dòng đời tấp nập, thật may mắn khi anh gặp em. Từ khoảnh khắc ấy, hai trái tim dần đồng điệu và cùng nhau viết nên câu chuyện tình yêu của riêng mình.",
