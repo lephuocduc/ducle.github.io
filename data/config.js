@@ -9,8 +9,8 @@ export const weddingConfig = {
     seo: {
         title: "Thiệp Mời Cưới - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
         description: "Trân trọng kính mời quý quan khách, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Thành Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
-        ogImage: "assets/hero.jpg",
-        favicon: "assets/favicon.ico"
+        ogImage: "assets/img/og-image.webp",
+        favicon: "assets/icons/favicon.svg"
     },
 
     // Thông tin Chú Rể & Cô Dâu
@@ -161,6 +161,7 @@ export const weddingConfig = {
     ],
 
     // Album ảnh cưới (Masonry Gallery)
+    galleryDriveUrl: "https://drive.google.com/drive/folders/1Itov-IKMkYSUbygz3keuhWxu4emgtmlX?usp=sharing",
     gallery: [
         { src: "assets/img/NAM_3318.webp", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
         { src: "assets/img/NAM_2906.webp", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },

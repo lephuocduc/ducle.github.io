@@ -17,7 +17,7 @@ export function renderTimeline(containerId, storyData) {
         itemEl.innerHTML = `
             <div class="timeline-badge"></div>
             <div class="timeline-card">
-                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="timeline-img" />` : ''}
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="timeline-img" loading="lazy" decoding="async" />` : ''}
                 <span class="timeline-year">${item.date || item.year}</span>
                 <h3 class="timeline-item-title">${item.title}</h3>
                 <p style="color:var(--color-text-muted); font-size:0.95rem;">${item.content}</p>

@@ -3,12 +3,12 @@
  * Khởi tạo ứng dụng thiệp cưới SPA, render toàn bộ DOM từ config.js
  */
 
-import { loadConfig } from './config-loader.js?v=20260729-1';
-import { renderCountdown } from './countdown.js?v=20260729-1';
+import { loadConfig } from './config-loader.js?v=20260729-2';
+import { renderCountdown } from './countdown.js?v=20260729-2';
 import { renderGallery } from './gallery.js?v=20260729-1';
-import { initMusicPlayer } from './music.js?v=20260729-1';
+import { initMusicPlayer } from './music.js?v=20260729-2';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
-import { renderTimeline } from './timeline.js?v=20260728-3';
+import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';
 import { initCanvasEffects, initParallax } from './effects.js?v=20260728-3';
 
@@ -59,10 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderFooter(config);
 
     // 3. Render các Module chuyên biệt
-    renderCountdown("countdown-container", config.weddingDate);
+    const coupleNames = `${config.groom?.shortName || config.groom?.name || ''} & ${config.bride?.shortName || config.bride?.name || ''}`;
+    renderCountdown("countdown-container", config.weddingDate, coupleNames);
     renderTimeline("timeline-container", config.story);
     renderCeremonies("ceremonies-container", config.ceremonies);
     renderGallery("gallery-container", config.gallery);
+    renderGalleryDriveLink(config.galleryDriveUrl);
 
     // 4. Khởi tạo nhạc nền, hiệu ứng & animations
     initMusicPlayer(config.music, config.weddingDate);
@@ -88,6 +90,17 @@ function preloadImages(config) {
         const img = new Image();
         img.src = url;
     });
+}
+
+function renderGalleryDriveLink(url) {
+    const driveButton = document.getElementById("gallery-drive-btn");
+    if (!driveButton) return;
+
+    if (url) {
+        driveButton.href = url;
+    } else {
+        driveButton.closest(".gallery-drive-link")?.remove();
+    }
 }
 
 // Render Hero Section

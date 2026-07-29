@@ -3,7 +3,7 @@
  * Bộ đếm ngược thời gian ngày cưới chính xác từng giây
  */
 
-export function renderCountdown(containerId, weddingDateIso) {
+export function renderCountdown(containerId, weddingDateIso, coupleNames = "Cặp Đôi") {
     const container = document.getElementById(containerId);
     if (!container || !weddingDateIso) return;
 
@@ -18,7 +18,7 @@ export function renderCountdown(containerId, weddingDateIso) {
                 <i class="fas fa-crown" style="font-size:2.2rem; color:var(--color-gold); margin-bottom:10px;"></i>
                 <h3 style="font-family:var(--font-script); font-size:clamp(1.6rem, 4vw, 2.5rem); color:var(--color-primary); margin-bottom:10px; line-height:1.4;">
                     Hôm nay là Ngày Trọng Đại của <br/>
-                    <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">Phước Đức &amp; Thu Sương! 🥳🎉</span>
+                    <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">${coupleNames}! 🥳🎉</span>
                 </h3>
                 <p style="color:var(--color-text-muted); font-size:1.05rem; margin-top:8px;">
                     Cảm ơn tình cảm và sự hiện diện quý báu của tất cả quý vị quan khách! ✨

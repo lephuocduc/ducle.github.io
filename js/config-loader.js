@@ -3,7 +3,7 @@
  * Đọc dữ liệu từ data/config.js và tự động nạp thông tin SEO Meta
  */
 
-import { weddingConfig } from '../data/config.js?v=20260729-1';
+import { weddingConfig } from '../data/config.js?v=20260729-2';
 
 export function loadConfig() {
     if (!weddingConfig) {
@@ -26,6 +26,12 @@ export function loadConfig() {
 
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', weddingConfig.seo.ogImage || '');
+
+        const twitterImage = document.querySelector('meta[name="twitter:image"]');
+        if (twitterImage) twitterImage.setAttribute('content', weddingConfig.seo.ogImage || '');
+
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (favicon && weddingConfig.seo.favicon) favicon.setAttribute('href', weddingConfig.seo.favicon);
     }
 
     return weddingConfig;

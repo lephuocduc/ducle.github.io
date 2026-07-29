@@ -165,6 +165,7 @@ export const weddingConfig = {
     ],
 
     // Album Ảnh Cưới
+    galleryDriveUrl: "https://drive.google.com/drive/folders/...",
     gallery: [
         { src: "assets/img/photo1.webp", title: "Tiêu đề", aspect: "wide" },
         { src: "assets/img/photo2.webp", title: "Tiêu đề", aspect: "tall" },
@@ -179,7 +180,7 @@ export const weddingConfig = {
 };
 ```
 
-**Kiểm tra nhạc đặc biệt:** `weddingDate` là nơi cấu hình ngày duy nhất. Tạm đổi nó thành ngày hôm nay (vẫn giữ hậu tố `+07:00`) rồi tải lại trang để nghe `music.specialUrl`; kiểm tra xong, đổi lại ngày cưới thật. Ngày được so sánh theo múi giờ Việt Nam.
+**Kiểm tra nhạc đặc biệt:** `weddingDate` là nơi cấu hình ngày duy nhất. Tạm đổi nó thành ngày hôm nay (vẫn giữ hậu tố `+07:00`) rồi tải lại trang để nghe `music.specialUrl`; kiểm tra xong, đổi lại ngày cưới thật. Ngày, tháng và năm được so sánh theo múi giờ Việt Nam.
 
 ### 2️⃣ **Thêm Hình Ảnh & Âm Thanh**
 

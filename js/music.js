@@ -15,6 +15,7 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
     // Kiểm tra nếu hôm nay là ngày 25/10 (Tháng 10 trong JS Date là index 9, Ngày 25)
     const vietnamDate = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
         month: '2-digit',
         day: '2-digit'
     });
@@ -22,20 +23,23 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
         && vietnamDate.format(new Date()) === vietnamDate.format(new Date(weddingDateIso));
 
     const musicUrl = isWeddingDay
-        ? (musicConfig.specialUrl || "assets/Tonight I celebrate my love.mp3")
-        : (musicConfig.url || "assets/music.mp3");
+        ? (musicConfig.specialUrl || "assets/audio/Tonight I celebrate my love.mp3")
+        : (musicConfig.url || "assets/audio/music.mp3");
 
-    audioObj = new Audio(musicUrl);
-    audioObj.loop = false;
+    function ensureAudio() {
+        if (audioObj) return audioObj;
 
-    // Phản hồi khi audio bị lỗi
-    audioObj.addEventListener("error", () => {
-        console.warn("Không tìm thấy file mp3 local, chuẩn bị phương án phát nhạc synth.");
-    });
+        audioObj = new Audio(musicUrl);
+        audioObj.loop = false;
+        audioObj.addEventListener("error", () => {
+            console.warn("Không thể tải file nhạc.");
+        });
+        return audioObj;
+    }
 
     function play() {
-        if (!audioObj) return;
-        audioObj.play().then(() => {
+        const audio = ensureAudio();
+        audio.play().then(() => {
             isPlaying = true;
             updateUI(true);
         }).catch(() => {
@@ -75,8 +79,6 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
 
     // Tự động phát lần đầu tiên nếu cấu hình bật và trình duyệt cho phép
     if (musicConfig.autoplay) {
-        play();
-        // Lắng nghe cú click đầu tiên của người dùng để bật nhạc nếu autoplay bị chặn
         const handleFirstTouch = () => {
             if (!isPlaying) play();
             window.removeEventListener("click", handleFirstTouch);
