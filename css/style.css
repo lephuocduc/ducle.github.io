@@ -1119,6 +1119,53 @@ body.no-scroll {
     border: 1px solid #eee;
 }
 
+.gift-qr-button {
+    display: block;
+    margin: 15px auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: zoom-in;
+}
+
+.gift-qr-button .gift-qr-img {
+    display: block;
+    margin: 0;
+}
+
+.gift-qr-button:focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 4px;
+}
+
+.qr-modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.qr-modal.active {
+    display: flex;
+}
+
+.qr-modal-img {
+    width: min(88vw, 560px);
+    height: min(88vw, 560px);
+    max-height: 82dvh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    background: #fff;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+}
+
 .bank-info-box {
     background: var(--color-bg-warm);
     padding: 15px;

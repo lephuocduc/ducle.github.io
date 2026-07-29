@@ -31,8 +31,11 @@ export function renderCeremonies(containerId, ceremoniesData) {
                 <i class="fas fa-route"></i> Mở Google Maps
             </a>` : '';
 
-        const isMobile = window.matchMedia('(pointer: coarse)').matches;
-        const resolvedCalendarUrl = isMobile
+        // webcal:// is handled reliably by iOS Calendar, while Android browsers
+        // generally need the Google Calendar URL instead.
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const resolvedCalendarUrl = isIOS
             ? (item.calendarWebcalUrl || item.calendarUrl)
             : (item.calendarUrl || item.calendarWebcalUrl);
 

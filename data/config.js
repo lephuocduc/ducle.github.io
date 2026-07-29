@@ -49,7 +49,7 @@ export const weddingConfig = {
     },
 
     // Ngày cưới & Đếm ngược
-    weddingDate: "2026-10-25T00:00:00", // Định dạng ISO: YYYY-MM-DDTHH:mm:ss
+    weddingDate: "2026-10-25T00:00:00+07:00", // Giờ Việt Nam (UTC+7), cố định cho khách xem ở mọi múi giờ
     weddingDateDisplay: "25.10.2026",
     lunarDateDisplay: "16 Tháng 9 Năm Bính Ngọ (Âm Lịch)",
 

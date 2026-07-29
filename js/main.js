@@ -3,16 +3,16 @@
  * Khởi tạo ứng dụng thiệp cưới SPA, render toàn bộ DOM từ config.js
  */
 
-import { loadConfig } from './config-loader.js?v=20260728-3';
-import { renderCountdown } from './countdown.js?v=20260728-3';
-import { renderGallery } from './gallery.js?v=20260728-3';
+import { loadConfig } from './config-loader.js?v=20260729-1';
+import { renderCountdown } from './countdown.js?v=20260729-1';
+import { renderGallery } from './gallery.js?v=20260729-1';
 import { initMusicPlayer } from './music.js?v=20260728-3';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260728-3';
-import { renderCeremonies } from './map.js?v=20260728-3';
+import { renderCeremonies } from './map.js?v=20260729-1';
 import { initCanvasEffects, initParallax } from './effects.js?v=20260728-3';
 
-// Tải cấu hình & Preload toàn bộ hình ảnh ngay khi JS nạp xong (trước cả khi người dùng bấm Mở thiệp)
+// Tải cấu hình và chỉ preload các ảnh cần cho phần mở đầu.
 const initialConfig = loadConfig();
 if (initialConfig) {
     preloadImages(initialConfig);
@@ -76,32 +76,15 @@ document.addEventListener("DOMContentLoaded", () => {
     hidePreloader();
 });
 
-// Preload tất cả hình ảnh trước khi mở thiệp
+// Chỉ preload hero và ảnh đại diện; các ảnh còn lại tải khi khách cuộn đến.
 function preloadImages(config) {
-    const galleryUrls = [];
-    const otherUrls = new Set();
+    const urls = new Set();
 
-    if (config.hero?.backgroundImage) otherUrls.add(config.hero.backgroundImage);
-    if (config.groom?.avatar) otherUrls.add(config.groom.avatar);
-    if (config.bride?.avatar) otherUrls.add(config.bride.avatar);
+    if (config.hero?.backgroundImage) urls.add(config.hero.backgroundImage);
+    if (config.groom?.avatar) urls.add(config.groom.avatar);
+    if (config.bride?.avatar) urls.add(config.bride.avatar);
 
-    if (Array.isArray(config.story)) {
-        config.story.forEach(item => {
-            if (item.image) otherUrls.add(item.image);
-        });
-    }
-
-    if (Array.isArray(config.gallery)) {
-        config.gallery.forEach(item => {
-            if (item.src) galleryUrls.push(item.src);
-        });
-    }
-
-    if (config.groom?.bank?.qrImage) otherUrls.add(config.groom.bank.qrImage);
-    if (config.bride?.bank?.qrImage) otherUrls.add(config.bride.bank.qrImage);
-
-    // Preload các hình ảnh cơ bản (hero, avatar, story, gallery...)
-    [...otherUrls, ...galleryUrls].forEach(url => {
+    urls.forEach(url => {
         const img = new Image();
         img.src = url;
     });
@@ -197,7 +180,9 @@ function renderGiftSection(config) {
         <!-- Thẻ mừng chú rể -->
         <div class="gift-card reveal-slide-left">
             <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Chú Rể</h3>
-            <img src="${groomQrSrc}" alt="Mã QR Chuyển Khoản Chú Rể" class="gift-qr-img" />
+            <button type="button" class="gift-qr-button" data-qr-src="${groomQrSrc}" data-qr-alt="Mã QR Chuyển Khoản Chú Rể" aria-label="Mở lớn mã QR chuyển khoản chú rể">
+                <img src="${groomQrSrc}" alt="Mã QR Chuyển Khoản Chú Rể" class="gift-qr-img" loading="lazy" decoding="async" />
+            </button>
             <div class="bank-info-box">
                 <p><strong>Ngân hàng:</strong> ${groomBank.bankName}</p>
                 <p>
@@ -211,7 +196,9 @@ function renderGiftSection(config) {
         <!-- Thẻ mừng cô dâu -->
         <div class="gift-card reveal-slide-right">
             <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Cô Dâu</h3>
-            <img src="${brideQrSrc}" alt="Mã QR Chuyển Khoản Cô Dâu" class="gift-qr-img" />
+            <button type="button" class="gift-qr-button" data-qr-src="${brideQrSrc}" data-qr-alt="Mã QR Chuyển Khoản Cô Dâu" aria-label="Mở lớn mã QR chuyển khoản cô dâu">
+                <img src="${brideQrSrc}" alt="Mã QR Chuyển Khoản Cô Dâu" class="gift-qr-img" loading="lazy" decoding="async" />
+            </button>
             <div class="bank-info-box">
                 <p><strong>Ngân hàng:</strong> ${brideBank.bankName}</p>
                 <p>
@@ -222,6 +209,40 @@ function renderGiftSection(config) {
             </div>
         </div>
     `;
+
+    initQrLightbox(giftContainer);
+}
+
+function initQrLightbox(giftContainer) {
+    const modal = document.getElementById("qr-modal");
+    const modalImage = document.getElementById("qr-modal-img");
+    const closeButton = document.getElementById("qr-modal-close-btn");
+    if (!modal || !modalImage || !closeButton) return;
+
+    const close = () => {
+        modal.classList.remove("active");
+        document.body.classList.remove("no-scroll");
+        document.documentElement.classList.remove("no-scroll");
+    };
+
+    giftContainer.querySelectorAll(".gift-qr-button").forEach(button => {
+        button.addEventListener("click", () => {
+            modalImage.src = button.dataset.qrSrc;
+            modalImage.alt = button.dataset.qrAlt;
+            modal.classList.add("active");
+            document.body.classList.add("no-scroll");
+            document.documentElement.classList.add("no-scroll");
+            closeButton.focus();
+        });
+    });
+
+    closeButton.onclick = close;
+    modal.onclick = (event) => {
+        if (event.target === modal) close();
+    };
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("active")) close();
+    });
 }
 
 // Render Footer

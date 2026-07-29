@@ -51,6 +51,7 @@ export function renderCountdown(containerId, weddingDateIso) {
     const pad = (n) => n < 10 ? `0${n}` : `${n}`;
 
     let isRibbonRendered = false;
+    let intervalId;
 
     function update() {
         const diff = targetTime - Date.now();
@@ -61,7 +62,7 @@ export function renderCountdown(containerId, weddingDateIso) {
                 renderRibbon();
                 isRibbonRendered = true;
             }
-            if (typeof intervalId !== "undefined") clearInterval(intervalId);
+            if (intervalId) clearInterval(intervalId);
             return;
         }
 
@@ -83,5 +84,5 @@ export function renderCountdown(containerId, weddingDateIso) {
     }
 
     update();
-    const intervalId = setInterval(update, 1000);
+    if (!isRibbonRendered) intervalId = setInterval(update, 1000);
 }
