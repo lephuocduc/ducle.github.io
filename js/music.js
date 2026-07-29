@@ -7,16 +7,21 @@ let audioObj = null;
 let isPlaying = false;
 let wasPlayingBeforeHide = false;
 
-export function initMusicPlayer(musicConfig) {
+export function initMusicPlayer(musicConfig, weddingDateIso) {
     const btn = document.getElementById("music-toggle-btn");
     const icon = document.getElementById("music-icon");
     if (!btn || !musicConfig) return;
 
     // Kiểm tra nếu hôm nay là ngày 25/10 (Tháng 10 trong JS Date là index 9, Ngày 25)
-    const today = new Date();
-    const isOct25 = (today.getMonth() === 9 && today.getDate() === 25);
+    const vietnamDate = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    const isWeddingDay = weddingDateIso
+        && vietnamDate.format(new Date()) === vietnamDate.format(new Date(weddingDateIso));
 
-    const musicUrl = isOct25
+    const musicUrl = isWeddingDay
         ? (musicConfig.specialUrl || "assets/Tonight I celebrate my love.mp3")
         : (musicConfig.url || "assets/music.mp3");
 

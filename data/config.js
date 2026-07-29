@@ -67,7 +67,6 @@ export const weddingConfig = {
         title: "Beautiful in White - Instrumental",
         specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
         specialTitle: "Tonight I Celebrate My Love",
-        specialDate: "10-25",
         autoplay: true
     },
 

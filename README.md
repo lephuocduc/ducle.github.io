@@ -26,7 +26,7 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 - **Gallery Masonry**: Album ảnh cưới responsive với Lazy Loading
 - **Lightbox Modal**: Xem ảnh phóng to mượt mà
 - **Google Maps Integration**: Nhúng bản đồ chỉ đường cho từng địa điểm
-- **QR Code Mừng Cưới**: Hiển thị QR chuyển khoản VietQR với sao chép STK
+- **QR Code Mừng Cưới**: Hiển thị QR chuyển khoản VietQR, sao chép STK và bấm để phóng to
 - **Music Player**: Trình phát nhạc nền với icon visual
 - **Particle Effects**: Hiệu ứng trái tim & cánh hoa rơi trên Canvas
 - **Parallax Effect**: Hiệu ứng parallax nhẹ nhàng
@@ -42,7 +42,7 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 - **WCAG Compliance**: Hỗ trợ screen reader, ARIA labels
 - **Keyboard Navigation**: Phím tắt hỗ trợ (Tab, Enter, Escape)
 - **Color Contrast**: Đảm bảo độ tương phản màu sắc
-- **Meta Tags**: Open Graph, Twitter Card, JSON-LD
+- **Meta Tags**: Open Graph và Twitter Card
 - **Sitemap & Robots.txt**: SEO friendly
 
 ---
@@ -50,7 +50,7 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 ## 📁 Cấu Trúc Dự Án
 
 ```
-ducle.github.io/
+Invitation/
 ├── index.html                  # SPA Container & Module Loader
 ├── css/
 │   ├── style.css               # Giao diện chính (Emerald & Champagne Gold)
@@ -73,8 +73,6 @@ ducle.github.io/
 │   ├── audio/                  # File nhạc nền (.mp3)
 │   ├── icons/                  # Icons & favicons (.svg, .ico)
 │   └── ics/                    # Calendar file (.ics)
-├── robots.txt                  # SEO - robots crawl instructions
-├── sitemap.xml                 # SEO - sitemap for search engines
 └── README.md                   # Tài liệu hướng dẫn này
 ```
 
@@ -92,8 +90,7 @@ export const weddingConfig = {
     seo: {
         title: "Thiệp Mời Cưới - Tên Của Bạn",
         description: "Mô tả thiệp cưới...",
-        ogImage: "assets/img/cover.webp",
-        favicon: "assets/icons/favicon.svg"
+        ogImage: "assets/img/og-image.webp"
     },
 
     // Thông Tin Chú Rể
@@ -120,7 +117,8 @@ export const weddingConfig = {
     },
 
     // Ngày Cưới
-    weddingDate: "2026-10-25T00:00:00",  // ISO Format
+    // Giờ Việt Nam (UTC+7). Đây cũng là ngày kích hoạt nhạc đặc biệt.
+    weddingDate: "2026-10-25T00:00:00+07:00",
     weddingDateDisplay: "25.10.2026",
     lunarDateDisplay: "16 Tháng 9 Năm Bính Ngọ (Âm Lịch)",
 
@@ -135,6 +133,7 @@ export const weddingConfig = {
     // Nhạc Nền
     music: {
         url: "assets/audio/music.mp3",
+        specialUrl: "assets/audio/tonight-celebration.mp3", // Phát vào ngày weddingDate
         title: "Beautiful in White - Instrumental",
         autoplay: true
     },
@@ -180,6 +179,8 @@ export const weddingConfig = {
 };
 ```
 
+**Kiểm tra nhạc đặc biệt:** `weddingDate` là nơi cấu hình ngày duy nhất. Tạm đổi nó thành ngày hôm nay (vẫn giữ hậu tố `+07:00`) rồi tải lại trang để nghe `music.specialUrl`; kiểm tra xong, đổi lại ngày cưới thật. Ngày được so sánh theo múi giờ Việt Nam.
+
 ### 2️⃣ **Thêm Hình Ảnh & Âm Thanh**
 
 Đặt các file vào thư mục tương ứng:
@@ -200,7 +201,7 @@ assets/
     └── favicon.svg         # Biểu tượng website
 ```
 
-**Lưu ý**: Dùng format `.webp` cho ảnh để giảm dung lượng, sử dụng tools online để convert.
+**Lưu ý**: Dùng format `.webp` cho ảnh để giảm dung lượng. Hero và avatar được tải trước; ảnh gallery dùng lazy loading nên chỉ tải khi khách cuộn gần đến phần album.
 
 ### 3️⃣ **Tạo QR Code Mừng Cưới**
 
@@ -221,6 +222,8 @@ qrImage: "https://img.vietqr.io/image/TPB-01945354401-compact2.png?amount=0&addI
 3. Click "Share" → "Embed a map"
 4. Copy embed URL vào `mapEmbedUrl`
 5. Copy direct link vào `mapDirectUrl`
+
+Nếu muốn hiện nút **Thêm vào Lịch**, thêm cả hai đường dẫn vào từng mục `ceremonies`: `calendarUrl` (Google Calendar) và `calendarWebcalUrl` (tệp ICS). Trên Android, thiệp sẽ dùng Google Calendar; trên iPhone/iPad sẽ ưu tiên `webcal://`.
 
 ---
 
@@ -271,7 +274,7 @@ npm run dev
 
 2. **Settings → Pages → Source → main branch**
 
-3. Website tự động deploy tại `https://username.github.io/ducle.github.io`
+3. Website tự động deploy tại `https://username.github.io/repository-name/`
 
 Hoặc custom domain:
 1. Mua domain (GoDaddy, Namecheap, v.v.)
@@ -289,8 +292,8 @@ Hoặc custom domain:
 | **ES6 JavaScript** | Module-based logic |
 | **Canvas API** | Particle effects & animations |
 | **IntersectionObserver** | Scroll reveal & lazy load |
-| **Google Maps API** | Nhúng bản đồ chỉ đường |
-| **Web Audio API** | Trình phát nhạc |
+| **Google Maps Embed** | Nhúng bản đồ chỉ đường |
+| **HTML Audio** | Trình phát nhạc |
 | **Open Graph & Meta Tags** | Social sharing & SEO |
 
 ---
@@ -298,18 +301,10 @@ Hoặc custom domain:
 ## 🎯 Tối Ưu Hóa & Performance
 
 ### ✅ Đã Implement
-- **Preload & Preconnect**: Tải tài nguyên trước
+- **Preload & Preconnect**: Preload hero/ảnh đại diện và kết nối trước tới tài nguyên bên ngoài
 - **WebP Images**: Format ảnh hiệu suất cao
-- **CSS Minification**: File CSS tối ưu
-- **Lazy Loading**: Ảnh tải khi cần thiết
+- **Lazy Loading**: Gallery, QR và bản đồ tải khi cần thiết
 - **requestAnimationFrame**: Animations mượt 60 FPS
-- **Gzip Compression**: Tối ưu kích thước
-
-### 📊 Lighthouse Score
-- ⚡ Performance: 90+
-- ♿ Accessibility: 95+
-- 🔍 SEO: 100
-- ✅ Best Practices: 95+
 
 ---
 
@@ -349,20 +344,6 @@ Hoặc custom domain:
 
 ---
 
-## 📞 Hỗ Trợ & Liên Hệ
-
-- 📧 **Email**: [Email của bạn]
-- 💬 **Facebook**: [Link FB của bạn]
-- 🔗 **GitHub**: [GitHub Profile]
-
----
-
-## 📝 License
-
-Dự án này được phát hành dưới **MIT License**. Tự do sử dụng cho mục đích cá nhân.
-
----
-
 ## ❤️ Ghi Chú
 
 Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp cưới online này sẽ mang lại niềm vui cho quý vị quan khách.
@@ -371,5 +352,5 @@ Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp
 
 ---
 
-*Last Updated: 2026-07-27*  
+*Last Updated: 2026-07-29*
 *Made with ❤️ by Lê Phước Đức*
