@@ -101,7 +101,7 @@ function buildShell() {
                             <span class="ws-petal p4">💕</span>
                         </div>
                     </div>
-                    <p class="ws-deco-quote">"Những lời chúc c\u1ee7a qu\u00fd kh\u00e1ch<br>là món quà tuyệt vời nhất<br>dành cho chúng mình"</p>
+                    <p class="ws-deco-quote">"Những lời chúc của mọi người là món quà tuyệt vời nhất dành cho chúng mình"</p>
                     <span class="ws-deco-gold">❤</span>
                 </div>
 
