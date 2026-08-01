@@ -11,6 +11,7 @@ import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';
 import { initCanvasEffects, initParallax } from './effects.js?v=20260728-3';
+import { initWishesModule } from './wishes.js?v=20260801-1';
 
 // Tải cấu hình và chỉ preload các ảnh cần cho phần mở đầu.
 const initialConfig = loadConfig();
@@ -65,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCeremonies("ceremonies-container", config.ceremonies);
     renderGallery("gallery-container", config.gallery);
     renderGalleryDriveLink(config.galleryDriveUrl);
+    initWishesModule();
 
     // 4. Khởi tạo nhạc nền, hiệu ứng & animations
     initMusicPlayer(config.music, config.weddingDate);

@@ -145,7 +145,6 @@ export const weddingConfig = {
             mapEmbedUrl: null,
             mapDirectUrl: null
         },
-
         {
             id: "tiec-cuoi",
             tag: "TIỆC CƯỚI MẬT NGỌT",
@@ -176,6 +175,9 @@ export const weddingConfig = {
         { src: "assets/img/NAM_3632.webp", title: "Trọn Đời Bên Nhau", aspect: "wide" },
         { src: "assets/img/NAM_2843.webp", title: "Khởi Đầu Mới", aspect: "square" }
     ],
+
+    // Google Apps Script API URL cho phần Lời Chúc (Nếu chưa có Apps Script có thể để rỗng để dùng Mock local)
+    wishesApiUrl: "https://script.google.com/macros/s/AKfycbx28t1YcVTx2h2O727DA6mpFH-RB-PjRodUD-nJswnbvlKPOZFVG8h4tlf6Cl1Q9sro/exec",
 
     // Lời cảm ơn & Footer
     footer: {

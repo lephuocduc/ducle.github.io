@@ -1248,9 +1248,11 @@ body.no-scroll {
     transform: scale(1.1);
 }
 
+
 .music-btn.playing {
     animation: spinDisc 4s linear infinite;
 }
+
 
 .back-to-top {
     opacity: 0;
@@ -1303,3 +1305,625 @@ body.no-scroll {
     visibility: visible;
     pointer-events: auto;
 }
+
+/* ============================================================
+   14. Wishes Section - Lời Chúc (Bố cục & Styling Tinh Tế)
+   ============================================================ */
+
+.wishes-section {
+    background: linear-gradient(180deg, #fff7f7 0%, #fff0ed 50%, #fff7f5 100%);
+    padding: 60px 20px 80px;
+}
+
+.ws-root {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* 1. Pill Tổng Số Lời Chúc */
+.ws-total-row {
+    text-align: center;
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
+
+.ws-total-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    color: var(--color-primary-dark);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    padding: 8px 24px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(139, 0, 0, 0.05);
+}
+
+.ws-total-pill i {
+    color: var(--color-primary);
+    animation: pulse 2s infinite;
+}
+
+/* 2. Form Card 2 Cột */
+.ws-form-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(139, 0, 0, 0.06), 0 2px 10px rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.ws-form-inner {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    align-items: center;
+}
+
+/* Cột Trái: Đồ Họa Bì Thư */
+.ws-form-deco {
+    flex: 0 0 280px;
+    text-align: center;
+    padding-right: 30px;
+    border-right: 1px dashed rgba(212, 175, 55, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ws-envelope-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin-bottom: 15px;
+}
+
+.ws-envelope-icon {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #fff5f0, #ffe6e0);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--color-primary);
+    box-shadow: 0 8px 25px rgba(139, 0, 0, 0.12);
+    border: 2px solid rgba(212, 175, 55, 0.4);
+}
+
+.ws-deco-petals .ws-petal {
+    position: absolute;
+    font-size: 1.2rem;
+    animation: floatY 3s ease-in-out infinite alternate;
+}
+.ws-petal.p1 { top: -5px; left: -10px; animation-delay: 0s; }
+.ws-petal.p2 { top: 20px; right: -15px; animation-delay: 0.5s; }
+.ws-petal.p3 { bottom: 5px; left: -5px; animation-delay: 1s; }
+.ws-petal.p4 { bottom: -10px; right: 10px; animation-delay: 1.5s; }
+
+.ws-deco-quote {
+    font-style: italic;
+    font-size: 0.92rem;
+    color: var(--color-text-main);
+    line-height: 1.6;
+    margin-bottom: 10px;
+    font-family: var(--font-heading);
+}
+
+.ws-deco-gold {
+    color: var(--color-gold-dark);
+    font-size: 0.85rem;
+}
+
+/* Cột Phải: Form Nhập */
+.ws-form-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ws-form-header {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.ws-form-icon {
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    margin-right: 6px;
+}
+
+.ws-form-title {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.ws-form-sub {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.ws-field-group {
+    margin-bottom: 16px;
+}
+
+.ws-label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 6px;
+}
+
+.ws-label i {
+    color: var(--color-primary);
+    margin-right: 4px;
+}
+
+.ws-req {
+    color: var(--color-primary);
+}
+
+.ws-input,
+.ws-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(139, 0, 0, 0.18);
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    background: #fffcfb;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.ws-input:focus,
+.ws-textarea:focus {
+    border-color: var(--color-primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(139, 0, 0, 0.08);
+}
+
+.ws-textarea-wrap {
+    position: relative;
+}
+
+.ws-char-count {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.ws-btn-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #8B0000, #580000);
+    color: #ffffff;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139, 0, 0, 0.25);
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.ws-btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(139, 0, 0, 0.35);
+    background: linear-gradient(135deg, #a80000, #700000);
+}
+
+.ws-disclaimer {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: 14px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.ws-disclaimer-icon {
+    color: var(--color-gold-dark);
+    margin-right: 4px;
+}
+
+/* 3. Divider */
+.ws-divider {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.ws-divider-leaf {
+    color: var(--color-gold);
+    font-size: 0.85rem;
+}
+
+.ws-divider-heart {
+    color: var(--color-primary);
+    font-size: 1rem;
+}
+
+/* 4. Danh Sách Lời Chúc (Header & Sort) */
+.ws-list-header {
+    position: relative;
+}
+
+.ws-list-title-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.ws-list-icon {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+}
+
+.ws-list-title {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    text-align: center;
+}
+
+.ws-list-sub {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.ws-sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ws-sort-label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.ws-sort-btn {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: var(--color-text-main);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ws-sort-btn.active,
+.ws-sort-btn:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+}
+
+/* 5. Wish Card Layout */
+.ws-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.ws-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 22px 26px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 18px;
+    position: relative;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.ws-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 0, 0, 0.08);
+}
+
+.ws-card.is-pinned {
+    background: linear-gradient(135deg, #ffffff 0%, #fffdf8 100%);
+    border-color: rgba(212, 175, 55, 0.55);
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+}
+
+.ws-pin-badge {
+    position: absolute;
+    top: -11px;
+    left: 24px;
+    background: linear-gradient(135deg, #d4af37, #aa820a);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Avatar Initials */
+.ws-card-left {
+    flex: 0 0 auto;
+}
+
+.ws-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    font-family: var(--font-heading);
+}
+
+/* Content Mid */
+.ws-card-mid {
+    flex: 1;
+    min-width: 0;
+}
+
+.ws-card-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.ws-author-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-primary-dark);
+}
+
+.ws-author-label {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--color-gold-dark);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.ws-card-content {
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    line-height: 1.6;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.ws-card-time {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Right - Thả tim */
+.ws-card-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.ws-like-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.ws-heart-icon {
+    color: var(--color-primary);
+}
+
+.ws-like-btn {
+    background: #fff0f0;
+    border: 1px solid rgba(139, 0, 0, 0.18);
+    color: var(--color-primary);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ws-like-btn:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+}
+
+.ws-like-burst {
+    animation: pulse 0.4s ease;
+}
+
+.ws-count-bump {
+    animation: pulse 0.35s ease;
+}
+
+/* 6. Load More & States */
+.ws-more-row {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.ws-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1.5px solid rgba(139, 0, 0, 0.2);
+    color: var(--color-primary-dark);
+    padding: 10px 28px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+}
+
+.ws-load-more:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+.ws-loading,
+.ws-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-text-muted);
+}
+
+.ws-empty i {
+    font-size: 2.5rem;
+    color: rgba(212, 175, 55, 0.4);
+    margin-bottom: 10px;
+}
+
+/* 7. Burst & Floating Effects */
+.ws-burst-wrap {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.ws-burst-p {
+    position: absolute;
+    top: -50px;
+    animation: fallDown linear forwards;
+}
+
+@keyframes fallDown {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+}
+
+.ws-mini-heart {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 1.2rem;
+    animation: miniHeartFloat 0.9s ease-out forwards;
+}
+
+@keyframes miniHeartFloat {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-50px) scale(1.4); opacity: 0; }
+}
+
+/* 8. Toast */
+.ws-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+    visibility: hidden;
+    background: rgba(88, 0, 0, 0.95);
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: 1px solid var(--color-gold);
+    font-size: 0.9rem;
+    z-index: 99999;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 90vw;
+}
+
+.ws-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ws-form-inner {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .ws-form-deco {
+        flex: 1;
+        width: 100%;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px dashed rgba(212, 175, 55, 0.35);
+        padding-bottom: 20px;
+    }
+
+    .ws-form-card {
+        padding: 24px 18px;
+    }
+
+    .ws-card {
+        padding: 18px 16px;
+    }
+
