@@ -267,6 +267,7 @@ body.no-scroll {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 24px;
     background: rgba(255, 253, 249, 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -286,12 +287,28 @@ body.no-scroll {
     color: var(--color-primary);
     text-decoration: none;
     font-weight: 700;
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .nav-menu {
     display: flex;
     list-style: none;
     gap: 25px;
+    min-width: 0;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-menu::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-menu li {
+    flex: 0 0 auto;
 }
 
 .nav-link {
@@ -302,6 +319,8 @@ body.no-scroll {
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: var(--transition-fast);
+    white-space: nowrap;
+    display: block;
 }
 
 .nav-link:hover, .nav-link.active {
@@ -349,8 +368,8 @@ body.no-scroll {
 
 .hero-subtitle {
     font-family: var(--font-heading);
-    font-size: 1.2rem;
-    letter-spacing: 4px;
+    font-size: clamp(0.8rem, 3cqw, 1.2rem);
+    letter-spacing: clamp(2px, 0.7cqw, 4px);
     text-transform: uppercase;
     color: var(--color-gold-dark);
     margin-bottom: 15px;
@@ -369,7 +388,7 @@ body.no-scroll {
 
 .hero-date {
     font-family: var(--font-heading);
-    font-size: 1.8rem;
+    font-size: clamp(1.25rem, 4cqw, 1.8rem);
     font-weight: 700;
     color: var(--color-text-main);
     margin-bottom: 8px;
@@ -378,7 +397,7 @@ body.no-scroll {
 .hero-lunar {
     font-style: italic;
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: clamp(0.8rem, 2.5cqw, 0.95rem);
 }
 
 .scroll-indicator {
@@ -401,30 +420,32 @@ body.no-scroll {
 
 .section-header {
     text-align: center;
-    margin-bottom: 50px;
+    font-size: clamp(1.8rem, 5.8vw, 3.8rem);
+    margin-bottom: clamp(32px, 4vw, 50px);
 }
 
 .section-tag {
     font-family: var(--font-heading);
-    font-size: 1.1rem;
-    letter-spacing: 3px;
+    font-size: 0.31em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--color-gold-dark);
     display: block;
     margin-bottom: 5px;
+    white-space: nowrap;
 }
 
 .section-title {
     font-family: var(--font-script);
-    font-size: 3.8rem;
+    font-size: 1em;
     color: var(--color-primary);
     line-height: 1.1;
 }
 
 .section-divider {
     color: var(--color-gold);
-    font-size: 1.4rem;
-    margin-top: 10px;
+    font-size: 0.37em;
+    margin-top: 0.18em;
 }
 
 /* 5. Live Status Ribbon on Wedding Day */
@@ -457,11 +478,11 @@ body.no-scroll {
 }
 
 .countdown-grid {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(6px, 2vw, 20px);
     max-width: 800px;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -474,14 +495,14 @@ body.no-scroll {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(212, 175, 55, 0.4);
     border-radius: var(--radius-md);
-    padding: 25px;
-    min-width: 120px;
+    padding: clamp(10px, 3vw, 25px);
+    min-width: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .countdown-number {
     font-family: var(--font-heading);
-    font-size: 3.2rem;
+    font-size: clamp(1.6rem, 6.4vw, 3.2rem);
     font-weight: 700;
     color: var(--color-gold);
     line-height: 1;
@@ -489,11 +510,11 @@ body.no-scroll {
 }
 
 .countdown-label {
-    font-size: 0.85rem;
+    font-size: clamp(0.55rem, 1.6vw, 0.85rem);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: clamp(0.5px, 0.25vw, 2px);
     color: var(--color-text-light);
-    margin-top: 10px;
+    margin-top: clamp(5px, 1.25vw, 10px);
 }
 
 /* 6. Couple / Groom & Bride Section */
@@ -510,13 +531,14 @@ body.no-scroll {
 .couple-card {
     background: var(--color-card-bg);
     border-radius: var(--radius-md);
-    padding: 40px 30px;
+    padding: clamp(20px, 4cqw, 40px) clamp(15px, 3cqw, 30px);
     text-align: center;
-    flex: 1 1 340px;
+    flex: 1 1 300px;
     max-width: 480px;
     box-shadow: var(--shadow-soft);
     border: 1px solid rgba(212, 175, 55, 0.3);
     transition: var(--transition-normal);
+    container-type: inline-size;
 }
 
 .couple-card:hover {
@@ -525,13 +547,15 @@ body.no-scroll {
 }
 
 .avatar-frame {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 25px;
+    width: clamp(130px, 42cqw, 200px);
+    height: clamp(130px, 42cqw, 200px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 20px;
     border-radius: 50%;
     padding: 6px;
     background: linear-gradient(135deg, var(--color-gold), var(--color-primary));
     box-shadow: var(--shadow-gold);
+    transition: width 0.2s ease, height 0.2s ease;
 }
 
 .avatar-frame img {
@@ -543,7 +567,7 @@ body.no-scroll {
 
 .couple-role {
     font-family: var(--font-heading);
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 2.5cqw, 1.05rem);
     letter-spacing: 2px;
     color: var(--color-gold-dark);
     font-weight: 700;
@@ -552,9 +576,11 @@ body.no-scroll {
 
 .couple-name {
     font-family: var(--font-script);
-    font-size: 3rem;
+    font-size: clamp(1.25rem, 4vw, 3rem);
+    font-size: clamp(1.25rem, 10cqw, 3rem) !important;
     color: var(--color-primary);
     margin: 5px 0 15px;
+    white-space: nowrap !important;
 }
 
 .parents-info {
