@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Khởi tạo nhạc nền, hiệu ứng & animations
     initNavigationMenu();
+    initSmoothAnchorScroll();
     initMusicPlayer(config.music, config.weddingDate);
     initCanvasEffects("effects-canvas");
     initParallax();
@@ -427,4 +428,22 @@ function initNavigationMenu() {
     if (typeof ResizeObserver !== "undefined") {
         new ResizeObserver(updateNavMode).observe(navbar);
     }
+}
+
+// Smooth anchor scroll - prevent URL hash change while enabling smooth scrolling
+function initSmoothAnchorScroll() {
+    // Select all internal anchor links (href="#xxx" but not href="#" or empty)
+    const anchorLinks = document.querySelectorAll('a[href^="#"]:not([href="#"])');
+    
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                e.preventDefault(); // Prevent default browser behavior
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
 }
