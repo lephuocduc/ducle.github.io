@@ -6,6 +6,7 @@
 @media (max-width: 992px) {
     .navbar {
         padding: 15px 25px;
+        gap: 20px; /* Slightly reduced gap */
     }
 
     .ceremony-card {
@@ -61,6 +62,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+        min-width: 44px; /* Ensure minimum touch target size */
+    }
+
+    /* Fix nav-brand text overflow when hamburger menu is visible */
+    .nav-brand {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1; /* Take available space */
+        min-width: 0; /* Allow to shrink */
     }
 
     .nav-menu {
@@ -140,6 +153,14 @@
     justify-content: center;
 }
 
+/* Ensure nav-brand doesn't overflow when menu is collapsed */
+.navbar.nav-collapsed .nav-brand {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1; /* Take available space */
+    min-width: 0; /* Allow to shrink */
+}
+
 .navbar.nav-collapsed .nav-menu {
     position: fixed;
     top: 0;
@@ -194,6 +215,17 @@
 @media (max-width: 600px) {
     .navbar {
         padding: 12px 18px;
+        gap: 16px; /* Reduce gap on mobile */
+    }
+
+    /* Fix nav-brand text overflow on small screens */
+    .nav-brand {
+        font-size: clamp(1.4rem, 4.5vw, 2rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1; /* Take available space */
+        min-width: 0; /* Allow to shrink */
     }
 
     .hero-card {
@@ -208,6 +240,8 @@
     .couple-name {
         font-size: clamp(1.5rem, 5.5vw, 2.2rem);
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
 
@@ -227,6 +261,8 @@
     .footer-brand {
         font-size: clamp(1.5rem, 5.5vw, 2.2rem);
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Mobile masonry: each column grows independently, so images never leave grid-row gaps. */
@@ -342,5 +378,13 @@
         max-height: 220px;
         aspect-ratio: 16 / 9;
         object-fit: cover;
+    }
+}
+
+/* Extra small devices (max-width: 400px) */
+@media (max-width: 400px) {
+    /* Extra fix for nav-brand on very small screens */
+    .nav-brand {
+        font-size: clamp(1.2rem, 4vw, 1.6rem);
     }
 }

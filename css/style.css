@@ -358,7 +358,10 @@ body.no-scroll {
     text-decoration: none;
     font-weight: 700;
     white-space: nowrap;
-    flex: 0 0 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    min-width: 0; /* Allow flex item to shrink below content size */
 }
 
 .nav-toggle {
