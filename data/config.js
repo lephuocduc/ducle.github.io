@@ -63,8 +63,8 @@ export const weddingConfig = {
 
     // Nhạc nền
     music: {
-        url: "assets/audio/music.mp3",
-        title: "Beautiful in White - Instrumental",
+        url: "assets/audio/VayCuoi.mp3",
+        title: "Váy Cưới - Erik",
         specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
         specialTitle: "Tonight I Celebrate My Love",
         autoplay: true

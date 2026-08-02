@@ -24,7 +24,7 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
 
     const musicUrl = isWeddingDay
         ? (musicConfig.specialUrl || "assets/audio/Tonight I celebrate my love.mp3")
-        : (musicConfig.url || "assets/audio/music.mp3");
+        : (musicConfig.url || "assets/audio/VayCuoi.mp3");
 
     function ensureAudio() {
         if (audioObj) return audioObj;

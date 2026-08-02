@@ -139,9 +139,9 @@ export const weddingConfig = {
 
     // Nhạc Nền
     music: {
-        url: "assets/audio/music.mp3",
+        url: "assets/audio/VayCuoi.mp3",
         specialUrl: "assets/audio/tonight-celebration.mp3", // Phát vào ngày weddingDate
-        title: "Beautiful in White - Instrumental",
+        title: "Váy Cưới - Erik",
         autoplay: true
     },
 
@@ -203,7 +203,7 @@ assets/
 │   ├── photo2.webp
 │   └── ...
 ├── audio/
-│   ├── music.mp3           # Nhạc nền chính
+│   ├── VayCuoi.mp3         # Nhạc nền chính (Váy Cưới - Erik)
 │   └── tonight-celebration.mp3  # Nhạc đặc biệt (tuỳ chọn)
 └── icons/
     └── favicon.svg         # Biểu tượng website
