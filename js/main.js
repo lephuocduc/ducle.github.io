@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initWishesModule();
 
     // 4. Khởi tạo nhạc nền, hiệu ứng & animations
+    initNavigationMenu();
     initMusicPlayer(config.music, config.weddingDate);
     initCanvasEffects("effects-canvas");
     initParallax();
@@ -153,8 +154,8 @@ function renderCouple(config) {
             </div>
         </div>
 
-        <div class="reveal-zoom" style="font-size:2.5rem; color:var(--color-gold); text-align:center;">
-            <i class="fas fa-heart pulse" style="animation: bounce 2s infinite;"></i>
+        <div class="couple-heart-divider reveal-zoom">
+            <i class="fas fa-heart pulse"></i>
         </div>
 
         <!-- Cô Dâu -->
@@ -359,5 +360,71 @@ function hidePreloader() {
         setTimeout(() => {
             preloader.classList.add("hidden");
         }, 500);
+    }
+}
+
+// Navigation Menu Drawer Toggle
+function initNavigationMenu() {
+    const navbar = document.getElementById("navbar");
+    const toggleBtn = document.getElementById("nav-toggle");
+    const closeBtn = document.getElementById("nav-close");
+    const menu = document.getElementById("nav-menu");
+    const overlay = document.getElementById("nav-overlay");
+    const navLinks = menu?.querySelectorAll(".nav-link");
+
+    if (!toggleBtn || !menu || !navbar) return;
+
+    function openMenu() {
+        menu.classList.add("active");
+        overlay?.classList.add("active");
+        document.body.classList.add("menu-open");
+    }
+
+    function closeMenu() {
+        menu.classList.remove("active");
+        overlay?.classList.remove("active");
+        document.body.classList.remove("menu-open");
+    }
+
+    function updateNavMode() {
+        const wasCollapsed = navbar.classList.contains("nav-collapsed");
+
+        // Mobile: CSS @media (max-width: 850px) tu xu ly hamburger
+        if (window.innerWidth <= 850) {
+            navbar.classList.remove("nav-collapsed");
+            return;
+        }
+
+        navbar.classList.remove("nav-collapsed");
+        const overflows = menu.scrollWidth > menu.clientWidth + 1;
+
+        if (overflows) {
+            navbar.classList.add("nav-collapsed");
+            if (!wasCollapsed) closeMenu();
+        } else if (wasCollapsed) {
+            closeMenu();
+        }
+    }
+
+    toggleBtn.addEventListener("click", openMenu);
+    closeBtn?.addEventListener("click", closeMenu);
+    overlay?.addEventListener("click", closeMenu);
+
+    navLinks?.forEach(link => {
+        link.addEventListener("click", () => {
+            closeMenu();
+        });
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menu.classList.contains("active")) {
+            closeMenu();
+        }
+    });
+
+    updateNavMode();
+    window.addEventListener("resize", updateNavMode, { passive: true });
+    if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(updateNavMode).observe(navbar);
     }
 }

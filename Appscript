@@ -1,0 +1,160 @@
+/**
+ * GOOGLE APPS SCRIPT - Thiệp Cưới Phước Đức & Thu Sương
+ * API Endpoint để xử lý Lời Chúc (Wishes)
+ * 
+ * HƯỚNG DẪN TRIỂN KHAI:
+ * 1. Mở Google Sheets mới, đặt tên "Wedding Wishes"
+ * 2. Tạo sheet với 7 cột: id | name | content | createdTime | status | likes | isPinned
+ * 3. Vào Extensions > Apps Script, dán toàn bộ code này vào
+ * 4. Deploy > New Deployment > Web App
+ *    - Execute as: Me
+ *    - Who has access: Anyone
+ * 5. Copy URL triển khai, dán vào weddingConfig.wishesApiUrl trong data/config.js
+ */
+
+const SHEET_NAME = "Wishes";
+const SPREADSHEET_ID = "1Xy4ZNo2TvxFpVZcxoxtt1ysY-ns8E7WT9CjKj3NTuPY"; // Dien Google Sheets ID cua ban vao day
+const NOTIFY_OWNER_EMAIL = true; // false neu muon tat thong bao email
+const OWNER_EMAIL = "leducst1@gmail.com";
+const OWNER_EMAIL_2 = "suongtranst1@gmail.com";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1Xy4ZNo2TvxFpVZcxoxtt1ysY-ns8E7WT9CjKj3NTuPY/edit#gid=0";
+
+function getSpreadsheet() {
+    if (SPREADSHEET_ID) {
+        return SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+    }
+    return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+}
+
+// Xu ly GET request - Doc danh sach loi chuc da approved
+function doGet(e) {
+    const action = e.parameter.action || "getWishes";
+    if (action === "getWishes") {
+        return handleGetWishes();
+    }
+    return jsonResponse({ success: false, error: "Unknown action" });
+}
+
+// Xu ly POST request - Gui loi chuc moi / Tha tim
+function doPost(e) {
+    const params = e.parameter;
+    const action = params.action;
+    if (action === "sendWish") return handleSendWish(params);
+    if (action === "likeWish") return handleLikeWish(params);
+    return jsonResponse({ success: false, error: "Unknown action" });
+}
+
+function handleGetWishes() {
+    const sheet = getSpreadsheet();
+    if (!sheet) return jsonResponse({ success: false, error: "Sheet not found" });
+
+    const data = sheet.getDataRange().getValues();
+    const rows = data.slice(1);
+
+    const wishes = rows
+        .filter(row => row[4] === "approved")
+        .map(row => ({
+            id: row[0],
+            name: row[1],
+            content: row[2],
+            createdTime: row[3],
+            status: row[4],
+            likes: Number(row[5]) || 0,
+            isPinned: row[6] === true || row[6] === "TRUE"
+        }));
+
+    return jsonResponse({ success: true, wishes: wishes });
+}
+
+function handleSendWish(params) {
+    const sheet = getSpreadsheet();
+    if (!sheet) return jsonResponse({ success: false, error: "Sheet not found" });
+
+    // Honeypot: neu o an co gia tri -> la bot, gia vo thanh cong nhung khong luu gi ca
+    const website = (params.website || "").trim();
+    if (website) {
+        return jsonResponse({ success: true, id: "hp-" + Date.now() });
+    }
+
+    const name = (params.name || "").trim();
+    const content = (params.content || "").trim();
+    const visitorId = (params.visitorId || "").trim();
+
+    if (!name || !content) return jsonResponse({ success: false, error: "Required fields missing" });
+    if (name.length > 60 || content.length > 500) return jsonResponse({ success: false, error: "Input too long" });
+
+    // Kiểm tra rate limit 10 giây cho cùng visitorId
+    if (visitorId) {
+        const cache = CacheService.getScriptCache();
+        const lastSentKey = "rate_limit_" + visitorId;
+        const isRateLimited = cache.get(lastSentKey);
+        if (isRateLimited) {
+            return jsonResponse({
+                success: false,
+                error: "rate_limit",
+                message: "Vui lòng đợi 10 giây trước khi gửi lời chúc tiếp theo!"
+            });
+        }
+        // Lưu vào cache 10 giây
+        cache.put(lastSentKey, "1", 10);
+    }
+
+    const id = "wish-" + Date.now();
+    const now = new Date();
+    const vnTime = new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().replace("Z", "+07:00");
+
+    // Lưu vào sheet (cột 8: visitorId)
+    sheet.appendRow([id, name, content, vnTime, "pending", 0, false, visitorId]);
+
+    // Chi gui email khi loi chuc tu 20 ky tu tro len; ngan hon chi luu sheet
+    if (content.length >= 20) {
+        notifyNewWish(name, content, vnTime);
+    }
+
+    return jsonResponse({ success: true, id: id });
+}
+
+function handleLikeWish(params) {
+    const sheet = getSpreadsheet();
+    if (!sheet) return jsonResponse({ success: false, error: "Sheet not found" });
+
+    const wishId = params.id;
+    const newLikes = parseInt(params.likes, 10);
+
+    if (!wishId || isNaN(newLikes)) return jsonResponse({ success: false, error: "Invalid params" });
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === wishId) {
+            sheet.getRange(i + 1, 6).setValue(newLikes);
+            return jsonResponse({ success: true });
+        }
+    }
+
+    return jsonResponse({ success: false, error: "Wish not found" });
+}
+
+function jsonResponse(data) {
+    return ContentService
+        .createTextOutput(JSON.stringify(data))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+function notifyNewWish(name, content, vnTime) {
+    if (!NOTIFY_OWNER_EMAIL) return;
+    try {
+        const subject = "💌 Có lời chúc mới từ " + name;
+        const body =
+            "Bạn vừa nhận được một lời chúc mới trên thiệp cưới!\n\n" +
+            "Người gửi: " + name + "\n" +
+            "Nội dung: " + content + "\n" +
+            "Thời gian: " + vnTime + "\n\n" +
+            "Lưu ý: lời chúc đang ở trạng thái \"pending\" (chờ duyệt) trong Google Sheet.\n" +
+            "Vào Sheet, đổi cột status thành \"approved\" để hiển thị công khai trên trang.\n\n" +
+            "👉 Mở Google Sheet tại đây: " + SHEET_URL;
+
+        MailApp.sendEmail(OWNER_EMAIL + "," + OWNER_EMAIL_2, subject, body);
+    } catch (err) {
+        console.error("Gui email that bai: " + err.message);
+    }
+}

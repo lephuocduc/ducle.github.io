@@ -55,14 +55,145 @@
     }
 }
 
+/* Hamburger menu: mobile (<=850px) hoac khi menu bi tran (.nav-collapsed) */
+@media (max-width: 850px) {
+    .nav-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 280px;
+        height: 100vh;
+        height: 100dvh;
+        background: rgba(255, 253, 249, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 25px 20px 40px;
+        gap: 12px;
+        box-shadow: -10px 0 35px rgba(0, 0, 0, 0.2);
+        z-index: calc(var(--z-navbar) + 20);
+        transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .nav-menu.active {
+        right: 0;
+    }
+
+    .nav-menu-header {
+        display: flex;
+    }
+
+    .nav-menu li {
+        width: 100%;
+    }
+
+    .nav-link {
+        font-size: 1rem;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        width: 100%;
+        color: var(--color-primary);
+        font-weight: 600;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: rgba(139, 0, 0, 0.08);
+        color: var(--color-gold-dark);
+    }
+
+    /* Couple Section Responsive Centering */
+    .couple-grid {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .couple-card {
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .couple-heart-divider {
+        order: 2;
+        width: 100%;
+        margin: 10px 0;
+        font-size: 2.2rem;
+        text-align: center;
+    }
+}
+
+/* Hamburger khi menu bi tran tren man hinh rong hon 850px */
+.navbar.nav-collapsed .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar.nav-collapsed .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 280px;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(255, 253, 249, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 25px 20px 40px;
+    gap: 12px;
+    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.2);
+    z-index: calc(var(--z-navbar) + 20);
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.navbar.nav-collapsed .nav-menu.active {
+    right: 0;
+}
+
+.navbar.nav-collapsed .nav-menu-header {
+    display: flex;
+}
+
+.navbar.nav-collapsed .nav-menu li {
+    width: 100%;
+}
+
+.navbar.nav-collapsed .nav-link {
+    font-size: 1rem;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    width: 100%;
+    color: var(--color-primary);
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.navbar.nav-collapsed .nav-link:hover,
+.navbar.nav-collapsed .nav-link.active {
+    background: rgba(139, 0, 0, 0.08);
+    color: var(--color-gold-dark);
+}
+
 /* Mobile Devices (max-width: 600px) */
 @media (max-width: 600px) {
     .navbar {
         padding: 12px 18px;
-    }
-
-    .nav-menu {
-        display: none; /* Mobile navigation simplified */
     }
 
     .hero-card {
@@ -202,5 +333,14 @@
 
     .gallery-drive-text {
         text-align: center;
+    }
+}
+
+/* Landscape & Small Height Viewport Fixes */
+@media (orientation: landscape) and (max-height: 600px) {
+    .timeline-img {
+        max-height: 220px;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
     }
 }

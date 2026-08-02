@@ -22,15 +22,18 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 
 ### 📱 Tính Năng Chính
 - **Countdown Timer**: Bộ đếm ngược đến ngày cưới (Ngày - Giờ - Phút - Giây)
+- **Thông Tin Lễ Cưới**: Đếm ngược + lịch trình nghi lễ & tiệc cưới trong cùng một section
 - **Love Story Timeline**: Hành trình yêu thương với ảnh và dòng thời gian
 - **Gallery Masonry**: Album ảnh cưới responsive với Lazy Loading
 - **Lightbox Modal**: Xem ảnh phóng to mượt mà
 - **Google Maps Integration**: Nhúng bản đồ chỉ đường cho từng địa điểm
+- **Lời Chúc (Wishes)**: Form gửi lời chúc, thả tim, sắp xếp Nổi bật/Mới nhất — đồng bộ Google Sheets qua Apps Script
 - **QR Code Mừng Cưới**: Hiển thị QR chuyển khoản VietQR, sao chép STK và bấm để phóng to
 - **Music Player**: Trình phát nhạc nền với icon visual
 - **Particle Effects**: Hiệu ứng trái tim & cánh hoa rơi trên Canvas
 - **Parallax Effect**: Hiệu ứng parallax nhẹ nhàng
 - **Scroll Reveal**: Hiệu ứng fade-in khi scroll bằng IntersectionObserver
+- **Hamburger Menu**: Tự chuyển sang menu drawer trên mobile hoặc khi thanh menu bị tràn trên desktop
 
 ### 🎬 Performance & Animations
 - **60 FPS Animations**: Sử dụng `requestAnimationFrame` cho hiệu ứng mượt mà
@@ -64,10 +67,14 @@ Invitation/
 │   ├── music.js                # Trình phát nhạc nền & visual
 │   ├── timeline.js             # Render Love Story Timeline
 │   ├── map.js                  # Google Maps & thông tin lễ cưới
+│   ├── wishes.js               # Form lời chúc, like, phân trang
 │   ├── effects.js              # Canvas Particle (Hearts, Leaves) & Parallax
 │   └── animation.js            # IntersectionObserver Scroll Reveal
 ├── data/
 │   └── config.js               # 📌 FILE DUY NHẤT CẦN CHỈNH SỬA
+├── tools/
+│   └── compress-images.mjs     # Script nén ảnh gallery & hero (sharp)
+├── Appscript                   # Google Apps Script backend cho lời chúc
 ├── assets/
 │   ├── img/                    # Hình ảnh (cover, groom, bride, gallery, etc.)
 │   ├── audio/                  # File nhạc nền (.mp3)
@@ -202,9 +209,53 @@ assets/
     └── favicon.svg         # Biểu tượng website
 ```
 
-**Lưu ý**: Dùng format `.webp` cho ảnh để giảm dung lượng. Hero và avatar được tải trước; ảnh gallery dùng lazy loading nên chỉ tải khi khách cuộn gần đến phần album.
+**Lưu ý**: Dùng format `.webp` cho ảnh để giảm dung lượng. Hero và avatar được preload; ảnh gallery dùng lazy loading nên chỉ tải khi khách cuộn gần đến phần album.
 
-### 3️⃣ **Tạo QR Code Mừng Cưới**
+**Ảnh hero (`cover.webp`)** là LCP image — được `<link rel="preload">` trong `index.html` nên ảnh hưởng trực tiếp tốc độ mở trang. Khuyến nghị giữ **dưới ~200 KB** (hiện tại ~684 KB nếu chưa nén lại). Xem mục [Nén ảnh](#-nén-ảnh-performance) bên dưới.
+
+### 3️⃣ **Nén Ảnh (Performance)**
+
+Dự án có sẵn script `tools/compress-images.mjs` (dùng [sharp](https://sharp.pixelplumbing.com/)) để nén ảnh WebP. Ảnh gốc được backup vào `assets/img/originals/` trước khi ghi đè.
+
+**Cài đặt (một lần):**
+```bash
+npm init -y
+npm install sharp
+```
+
+**Nén ảnh gallery:**
+```bash
+node tools/compress-images.mjs
+```
+
+Mặc định script nén gallery xuống tối đa **1920×1920 px**, WebP **quality 82%**. Chỉnh `GALLERY_FILES`, `MAX_WIDTH`, `WEBP_QUALITY` trong file nếu cần.
+
+**Nén ảnh hero (`cover.webp`) — quan trọng cho LCP:**
+
+Ảnh hero được preload làm LCP nên cần target nhỏ hơn gallery. Khuyến nghị:
+
+| Thông số | Gallery | Hero (LCP) |
+|----------|---------|------------|
+| Kích thước tối đa | 1920 px | 1600–1920 px (chiều rộng) |
+| WebP quality | 82% | **70–75%** |
+| Dung lượng mục tiêu | — | **< 200 KB** |
+
+Thêm `cover.webp` vào danh sách nén với profile riêng, hoặc chạy one-off:
+
+```bash
+node -e "
+const sharp = require('sharp');
+sharp('assets/img/cover.webp')
+  .resize({ width: 1920, fit: 'inside', withoutEnlargement: true })
+  .webp({ quality: 72, effort: 6 })
+  .toFile('assets/img/cover.webp.tmp')
+  .then(() => console.log('Done — kiểm tra dung lượng rồi đổi tên file'));
+"
+```
+
+Sau khi nén, kiểm tra chất lượng hiển thị trên mobile và desktop. Nếu vẫn > 200 KB, hạ `quality` xuống 65–70 hoặc giảm `width` còn 1600 px.
+
+### 4️⃣ **Tạo QR Code Mừng Cưới**
 
 Sử dụng VietQR để tạo QR code chuyển khoản:
 1. Vào [VietQR Image API](https://img.vietqr.io/)
@@ -216,7 +267,7 @@ Ví dụ:
 qrImage: "https://img.vietqr.io/image/TPB-01945354401-compact2.png?amount=0&addInfo=Mung%20Cuoi"
 ```
 
-### 4️⃣ **Nhúng Google Maps**
+### 5️⃣ **Nhúng Google Maps**
 
 1. Vào [Google Maps](https://maps.google.com)
 2. Tìm địa điểm tiệc cưới
@@ -225,6 +276,20 @@ qrImage: "https://img.vietqr.io/image/TPB-01945354401-compact2.png?amount=0&addI
 5. Copy direct link vào `mapDirectUrl`
 
 Nếu muốn hiện nút **Thêm vào Lịch**, thêm cả hai đường dẫn vào từng mục `ceremonies`: `calendarUrl` (Google Calendar) và `calendarWebcalUrl` (tệp ICS). Trên Android, thiệp sẽ dùng Google Calendar; trên iPhone/iPad sẽ ưu tiên `webcal://`.
+
+### 6️⃣ **Cấu Hình Lời Chúc (Google Apps Script)**
+
+1. Tạo Google Sheet với các cột: `id | name | content | createdTime | status | likes | isPinned | visitorId`
+2. Vào **Extensions → Apps Script**, dán nội dung file `Appscript`
+3. **Deploy → New Deployment → Web App** (Execute as: Me, Who has access: Anyone)
+4. Copy URL triển khai vào `wishesApiUrl` trong `data/config.js`
+
+**Luồng xử lý:**
+- Mọi lời chúc đều lưu vào Sheet (trạng thái `pending`)
+- Email thông báo chỉ gửi khi lời chúc **≥ 20 ký tự**
+- Đổi cột `status` thành `approved` trong Sheet để hiển thị công khai trên trang
+
+Sau mỗi lần sửa `Appscript`, cần **deploy lại** Web App để thay đổi có hiệu lực.
 
 ---
 
@@ -307,6 +372,23 @@ Hoặc custom domain:
 - **Lazy Loading**: Gallery, QR và bản đồ tải khi cần thiết
 - **requestAnimationFrame**: Animations mượt 60 FPS
 
+### ⚠️ Cần Kiểm Tra Trước Publish
+
+| Ảnh | Vai trò | Mục tiêu |
+|-----|---------|----------|
+| `cover.webp` | **LCP** — preload trong `<head>` | **< 200 KB** |
+| `groom.*` / `bride.*` | Preload avatar | < 100 KB mỗi ảnh |
+| Gallery `*.webp` | Lazy load | < 300 KB mỗi ảnh |
+
+`cover.webp` hiện ~684 KB nếu chưa nén lại — đây là điểm nghẽn LCP lớn nhất. Chạy `tools/compress-images.mjs` với target nhỏ hơn (xem [Nén ảnh](#3️⃣-nén-ảnh-performance)).
+
+**Kiểm tra nhanh sau khi nén:**
+```bash
+# Windows PowerShell
+(Get-Item assets/img/cover.webp).Length / 1KB
+```
+Kết quả nên dưới 200.
+
 ---
 
 ## 🔧 Troubleshooting
@@ -335,11 +417,14 @@ Hoặc custom domain:
 
 - [ ] Chỉnh sửa tất cả thông tin trong `data/config.js`
 - [ ] Thay ảnh cover, groom, bride, gallery
+- [ ] **Nén `cover.webp` xuống < 200 KB** (LCP image — xem mục Nén Ảnh)
+- [ ] Nén ảnh gallery bằng `node tools/compress-images.mjs`
 - [ ] Cấu hình Google Maps cho các địa điểm
-- [ ] Tạo QR code mừng cưối
+- [ ] Tạo QR code mừng cưới
+- [ ] Deploy Google Apps Script & cấu hình `wishesApiUrl`
 - [ ] Thêm file nhạc nền (hoặc dùng mặc định)
-- [ ] Kiểm tra responsive trên di động
-- [ ] Test toàn bộ tính năng (countdown, gallery, maps, music)
+- [ ] Kiểm tra responsive trên di động (hamburger menu, gallery, lightbox)
+- [ ] Test toàn bộ tính năng (countdown, gallery, maps, music, lời chúc)
 - [ ] Kiểm tra SEO Meta tags (F12 → Network)
 - [ ] Deploy lên GitHub Pages hoặc hosting riêng
 
@@ -353,5 +438,5 @@ Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp
 
 ---
 
-*Last Updated: 2026-07-29*
+*Last Updated: 2026-08-03*
 *Made with ❤️ by Lê Phước Đức*

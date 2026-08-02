@@ -8,10 +8,10 @@
 
     <!-- SEO & Open Graph (Nạp và ghi đè tự động bởi config-loader.js) -->
     <title>Thiệp Mời Cưới - Phước Đức &amp; Thu Sương</title>
-    <meta name="description" content="Trân trọng kính mời quý quan khách cùng tới tham dự ngày vui của chúng tôi.">
+    <meta name="description" content="Trân trọng kính mời mọi người cùng tới tham dự ngày vui của chúng mình.">
     <meta property="og:title" content="Thiệp Mời Cưới - Phước Đức &amp; Thu Sương">
     <meta property="og:description"
-        content="Trân trọng kính mời quý quan khách cùng tới tham dự ngày vui của chúng tôi.">
+        content="Trân trọng kính mời mọi người cùng tới tham dự ngày vui của chúng mình.">
     <meta property="og:image" content="https://wedding.phuocducthusuong.com/assets/img/og-image.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -71,14 +71,21 @@
     <canvas id="effects-canvas"></canvas>
 
     <!-- Navigation Header -->
+    <div id="nav-overlay" class="nav-overlay"></div>
     <nav class="navbar" id="navbar">
         <a href="#hero-section" class="nav-brand">囍 Phước Đức &amp; Thu Sương</a>
-        <ul class="nav-menu">
+        <button id="nav-toggle" class="nav-toggle" aria-label="Mở menu điều hướng">
+            <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-menu" id="nav-menu">
+            <li class="nav-menu-header">
+                <span class="nav-menu-title">Menu</span>
+                <button id="nav-close" class="nav-close" aria-label="Đóng menu">&times;</button>
+            </li>
             <li><a href="#hero-section" class="nav-link">Trang Chủ</a></li>
             <li><a href="#couple-section" class="nav-link">Cặp Đôi</a></li>
-            <li><a href="#countdown-section" class="nav-link">Đếm Ngược</a></li>
+            <li><a href="#countdown-section" class="nav-link">Lễ Cưới</a></li>
             <li><a href="#story-section" class="nav-link">Hành Trình</a></li>
-            <li><a href="#ceremony-section" class="nav-link">Lễ Cưới</a></li>
             <li><a href="#gallery-section" class="nav-link">Album</a></li>
             <li><a href="#wishes-section" class="nav-link">Lời Chúc</a></li>
             <li><a href="#gift-section" class="nav-link">Mừng Cưới</a></li>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * WISHES.JS - LỜI CHÚC MODULE v2
  * Bố cục 2 cột form, avatar initials, sort Nổi bật / Mới nhất,
  * like chỉ cộng (mỗi click +1), phân trang 10 lời/lần.
@@ -64,6 +64,7 @@ let colorMap = {};    // id -> colorIndex
 
 // ── Entry ──────────────────────────────────────────────────────────────────
 export function initWishesModule() {
+    getVisitorId();
     const container = document.getElementById('wishes-container');
     if (!container) return;
     container.innerHTML = buildShell();
@@ -78,7 +79,7 @@ function buildShell() {
 
         <!-- Tổng lời chúc -->
         <div class="ws-total-row reveal-fade">
-            <span class="ws-total-pill">
+            <span class="ws-total-pill" id="ws-total-pill" title="Bấm để xem danh sách lời chúc">
                 <i class="fas fa-heart"></i>
                 <span id="ws-total-num">…</span> lời chúc đã được gửi
             </span>
@@ -119,7 +120,7 @@ function buildShell() {
                                 <i class="fas fa-user"></i> Họ và tên <span class="ws-req">*</span>
                             </label>
                             <input id="ws-name" class="ws-input" type="text"
-                                placeholder="Nhập tên c\u1ee7a qu\u00fd kh\u00e1ch..." maxlength="60" required autocomplete="name">
+                                placeholder="Nhập tên hoặc nickname của mình nhé" maxlength="60" required autocomplete="name">
                         </div>
 
                         <div class="ws-field-group">
@@ -158,7 +159,7 @@ function buildShell() {
                 <h3 class="ws-list-title">Những lời chúc</h3>
                 <i class="fas fa-heart ws-list-icon"></i>
             </div>
-            <p class="ws-list-sub">C\u1ea3m \u01a1n qu\u00fd kh\u00e1ch đã gửi những lời chúc ý nghĩa!</p>
+            <p class="ws-list-sub">Cảm ơn mọi người đã gửi những lời chúc ý nghĩa!</p>
 
             <div class="ws-sort-bar">
                 <span class="ws-sort-label">Sắp xếp:</span>
@@ -194,6 +195,14 @@ function buildShell() {
 function bindShellEvents() {
     // Form submit
     document.getElementById('ws-form')?.addEventListener('submit', handleSubmit);
+
+    // Scroll down when clicking total wishes pill
+    document.getElementById('ws-total-pill')?.addEventListener('click', () => {
+        const header = document.querySelector('.ws-list-header');
+        if (header) {
+            header.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
 
     // Char count
     const ta = document.getElementById('ws-content');
@@ -375,10 +384,45 @@ async function handleSubmit(e) {
     const name = nameEl?.value.trim() || '';
     const content = contentEl?.value.trim() || '';
 
-    if (!name || !content) {
-        showToast('⚠️ Vui lòng nhập đầy đủ Họ tên và Lời chúc!', 'warn');
-        if (!name) nameEl?.focus();
-        else contentEl?.focus();
+    if (!name) {
+        showToast('⚠️ Vui lòng nhập tên hoặc nickname của bạn!', 'warn');
+        nameEl?.focus();
+        return;
+    }
+
+    if (name.length < 2) {
+        showToast('⚠️ Tên hoặc nickname phải có tối thiểu 2 ký tự!', 'warn');
+        nameEl?.focus();
+        return;
+    }
+
+    if (!content) {
+        showToast('⚠️ Vui lòng nhập lời chúc!', 'warn');
+        contentEl?.focus();
+        return;
+    }
+
+    if (content.length < 10) {
+        showToast('⚠️ Lời chúc phải từ 10 đến 500 ký tự!', 'warn');
+        contentEl?.focus();
+        return;
+    }
+
+    if (content.length > 500) {
+        showToast('⚠️ Lời chúc không được vượt quá 500 ký tự!', 'warn');
+        contentEl?.focus();
+        return;
+    }
+
+    // Rate limit check: 10 seconds
+    const visitorId = getVisitorId();
+    const lastTimeKey = 'wedding_last_wish_time';
+    const lastSentTime = parseInt(localStorage.getItem(lastTimeKey) || '0', 10);
+    const now = Date.now();
+    const diffSec = Math.ceil((10000 - (now - lastSentTime)) / 1000);
+
+    if (diffSec > 0) {
+        showToast(`⚠️ Bạn thao tác quá nhanh, vui lòng chờ ${diffSec} giây nữa trước khi gửi tiếp!`, 'warn');
         return;
     }
 
@@ -388,15 +432,25 @@ async function handleSubmit(e) {
     const apiUrl = weddingConfig.wishesApiUrl;
     if (apiUrl?.trim()) {
         try {
-            await fetch(apiUrl, {
+            const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ action: 'sendWish', name, content })
+                body: new URLSearchParams({ action: 'sendWish', name, content, visitorId })
             });
+            const json = await res.json().catch(() => null);
+            if (json && json.success === false && json.error === 'rate_limit') {
+                showToast(`⚠️ Vui lòng chờ vài giây trước khi gửi lời chúc tiếp theo!`, 'warn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-heart"></i> Gửi lời chúc`;
+                return;
+            }
         } catch (err) {
             console.warn('[wishes] send error:', err.message);
         }
     }
+
+    // Save last sent time
+    try { localStorage.setItem(lastTimeKey, Date.now().toString()); } catch (e) { }
 
     // Reset form
     if (nameEl) nameEl.value = '';
@@ -404,7 +458,7 @@ async function handleSubmit(e) {
     submitBtn.disabled = false;
     submitBtn.innerHTML = `<i class="fas fa-heart"></i> Gửi lời chúc`;
 
-    showToast('💕 Cảm ơn quý khách! Lời chúc đã được gửi thành công.', 'success');
+    showToast(`💕 Cảm ơn ${escHtml(name)}! Lời chúc đã được gửi thành công và sẽ được hiển thị sớm.`, 'success');
     triggerHeartBurst();
 }
 
@@ -491,4 +545,15 @@ function fmtTime(iso) {
 function escHtml(s) {
     return (s || '').replace(/[&<>"']/g, m =>
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
+
+function getVisitorId() {
+    let vid = localStorage.getItem('wedding_visitor_id');
+    if (!vid) {
+        vid = typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : 'v-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+        try { localStorage.setItem('wedding_visitor_id', vid); } catch (e) { }
+    }
+    return vid;
 }

@@ -21,7 +21,7 @@ export function renderCountdown(containerId, weddingDateIso, coupleNames = "Cặ
                     <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">${coupleNames}! 🥳🎉</span>
                 </h3>
                 <p style="color:var(--color-text-muted); font-size:1.05rem; margin-top:8px;">
-                    Cảm ơn tình cảm và sự hiện diện quý báu của tất cả quý vị quan khách! ✨
+                    Cảm ơn tình cảm và sự hiện diện quý báu của tất cả mọi người! ✨
                 </p>
             </div>
         `;

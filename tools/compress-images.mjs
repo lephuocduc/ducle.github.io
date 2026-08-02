@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const IMG_DIR = path.join(__dirname, 'assets', 'img');
+const IMG_DIR = path.join(__dirname, '..', 'assets', 'img');
 const BACKUP_DIR = path.join(IMG_DIR, 'originals');
 
 // Chỉ nén các file ảnh thuộc gallery (dung lượng lớn)

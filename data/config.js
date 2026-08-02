@@ -8,7 +8,7 @@ export const weddingConfig = {
     // Thông tin SEO & Meta
     seo: {
         title: "Thiệp Mời Cưới - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
-        description: "Trân trọng kính mời quý quan khách, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Thành Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
+        description: "Trân trọng kính mời mọi người, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Tân Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
         ogImage: "assets/img/og-image.webp",
         favicon: "assets/icons/favicon.svg"
     },
@@ -181,7 +181,7 @@ export const weddingConfig = {
 
     // Lời cảm ơn & Footer
     footer: {
-        thankYouMessage: "Cảm ơn sự hiện diện và những lời chúc phúc ý nghĩa từ Quý vị quan khách. Sự hiện diện của quý khách là niềm vui lớn nhất cho tình yêu của chúng con!",
+        thankYouMessage: "Cảm ơn sự hiện diện và những lời chúc phúc ý nghĩa từ mọi người. Sự có mặt của mọi người là niềm vui lớn nhất cho tình yêu của chúng mình!",
         copyright: "© 2026 Phước Đức & Thu Sương Wedding. Designed with ❤️."
     }
 };
