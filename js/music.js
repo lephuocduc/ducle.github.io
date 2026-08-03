@@ -6,6 +6,7 @@
 let audioObj = null;
 let isPlaying = false;
 let wasPlayingBeforeHide = false;
+let hasInteracted = false; // Track if user has interacted with the player
 
 export function initMusicPlayer(musicConfig, weddingDateIso) {
     const btn = document.getElementById("music-toggle-btn");
@@ -26,15 +27,29 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
         ? (musicConfig.specialUrl || "assets/audio/Tonight I celebrate my love.mp3")
         : (musicConfig.url || "assets/audio/VayCuoi.mp3");
 
-    function ensureAudio() {
+    // Preload audio file when page loads (just download, don't play)
+    function preloadAudio() {
         if (audioObj) return audioObj;
-
         audioObj = new Audio(musicUrl);
         audioObj.loop = false;
+        audioObj.preload = "auto"; // Hint to browser to preload
         audioObj.addEventListener("error", () => {
             console.warn("Không thể tải file nhạc.");
         });
+        // Listen for ended event to update UI
+        audioObj.addEventListener("ended", () => {
+            isPlaying = false;
+            updateUI(false);
+        });
         return audioObj;
+    }
+
+    // Preload immediately when module loads
+    preloadAudio();
+
+    function ensureAudio() {
+        if (audioObj) return audioObj;
+        return preloadAudio();
     }
 
     function play() {
@@ -56,7 +71,11 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
         updateUI(false);
     }
 
-    function toggle() {
+    function toggle(e) {
+        // Stop propagation to prevent double-play when clicking button
+        if (e) e.stopPropagation();
+        hasInteracted = true;
+        
         if (isPlaying) {
             wasPlayingBeforeHide = false;
             pause();
@@ -80,7 +99,10 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
     // Tự động phát lần đầu tiên nếu cấu hình bật và trình duyệt cho phép
     if (musicConfig.autoplay) {
         const handleFirstTouch = () => {
-            if (!isPlaying) play();
+            // Only play if user hasn't already interacted with the button
+            if (!hasInteracted && !isPlaying) {
+                play();
+            }
             window.removeEventListener("click", handleFirstTouch);
             window.removeEventListener("touchstart", handleFirstTouch);
         };

@@ -76,6 +76,8 @@ function handleSendWish(params) {
         return jsonResponse({ success: true, id: "hp-" + Date.now() });
     }
 
+    // Lưu dữ liệu nguyên văn - không escape ở đây
+    // Client sẽ escape khi render (xem wishes.js hàm escHtml)
     const name = (params.name || "").trim();
     const content = (params.content || "").trim();
     const visitorId = (params.visitorId || "").trim();
@@ -119,15 +121,28 @@ function handleLikeWish(params) {
     if (!sheet) return jsonResponse({ success: false, error: "Sheet not found" });
 
     const wishId = params.id;
-    const newLikes = parseInt(params.likes, 10);
+    // Không tin tưởng giá trị likes từ client - server tự tăng +1
+    if (!wishId) return jsonResponse({ success: false, error: "Invalid params" });
 
-    if (!wishId || isNaN(newLikes)) return jsonResponse({ success: false, error: "Invalid params" });
+    // Rate limit: same IP/visitor can only like once per 3 seconds
+    const visitorId = params.visitorId || "";
+    if (visitorId) {
+        const cache = CacheService.getScriptCache();
+        const likeRateKey = "like_rate_" + wishId + "_" + visitorId;
+        if (cache.get(likeRateKey)) {
+            return jsonResponse({ success: false, error: "rate_limited", message: "Vui lòng chờ 3 giây trước khi thả tim tiếp!" });
+        }
+        cache.put(likeRateKey, "1", 3); // 3 seconds
+    }
 
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
         if (data[i][0] === wishId) {
+            // Lấy giá trị hiện tại và tăng thêm 1
+            const currentLikes = Number(data[i][5]) || 0;
+            const newLikes = currentLikes + 1;
             sheet.getRange(i + 1, 6).setValue(newLikes);
-            return jsonResponse({ success: true });
+            return jsonResponse({ success: true, likes: newLikes });
         }
     }
 

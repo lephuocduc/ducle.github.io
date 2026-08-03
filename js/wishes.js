@@ -115,6 +115,12 @@ function buildShell() {
                     </div>
 
                     <form id="ws-form" novalidate>
+                        <!-- Honeypot field để chống bot (ẩn hoàn toàn, bot điền sẽ bị chặn) -->
+                        <div class="ws-hp-field">
+                            <label for="ws-website">Website</label>
+                            <input type="text" id="ws-website" name="website" tabindex="-1" autocomplete="off">
+                        </div>
+
                         <div class="ws-field-group">
                             <label class="ws-label" for="ws-name">
                                 <i class="fas fa-user"></i> Họ và tên <span class="ws-req">*</span>
@@ -363,13 +369,13 @@ async function handleLike(wishId, btnEl) {
         setTimeout(() => lcEl.classList.remove('ws-count-bump'), 350);
     }
 
-    // Push to API
+    // Push to API (server will increment likes itself, don't send the value)
     const apiUrl = weddingConfig.wishesApiUrl;
     if (apiUrl?.trim()) {
         fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ action: 'likeWish', id: wishId, likes: wish.likes })
+            body: new URLSearchParams({ action: 'likeWish', id: wishId })
         }).catch(() => { });
     }
 }
@@ -423,6 +429,19 @@ async function handleSubmit(e) {
 
     if (diffSec > 0) {
         showToast(`⚠️ Bạn thao tác quá nhanh, vui lòng chờ ${diffSec} giây nữa trước khi gửi tiếp!`, 'warn');
+        return;
+    }
+
+    // Honeypot check - bot sẽ điền field ẩn website
+    const websiteEl = document.getElementById('ws-website');
+    if (websiteEl && websiteEl.value.trim()) {
+        // Bot detected - silently reject but show success to fool the bot
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fas fa-heart"></i> Gửi lời chúc`;
+        showToast(`💕 Cảm ơn ${escHtml(name)}! Lời chúc đã được gửi thành công.`, 'success');
+        triggerHeartBurst();
+        if (nameEl) nameEl.value = '';
+        if (contentEl) { contentEl.value = ''; document.getElementById('ws-char-num').textContent = '0'; }
         return;
     }
 

@@ -236,10 +236,37 @@ function initQrLightbox(giftContainer) {
     const closeButton = document.getElementById("qr-modal-close-btn");
     if (!modal || !modalImage || !closeButton) return;
 
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    let firstFocusable = null;
+    let lastFocusable = null;
+
     const close = () => {
         modal.classList.remove("active");
         document.body.classList.remove("no-scroll");
         document.documentElement.classList.remove("no-scroll");
+        modalImage.src = ""; // Clear image to stop any audio/video if added later
+    };
+
+    // Trap focus inside modal
+    const handleTabKey = (e) => {
+        if (!modal.classList.contains("active")) return;
+        if (e.key !== "Tab") return;
+
+        const focusables = modal.querySelectorAll(focusableSelector);
+        firstFocusable = focusables[0];
+        lastFocusable = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+            if (document.activeElement === firstFocusable) {
+                e.preventDefault();
+                lastFocusable.focus();
+            }
+        } else {
+            if (document.activeElement === lastFocusable) {
+                e.preventDefault();
+                firstFocusable.focus();
+            }
+        }
     };
 
     giftContainer.querySelectorAll(".gift-qr-button").forEach(button => {
@@ -259,6 +286,7 @@ function initQrLightbox(giftContainer) {
     };
     window.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && modal.classList.contains("active")) close();
+        handleTabKey(event);
     });
 }
 
