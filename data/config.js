@@ -98,7 +98,7 @@ export const weddingConfig = {
             date: "04/06/2026",
             title: "Lễ Dạm Ngõ",
             content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
-            image: "assets/img/DSCF5692.webp"
+            image: "assets/img/DSCF5639-1.webp"
         },
         {
             year: "2026",

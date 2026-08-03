@@ -244,7 +244,6 @@ async function fetchWishes() {
                 const json = await res.json();
                 if (json?.wishes) {
                     allWishes = json.wishes.filter(w => w.status === 'approved');
-                    mergeLocalLikes();
                     cacheWishes();
                     renderList();
                     return;
@@ -346,30 +345,45 @@ function sortWishes(list) {
     return [...pinned.sort(cmp), ...normal.sort(cmp)];
 }
 
-// ── Like (add-only, +1 per click) ────────────────────────────────────────────
+// ── Like (throttled 1s per wish per user, unlimited animation) ───────────────
+const lastLikeTimeMap = {}; // wishId -> timestamp
+
 async function handleLike(wishId, btnEl) {
     const wish = allWishes.find(w => w.id === wishId);
     if (!wish) return;
 
-    wish.likes = (wish.likes || 0) + 1;
-    cacheWishes();
-
-    // Animate
+    // 1. Luôn chạy hiệu ứng thị giác cho từng cú click
+    btnEl.classList.remove('ws-like-burst');
+    void btnEl.offsetWidth; // Force reflow
     btnEl.classList.add('ws-like-burst');
     setTimeout(() => btnEl.classList.remove('ws-like-burst'), 500);
 
-    // Mini floating heart
+    // Mini floating heart luôn nảy lên
     spawnMiniHeart(btnEl);
 
-    // Update count in DOM without full re-render
+    // 2. Kiểm tra Throttle: Tối đa 1 tim / 1 giây trên mỗi lời chúc cho user này
+    const now = Date.now();
+    const lastLikeTime = lastLikeTimeMap[wishId] || 0;
+    if (now - lastLikeTime < 1000) {
+        // Chưa đủ 1 giây trôi qua -> chỉ chạy hiệu ứng, không cộng số tim & không gửi API
+        return;
+    }
+    lastLikeTimeMap[wishId] = now;
+
+    // 3. Tăng số tim hiển thị +1
+    wish.likes = (wish.likes || 0) + 1;
+
+    // Cập nhật số tim hiển thị DOM
     const lcEl = document.getElementById('lc-' + wishId);
     if (lcEl) {
         lcEl.textContent = wish.likes;
+        lcEl.classList.remove('ws-count-bump');
+        void lcEl.offsetWidth; // Force reflow
         lcEl.classList.add('ws-count-bump');
         setTimeout(() => lcEl.classList.remove('ws-count-bump'), 350);
     }
 
-    // Push to API (server will increment likes itself, don't send the value)
+    // 4. Gửi về API Google Sheet
     const apiUrl = weddingConfig.wishesApiUrl;
     if (apiUrl?.trim()) {
         fetch(apiUrl, {
