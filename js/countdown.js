@@ -32,8 +32,8 @@ export function renderCountdown(containerId, weddingDateIso, coupleNames = "Cặ
             <div class="wedding-today-ribbon reveal-zoom">
                 <i class="fas fa-crown" style="font-size:2.2rem; color:var(--color-gold); margin-bottom:10px;"></i>
                 <h3 style="font-family:var(--font-script); font-size:clamp(1.6rem, 4vw, 2.5rem); color:var(--color-primary); margin-bottom:10px; line-height:1.4;">
-                    Hôm nay là Ngày Trọng Đại của <br/>
-                    <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">${coupleNames}! 🥳🎉</span>
+                    Chúng Mình Đã <br/>
+                    <span style="white-space:nowrap; color:var(--color-primary-dark); font-weight:bold;">Trở Thành Vợ Chồng! 🥳🎉</span>
                 </h3>
                 <p style="color:var(--color-text-muted); font-size:1.05rem; margin-top:8px;">
                     Cảm ơn tình cảm và sự hiện diện quý báu của tất cả mọi người! ✨

@@ -46,7 +46,6 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 - **Keyboard Navigation**: Phím tắt hỗ trợ (Tab, Enter, Escape)
 - **Color Contrast**: Đảm bảo độ tương phản màu sắc
 - **Meta Tags**: Open Graph và Twitter Card
-- **Sitemap & Robots.txt**: SEO friendly
 
 ---
 
@@ -58,7 +57,8 @@ Invitation/
 ├── css/
 │   ├── style.css               # Giao diện chính (Emerald & Champagne Gold)
 │   ├── animation.css           # Keyframe animations & Scroll effects
-│   └── responsive.css          # Media queries cho Mobile/Tablet/Desktop
+│   ├── responsive.css          # Media queries cho Mobile/Tablet/Desktop
+│   └── variables.css           # CSS Variables (colors, fonts, z-index)
 ├── js/
 │   ├── main.js                 # Entry Point - Điều khiển toàn ứng dụng
 │   ├── config-loader.js        # Nạp config.js & cập nhật SEO Meta tags
@@ -73,12 +73,13 @@ Invitation/
 ├── data/
 │   └── config.js               # 📌 FILE DUY NHẤT CẦN CHỈNH SỬA
 ├── tools/
-│   └── compress-images.mjs     # Script nén ảnh gallery & hero (sharp)
+│   ├── compress-images.mjs     # Script nén ảnh gallery & hero (sharp)
+│   └── img-originals/          # Backup ảnh gốc trước khi nén
 ├── Appscript                   # Google Apps Script backend cho lời chúc
 ├── assets/
 │   ├── img/                    # Hình ảnh (cover, groom, bride, gallery, etc.)
 │   ├── audio/                  # File nhạc nền (.mp3)
-│   ├── icons/                  # Icons & favicons (.svg, .ico)
+│   ├── icons/                  # Icons & favicons (.svg)
 │   └── ics/                    # Calendar file (.ics)
 └── README.md                   # Tài liệu hướng dẫn này
 ```
@@ -139,9 +140,9 @@ export const weddingConfig = {
 
     // Nhạc Nền
     music: {
-        url: "assets/audio/VayCuoi.mp3",
-        specialUrl: "assets/audio/tonight-celebration.mp3", // Phát vào ngày weddingDate
-        title: "Váy Cưới - Erik",
+        url: "assets/audio/Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3",
+        specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
+        title: "Canon in D - Pachelbel",
         autoplay: true
     },
 
@@ -203,8 +204,8 @@ assets/
 │   ├── photo2.webp
 │   └── ...
 ├── audio/
-│   ├── VayCuoi.mp3         # Nhạc nền chính (Váy Cưới - Erik)
-│   └── tonight-celebration.mp3  # Nhạc đặc biệt (tuỳ chọn)
+│   ├── Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3  # Nhạc nền chính
+│   └── Tonight I celebrate my love.mp3  # Nhạc đặc biệt (phát vào ngày cưới)
 └── icons/
     └── favicon.svg         # Biểu tượng website
 ```
@@ -288,6 +289,11 @@ Nếu muốn hiện nút **Thêm vào Lịch**, thêm cả hai đường dẫn v
 - Mọi lời chúc đều lưu vào Sheet (trạng thái `pending`)
 - Email thông báo chỉ gửi khi lời chúc **≥ 20 ký tự**
 - Đổi cột `status` thành `approved` trong Sheet để hiển thị công khai trên trang
+
+**Lưu ý về fallback:** Nếu `wishesApiUrl` không được cấu hình hoặc Apps Script lỗi/quá quota, hệ thống sẽ tự động sử dụng dữ liệu mock cứng trong code (`MOCK_WISHES`). Khi deploy thật, hãy đảm bảo:
+1. Đã cấu hình đúng `wishesApiUrl` trong `config.js`
+2. Đã deploy Apps Script và kiểm tra hoạt động
+3. Theo dõi quota của Apps Script (giới hạn miễn phí ~30,000 lần gọi/ngày)
 
 Sau mỗi lần sửa `Appscript`, cần **deploy lại** Web App để thay đổi có hiệu lực.
 
@@ -411,6 +417,12 @@ Kết quả nên dưới 200.
 - Tạo lại QR từ VietQR
 - Kiểm tra URL không bị cắt ngắn
 
+### ❓ Lời chúc hiển thị dữ liệu mẫu (mock)
+- Kiểm tra `wishesApiUrl` trong `config.js` đã được cấu hình chưa
+- Kiểm tra Apps Script đã được deploy chưa
+- Mở browser console (F12) xem log lỗi API
+- Apps Script quota miễn phí ~30,000 requests/ngày - nếu quá sẽ fallback về mock
+
 ---
 
 ## 📋 Checklist Trước Khi Publish
@@ -422,7 +434,8 @@ Kết quả nên dưới 200.
 - [ ] Cấu hình Google Maps cho các địa điểm
 - [ ] Tạo QR code mừng cưới
 - [ ] Deploy Google Apps Script & cấu hình `wishesApiUrl`
-- [ ] Thêm file nhạc nền (hoặc dùng mặc định)
+- [ ] Thêm file nhạc nền (mặc định: Canon in D)
+- [ ] Verify nhạc nền phát đúng (kiểm tra cả ngày cưới đặc biệt)
 - [ ] Kiểm tra responsive trên di động (hamburger menu, gallery, lightbox)
 - [ ] Test toàn bộ tính năng (countdown, gallery, maps, music, lời chúc)
 - [ ] Kiểm tra SEO Meta tags (F12 → Network)
@@ -438,5 +451,5 @@ Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp
 
 ---
 
-*Last Updated: 2026-08-03*
+*Last Updated: 2026-08-08*
 *Made with ❤️ by Lê Phước Đức*

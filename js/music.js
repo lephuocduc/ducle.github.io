@@ -13,19 +13,23 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
     const icon = document.getElementById("music-icon");
     if (!btn || !musicConfig) return;
 
-    // Kiểm tra nếu hôm nay là ngày 25/10 (Tháng 10 trong JS Date là index 9, Ngày 25)
+    // Kiểm tra nếu hôm nay là ngày cưới hoặc SAU ngày cưới
     const vietnamDate = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Ho_Chi_Minh',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
     });
-    const isWeddingDay = weddingDateIso
-        && vietnamDate.format(new Date()) === vietnamDate.format(new Date(weddingDateIso));
+    const todayStr = vietnamDate.format(new Date());
+    const weddingDayStr = weddingDateIso ? vietnamDate.format(new Date(weddingDateIso)) : null;
+    
+    // Chỉ phát nhạc đặc biệt vào ĐÚNG ngày cưới
+    // Sau ngày cưới (từ 26/10 trở đi) sẽ phát nhạc thường
+    const isWeddingDay = weddingDayStr && todayStr === weddingDayStr;
 
     const musicUrl = isWeddingDay
         ? (musicConfig.specialUrl || "assets/audio/Tonight I celebrate my love.mp3")
-        : (musicConfig.url || "assets/audio/VayCuoi.mp3");
+        : (musicConfig.url || "assets/audio/Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3");
 
     // Preload audio file when page loads (just download, don't play)
     function preloadAudio() {

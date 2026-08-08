@@ -38,7 +38,7 @@ export const weddingConfig = {
         father: "Trần Văn Tèo",
         mother: "Bùi Thị Hiền",
         avatar: "assets/img/bride.jpg",
-        story: "Cô gái dịu dàng, yêu đời và luôn mang đến nụ cười ấm áp.",
+        story: "Một cô gái dịu dàng, yêu đời và luôn mang đến nụ cười ấm áp.",
         bank: {
             bankName: "VPBank (Ngân hàng Việt Nam Thịnh Vượng)",
             bankCode: "VPB",
@@ -63,10 +63,12 @@ export const weddingConfig = {
 
     // Nhạc nền
     music: {
-        url: "assets/audio/VayCuoi.mp3",
-        title: "Váy Cưới - Erik",
+        url: "assets/audio/Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3",
+        title: "Canon in D - Pachelbel",
         specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
         specialTitle: "Tonight I Celebrate My Love",
+        // Ngày cưới - nhạc đặc biệt chỉ phát trong ngày này, sau đó quay về nhạc thường
+        weddingDate: "2026-10-25T00:00:00",
         autoplay: true
     },
 
@@ -85,6 +87,13 @@ export const weddingConfig = {
             title: "Lời Tỏ Tình Ngọt Ngào",
             content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
             image: "assets/img/LoiToTinhNgotNgao.webp"
+        },
+        {
+            year: "2016-2026",
+            date: "",
+            title: "Cùng Nhau Vượt Qua Thử Thách",
+            content: "Không phải lúc nào con đường tình yêu cũng trải đầy hoa hồng. Có những ngày xa cách vì công việc, những lần giận hờn vu vơ, những khó khăn tưởng chừng như thử thách cả hai. Nhưng chính trong những năm tháng ấy, hai đứa đã học cách lắng nghe, thấu hiểu và luôn chọn ở lại bên nhau. Mỗi khó khăn đi qua lại càng làm cho tình yêu thêm vững chắc, để rồi cả hai tin chắc rằng đây chính là người mình muốn đi cùng đến hết cuộc đời.",
+            image: ""
         },
         {
             year: "2026",

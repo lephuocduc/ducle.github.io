@@ -45,6 +45,14 @@
         right: auto;
     }
 
+    .timeline-card {
+        padding: 20px 18px;
+    }
+
+    .timeline-item-title {
+        font-size: clamp(1.05rem, 3.2vw, 1.3rem);
+    }
+
     /* Gallery Grid Tablet */
     .gallery-grid {
         column-count: 2;
@@ -242,6 +250,14 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .timeline-card {
+        padding: 16px 14px;
+    }
+
+    .timeline-item-title {
+        font-size: clamp(0.95rem, 4vw, 1.2rem);
     }
 
 
