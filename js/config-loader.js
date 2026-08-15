@@ -13,7 +13,7 @@ export function loadConfig() {
 
     // Cập nhật SEO Title & Meta tags
     if (weddingConfig.seo) {
-        document.title = weddingConfig.seo.title || "Thiệp Mời Cưới";
+        document.title = weddingConfig.seo.title || "Duc & Suong’s Wedding";
 
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', weddingConfig.seo.description || '');

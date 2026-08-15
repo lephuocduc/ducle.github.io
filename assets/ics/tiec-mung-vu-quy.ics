@@ -14,5 +14,10 @@ LOCATION:Tư gia nhà gái - Ấp Giồng Kiến\, Xã Thạnh Trị\, tỉnh V�
 URL:https://maps.app.goo.gl/KofqAs6EGaQ7jEza8
 STATUS:CONFIRMED
 TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Nhắc nhở: Tiệc Mừng Vu Quy hôm nay vào lúc 09:00!
+TRIGGER:-PT2H
+END:VALARM
 END:VEVENT
 END:VCALENDAR

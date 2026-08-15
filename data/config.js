@@ -7,7 +7,7 @@
 export const weddingConfig = {
     // Thông tin SEO & Meta
     seo: {
-        title: "Thiệp Mời Cưới - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
+        title: "Duc & Suong’s Wedding - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
         description: "Trân trọng kính mời mọi người, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Tân Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
         ogImage: "assets/img/og-image.webp",
         favicon: "assets/icons/favicon.svg"
