@@ -22,6 +22,24 @@
     <link rel="shortcut icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%238B0000'/><circle cx='50' cy='50' r='45.5' fill='none' stroke='%23D4AF37' stroke-width='3'/><text x='50' y='58' text-anchor='middle' font-family='serif' font-size='52' font-weight='700' fill='%23D4AF37'>囍</text></svg>">
 
+    <!-- Lock viewport height variable (--vh) to fix scroll jitter on mobile/webview -->
+    <script>
+        (function () {
+            function setVh() {
+                var vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', vh + 'px');
+            }
+            setVh();
+            var lastWidth = window.innerWidth;
+            window.addEventListener('resize', function () {
+                if (window.innerWidth !== lastWidth) {
+                    lastWidth = window.innerWidth;
+                    setVh();
+                }
+            });
+        })();
+    </script>
+
     <!-- Preconnect to external origins to reduce latency -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +50,7 @@
 
     <!-- Third-party Icons & Styling -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20260801-8">
+    <link rel="stylesheet" href="css/style.css?v=20260801-9">
     <link rel="stylesheet" href="css/animation.css?v=20260728-3">
     <link rel="stylesheet" href="css/responsive.css?v=20260801-5">
 </head>
@@ -230,7 +248,7 @@
     </footer>
 
     <!-- Main ES6 Entry Script -->
-    <script type="module" src="js/main.js?v=20260801-8"></script>
+    <script type="module" src="js/main.js?v=20260801-9"></script>
 </body>
 
 </html>
