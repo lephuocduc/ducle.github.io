@@ -453,6 +453,7 @@ body.no-scroll {
 /* 3. Hero Section */
 .hero-section {
     min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2132,3 +2133,4 @@ body.no-scroll {
     .ws-card {
         padding: 18px 16px;
     }
+}
