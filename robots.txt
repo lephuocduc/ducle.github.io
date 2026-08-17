@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://wedding.phuocducthusuong.com/sitemap.xml

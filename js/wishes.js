@@ -389,7 +389,7 @@ async function handleLike(wishId, btnEl) {
         fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ action: 'likeWish', id: wishId })
+            body: new URLSearchParams({ action: 'likeWish', id: wishId, visitorId: getVisitorId() })
         }).catch(() => { });
     }
 }

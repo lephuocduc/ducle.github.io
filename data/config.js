@@ -63,7 +63,7 @@ export const weddingConfig = {
 
     // Nhạc nền
     music: {
-        url: "assets/audio/Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3",
+        url: "assets/audio/canon-in-d.mp3",
         title: "Canon in D - Pachelbel",
         specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
         specialTitle: "Tonight I Celebrate My Love",

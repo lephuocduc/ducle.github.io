@@ -81,6 +81,8 @@ Invitation/
 │   ├── audio/                  # File nhạc nền (.mp3)
 │   ├── icons/                  # Icons & favicons (.svg)
 │   └── ics/                    # Calendar file (.ics)
+├── robots.txt                  # Cấu hình crawler SEO
+├── sitemap.xml                 # Sơ đồ trang web XML
 └── README.md                   # Tài liệu hướng dẫn này
 ```
 
@@ -140,7 +142,7 @@ export const weddingConfig = {
 
     // Nhạc Nền
     music: {
-        url: "assets/audio/Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3",
+        url: "assets/audio/canon-in-d.mp3",
         specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
         title: "Canon in D - Pachelbel",
         autoplay: true
@@ -204,7 +206,7 @@ assets/
 │   ├── photo2.webp
 │   └── ...
 ├── audio/
-│   ├── Canon in D (Pachelbel's Canon) - Cello & Piano [BEST WEDDING VERSION].mp3  # Nhạc nền chính
+│   ├── canon-in-d.mp3  # Nhạc nền chính
 │   └── Tonight I celebrate my love.mp3  # Nhạc đặc biệt (phát vào ngày cưới)
 └── icons/
     └── favicon.svg         # Biểu tượng website
@@ -327,12 +329,6 @@ http-server
 ```
 Mở tại `http://localhost:8080`
 
-### Option 4: Node.js + Vite (Nâng Cao)
-```bash
-npm install
-npm run dev
-```
-
 ---
 
 ## 🌐 Deploy Lên GitHub Pages
@@ -377,6 +373,7 @@ Hoặc custom domain:
 - **WebP Images**: Format ảnh hiệu suất cao
 - **Lazy Loading**: Gallery, QR và bản đồ tải khi cần thiết
 - **requestAnimationFrame**: Animations mượt 60 FPS
+- **SEO & Search Indexing**: Cấu hình `robots.txt` và `sitemap.xml` chuẩn SEO
 
 ### ⚠️ Cần Kiểm Tra Trước Publish
 
