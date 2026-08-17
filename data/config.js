@@ -93,7 +93,7 @@ export const weddingConfig = {
             date: "",
             title: "Cùng Nhau Vượt Qua Thử Thách",
             content: "Không phải lúc nào con đường tình yêu cũng trải đầy hoa hồng. Có những ngày xa cách vì công việc, những lần giận hờn vu vơ, những khó khăn tưởng chừng như thử thách cả hai. Nhưng chính trong những năm tháng ấy, hai đứa đã học cách lắng nghe, thấu hiểu và luôn chọn ở lại bên nhau. Mỗi khó khăn đi qua lại càng làm cho tình yêu thêm vững chắc, để rồi cả hai tin chắc rằng đây chính là người mình muốn đi cùng đến hết cuộc đời.",
-            image: ""
+            image: "assets/img/mosaic.webp"
         },
         {
             year: "2026",
