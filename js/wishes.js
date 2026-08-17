@@ -6,44 +6,7 @@
 
 import { weddingConfig } from '../data/config.js?v=20260729-2';
 
-// ── Mock Data ──────────────────────────────────────────────────────────────
-const MOCK_WISHES = [
-    {
-        id: "w-pin-1", name: "Gia Đình Ba Mẹ Chú Rể", label: "Ba Mẹ Chú Rể",
-        content: "Chúc hai con trăm năm hạnh phúc, luôn yêu thương, nhường nhịn và đồng hành cùng nhau trên mọi chặng đường tương lai!",
-        likes: 99, createdTime: "2026-10-24T18:00:00+07:00", status: "approved", isPinned: true
-    },
-    {
-        id: "w-pin-2", name: "Gia Đình Ba Mẹ Cô Dâu", label: "Ba Mẹ Cô Dâu",
-        content: "Mong cho hai con một đời bình an, gia đình êm ấm, thuận hòa và gặp nhiều may mắn trong cuộc sống hôn nhân.",
-        likes: 88, createdTime: "2026-10-24T18:30:00+07:00", status: "approved", isPinned: true
-    },
-    {
-        id: "w-3", name: "Minh Anh", label: "Bạn thân",
-        content: "Chúc hai bạn trăm năm hạnh phúc, luôn yêu thương và đồng hành cùng nhau trên mọi chặng đường của cuộc sống. 💕",
-        likes: 42, createdTime: "2026-10-25T18:35:00+07:00", status: "approved", isPinned: false
-    },
-    {
-        id: "w-4", name: "Huy",
-        content: "Chúc cô dâu chú rể luôn mạnh khỏe, vui vẻ và hạnh phúc mỗi ngày! Mãi mãi bên nhau nhé 🥰",
-        likes: 15, createdTime: "2026-10-25T18:40:00+07:00", status: "approved", isPinned: false
-    },
-    {
-        id: "w-5", name: "Lan Ngọc",
-        content: "Chúc hai bạn luôn yêu thương, thấu hiểu và cùng nhau vượt qua mọi thử thách. Hạnh phúc mãi nhé! 💝",
-        likes: 9, createdTime: "2026-10-25T18:47:00+07:00", status: "approved", isPinned: false
-    },
-    {
-        id: "w-6", name: "Anh Tuấn",
-        content: "Chúc hai bạn một cuộc sống đầy ắp tiếng cười và những kỷ niệm đẹp. Trăm năm hạnh phúc! ✨",
-        likes: 7, createdTime: "2026-10-25T18:52:00+07:00", status: "approved", isPinned: false
-    },
-    {
-        id: "w-7", name: "Thanh Hương",
-        content: "Gửi ngàn lời chúc tốt đẹp nhất tới cặp đôi. Mong các bạn luôn hạnh phúc bên nhau!",
-        likes: 3, createdTime: "2026-10-25T19:05:00+07:00", status: "approved", isPinned: false
-    },
-];
+
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const LS_WISHES = 'wedding_wishes_cache_v2';
@@ -69,6 +32,13 @@ export function initWishesModule() {
     if (!container) return;
     container.innerHTML = buildShell();
     bindShellEvents();
+
+    const cached = tryParseCached();
+    if (cached && Array.isArray(cached) && cached.length > 0) {
+        allWishes = cached;
+        renderList();
+    }
+
     fetchWishes();
 }
 
@@ -234,7 +204,18 @@ function bindShellEvents() {
     });
 }
 
-// ── Fetch ───────────────────────────────────────────────────────────────────
+// ── Fetch & Fallback ────────────────────────────────────────────────────────
+function renderLoadingState() {
+    const cardsEl = document.getElementById('ws-cards');
+    const moreBtn = document.getElementById('ws-load-more');
+    const totalEl = document.getElementById('ws-total-num');
+    if (totalEl) totalEl.textContent = '…';
+    if (cardsEl) {
+        cardsEl.innerHTML = `<div class="ws-loading"><i class="fas fa-spinner fa-spin"></i> Đang tải lời chúc...</div>`;
+    }
+    if (moreBtn) moreBtn.style.display = 'none';
+}
+
 async function fetchWishes() {
     const apiUrl = weddingConfig.wishesApiUrl;
     if (apiUrl && apiUrl.trim()) {
@@ -250,13 +231,21 @@ async function fetchWishes() {
                 }
             }
         } catch (e) {
-            console.warn('[wishes] API error, falling back to cache:', e.message);
+            console.warn('[wishes] API error:', e.message);
         }
     }
-    // Fallback: localStorage → mock
+
+    // Fallback: Nếu có cache cũ -> giữ/hiển thị cache cũ
+    // Nếu chưa từng có cache -> hiện "Đang tải lời chúc..."
     const cached = tryParseCached();
-    allWishes = cached || MOCK_WISHES;
-    renderList();
+    if (cached && Array.isArray(cached) && cached.length > 0) {
+        allWishes = cached;
+        renderList();
+    } else if (allWishes.length > 0) {
+        renderList();
+    } else {
+        renderLoadingState();
+    }
 }
 
 // ── Render List ──────────────────────────────────────────────────────────────

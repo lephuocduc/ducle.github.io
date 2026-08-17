@@ -292,7 +292,7 @@ Nếu muốn hiện nút **Thêm vào Lịch**, thêm cả hai đường dẫn v
 - Email thông báo chỉ gửi khi lời chúc **≥ 20 ký tự**
 - Đổi cột `status` thành `approved` trong Sheet để hiển thị công khai trên trang
 
-**Lưu ý về fallback:** Nếu `wishesApiUrl` không được cấu hình hoặc Apps Script lỗi/quá quota, hệ thống sẽ tự động sử dụng dữ liệu mock cứng trong code (`MOCK_WISHES`). Khi deploy thật, hãy đảm bảo:
+**Lưu ý về fallback:** Nếu `wishesApiUrl` không được cấu hình hoặc Apps Script lỗi/quá quota, hệ thống sẽ ưu tiên hiển thị lời chúc từ cache (`localStorage`). Nếu chưa từng có cache (khách mở lần đầu hoặc mất kết nối), trang sẽ hiển thị thông báo "Đang tải lời chúc...". Khi deploy thật, hãy đảm bảo:
 1. Đã cấu hình đúng `wishesApiUrl` trong `config.js`
 2. Đã deploy Apps Script và kiểm tra hoạt động
 3. Theo dõi quota của Apps Script (giới hạn miễn phí ~30,000 lần gọi/ngày)
@@ -414,11 +414,11 @@ Kết quả nên dưới 200.
 - Tạo lại QR từ VietQR
 - Kiểm tra URL không bị cắt ngắn
 
-### ❓ Lời chúc hiển thị dữ liệu mẫu (mock)
+### ❓ Lời chúc hiển thị trạng thái "Đang tải lời chúc..."
 - Kiểm tra `wishesApiUrl` trong `config.js` đã được cấu hình chưa
 - Kiểm tra Apps Script đã được deploy chưa
 - Mở browser console (F12) xem log lỗi API
-- Apps Script quota miễn phí ~30,000 requests/ngày - nếu quá sẽ fallback về mock
+- Apps Script quota miễn phí ~30,000 requests/ngày - nếu quá quota API sẽ không trả lời chúc mới
 
 ---
 
