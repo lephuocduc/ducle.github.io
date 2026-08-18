@@ -260,6 +260,55 @@
         font-size: clamp(0.95rem, 4vw, 1.2rem);
     }
 
+    /* ────── WISHES SECTION RESPONSIVE FIX ────── */
+    /* Để nút thả tim không chiếm hết một hàng trên mobile */
+    .ws-card {
+        flex-wrap: wrap;
+    }
+
+    .ws-card-right {
+        flex: 0 0 auto;
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        order: 3;
+    }
+
+    .ws-like-count {
+        font-size: 1rem;
+        gap: 3px;
+    }
+
+    .ws-like-btn {
+        padding: 4px 12px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* Cho phép cột nội dung mở rộng hết chiều rộng */
+    .ws-card-mid {
+        flex: 1;
+        order: 2;
+        min-width: 0;
+    }
+
+    .ws-card-left {
+        order: 1;
+    }
+
+    /* Tuỳ chọn 2: Nếu bạn muốn nút thả tim ở dưới lời chúc, bỏ comment phần này */
+    /* 
+    .ws-card-right {
+        flex: 1 1 100%;
+        width: 100%;
+        justify-content: flex-start;
+        order: 3;
+        margin-top: 8px;
+    }
+    */
+    /* ────── END WISHES SECTION RESPONSIVE ────── */
+
 
 
     .floating-btn {
