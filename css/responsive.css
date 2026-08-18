@@ -273,10 +273,26 @@
     .ws-card-header {
         flex-wrap: wrap;
         gap: 6px;
+    .ws-card-header {
+        flex-wrap: nowrap;
+        gap: 8px;
+        min-width: 0;
     }
-
+    
+    .ws-card-top-row {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+    
     .ws-card-right {
-        gap: 6px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+    
+    .ws-author-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .ws-like-count {
