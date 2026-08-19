@@ -145,6 +145,9 @@ function buildShell() {
                 <button id="ws-sort-new" class="ws-sort-btn" data-sort="new">
                     <i class="fas fa-clock"></i> Mới nhất
                 </button>
+                <button id="ws-sort-old" class="ws-sort-btn" data-sort="old">
+                    <i class="fas fa-history"></i> Đầu tiên
+                </button>
             </div>
         </div>
 
@@ -329,11 +332,19 @@ function sortWishes(list) {
     const pinned = list.filter(w => w.isPinned);
     const normal = list.filter(w => !w.isPinned);
 
-    const cmp = sortMode === 'hot'
-        ? (a, b) => (b.likes || 0) - (a.likes || 0) || timeMs(b) - timeMs(a)
-        : (a, b) => timeMs(b) - timeMs(a) || (b.likes || 0) - (a.likes || 0);
+    // Bài ghim luôn ưu tiên ghim cũ nhất lên trước ở cả 3 chế độ sắp xếp
+    pinned.sort((a, b) => timeMs(a) - timeMs(b) || (b.likes || 0) - (a.likes || 0));
 
-    return [...pinned.sort(cmp), ...normal.sort(cmp)];
+    let normalCmp;
+    if (sortMode === 'hot') {
+        normalCmp = (a, b) => (b.likes || 0) - (a.likes || 0) || timeMs(b) - timeMs(a);
+    } else if (sortMode === 'old') {
+        normalCmp = (a, b) => timeMs(a) - timeMs(b) || (b.likes || 0) - (a.likes || 0);
+    } else { // 'new'
+        normalCmp = (a, b) => timeMs(b) - timeMs(a) || (b.likes || 0) - (a.likes || 0);
+    }
+
+    return [...pinned, ...normal.sort(normalCmp)];
 }
 
 // ── Like (throttled 1s per wish per user, unlimited animation) ───────────────
