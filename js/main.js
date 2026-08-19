@@ -237,6 +237,19 @@ function renderGiftSection(config) {
     `;
 
     initQrLightbox(giftContainer);
+
+    // Handle VietQR image loading timeout and error fallback
+    giftContainer.querySelectorAll('.gift-qr-img').forEach(img => {
+        const loadTimeout = setTimeout(() => {
+            console.warn('[vietqr] QR code loading timeout (> 5s):', img.src);
+        }, 5000);
+
+        img.addEventListener('load', () => clearTimeout(loadTimeout));
+        img.addEventListener('error', () => {
+            clearTimeout(loadTimeout);
+            console.warn('[vietqr] Unable to load QR code image:', img.src);
+        });
+    });
 }
 
 function initQrLightbox(giftContainer) {

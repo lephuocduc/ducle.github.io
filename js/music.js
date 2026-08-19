@@ -37,8 +37,8 @@ export function initMusicPlayer(musicConfig, weddingDateIso) {
         audioObj = new Audio(musicUrl);
         audioObj.loop = false;
         audioObj.preload = "auto"; // Hint to browser to preload
-        audioObj.addEventListener("error", () => {
-            console.warn("Không thể tải file nhạc.");
+        audioObj.addEventListener("error", (e) => {
+            console.warn("[music] Audio error:", e?.message || "cannot load audio", "- Continuing without audio");
         });
         // Listen for ended event to update UI
         audioObj.addEventListener("ended", () => {

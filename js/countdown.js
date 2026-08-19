@@ -4,18 +4,10 @@
  * Sử dụng múi giờ Việt Nam (Asia/Ho_Chi_Minh - UTC+7)
  */
 
-// Chuyển đổi ISO date string sang timestamp theo múi giờ Việt Nam
+// Chuyển đổi ISO date string sang timestamp
 function getVietnamTimestamp(isoString) {
-    // Parse date parts - isoString format: "2026-10-25T00:00:00"
-    const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/);
-    if (!match) return new Date(isoString).getTime(); // Fallback
-    
-    const [, year, month, day, hour, minute, second] = match;
-    
-    // Tạo date theo UTC, sau đó cộng thêm 7 giờ (UTC+7 = Vietnam)
-    // Cách này đảm bảo thời gian luôn là giờ Việt Nam bất kể client ở đâu
-    const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-    return date.getTime() + (7 * 60 * 60 * 1000); // +7 hours for UTC+7
+    if (!isoString) return Date.now();
+    return new Date(isoString).getTime();
 }
 
 export function renderCountdown(containerId, weddingDateIso, coupleNames = "Cặp Đôi") {

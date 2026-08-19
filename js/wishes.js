@@ -57,7 +57,10 @@ function safeSetItem(key, value) {
 // ── Entry ──────────────────────────────────────────────────────────────────
 export function initWishesModule() {
     const container = document.getElementById('wishes-container');
-    if (!container) return;
+    if (!container) {
+        console.warn('[wishes] #wishes-container not found in DOM');
+        return;
+    }
     container.innerHTML = buildShell();
     bindShellEvents();
 
@@ -665,7 +668,7 @@ const DEFAULT_PINNED_WISHES = [
     {
         id: 'pinned-1',
         name: '👰 Cô Dâu & Chú Rể',
-        content: 'Chúc mừng ngày trọng đại của Phước Đức & Thu Sương. Hy vọng đôi bạn sẽ có một hôn nhân hạnh phúc, yêu thương và bình yên.',
+        content: 'Chúc mừng ngày trọng đại của Phước Đức & Thu Sương.',
         likes: 0,
         createdTime: new Date().toISOString(),
         status: 'approved',
