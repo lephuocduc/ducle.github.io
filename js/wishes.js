@@ -1,4 +1,4 @@
-/**
+﻿/**
  * WISHES.JS - LỜI CHÚC MODULE v2
  * Bố cục 2 cột form, avatar initials, sort Nổi bật / Mới nhất,
  * like chỉ cộng (mỗi click +1), phân trang 10 lời/lần.
@@ -22,7 +22,7 @@ const AVATAR_COLORS = [
 // ── State ──────────────────────────────────────────────────────────────────
 let allWishes = [];
 let visibleCount = PAGE_SIZE;
-let sortMode = 'hot'; // 'hot' | 'new'
+let sortMode = 'hot'; // 'hot' | 'new' | 'old'
 let colorMap = {};    // id -> colorIndex
 
 // ── Entry ──────────────────────────────────────────────────────────────────
@@ -36,9 +36,10 @@ export function initWishesModule() {
     const cached = tryParseCached();
     if (cached && Array.isArray(cached) && cached.length > 0) {
         allWishes = cached;
-        renderList();
+    } else {
+        allWishes = [...DEFAULT_PINNED_WISHES];
     }
-
+    renderList();
     fetchWishes();
 }
 
@@ -221,34 +222,53 @@ function renderLoadingState() {
 
 async function fetchWishes() {
     const apiUrl = weddingConfig.wishesApiUrl;
-    if (apiUrl && apiUrl.trim()) {
-        try {
-            const res = await fetch(apiUrl + '?action=getWishes');
-            if (res.ok) {
-                const json = await res.json();
-                if (json?.wishes) {
-                    allWishes = json.wishes.filter(w => w.status === 'approved');
+    if (!apiUrl || !apiUrl.trim()) return;
+
+    // Timeout 10s tránh treo "Đang tải lời chúc..." do Google Apps Script cold start
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+
+    try {
+        const fetchOpts = { method: 'GET', redirect: 'follow' };
+        if (controller) fetchOpts.signal = controller.signal;
+
+        const res = await fetch(apiUrl + '?action=getWishes', fetchOpts);
+        if (timeoutId) clearTimeout(timeoutId);
+
+        if (res.ok) {
+            const json = await res.json().catch(() => null);
+            if (json && Array.isArray(json.wishes)) {
+                // Lọc linh hoạt status (approved / active / rỗng)
+                const validWishes = json.wishes.filter(w =>
+                    !w.status ||
+                    String(w.status).toLowerCase().trim() === 'approved' ||
+                    String(w.status).toLowerCase().trim() === 'active' ||
+                    w.status === true
+                );
+
+                const listToUse = validWishes.length > 0 ? validWishes : json.wishes;
+                if (listToUse.length > 0) {
+                    allWishes = listToUse;
+                    mergeLocalLikes();
                     cacheWishes();
                     renderList();
                     return;
                 }
             }
-        } catch (e) {
-            console.warn('[wishes] API error:', e.message);
         }
+    } catch (e) {
+        if (timeoutId) clearTimeout(timeoutId);
+        console.warn('[wishes] API fetch warning/timeout:', e.message);
     }
 
-    // Fallback: Nếu có cache cũ -> giữ/hiển thị cache cũ
-    // Nếu chưa từng có cache -> hiện "Đang tải lời chúc..."
+    // Fallback: Giữ cache cũ hoặc default pinned nếu không tải được API
     const cached = tryParseCached();
     if (cached && Array.isArray(cached) && cached.length > 0) {
         allWishes = cached;
-        renderList();
-    } else if (allWishes.length > 0) {
-        renderList();
-    } else {
-        renderLoadingState();
+    } else if (!allWishes || allWishes.length === 0) {
+        allWishes = [...DEFAULT_PINNED_WISHES];
     }
+    renderList();
 }
 
 // ── Render List ──────────────────────────────────────────────────────────────
@@ -461,8 +481,20 @@ async function handleSubmit(e) {
         return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang gửi...`;
+    const newWish = {
+        id: 'w-local-' + Date.now(),
+        name,
+        content,
+        likes: 0,
+        createdTime: new Date().toISOString(),
+        status: 'approved',
+        isPinned: false
+    };
+
+    // Thêm ngay local để hiển thị lập tức không phụ thuộc vào thời gian phản hồi Google Sheet
+    allWishes.unshift(newWish);
+    cacheWishes();
+    renderList();
 
     const apiUrl = weddingConfig.wishesApiUrl;
     if (apiUrl?.trim()) {
@@ -493,7 +525,7 @@ async function handleSubmit(e) {
     submitBtn.disabled = false;
     submitBtn.innerHTML = `<i class="fas fa-heart"></i> Gửi lời chúc`;
 
-    showToast(`💕 Cảm ơn ${escHtml(name)}! Lời chúc đã được gửi thành công và sẽ được hiển thị sớm.`, 'success');
+    showToast(`💕 Cảm ơn ${escHtml(name)}! Lời chúc đã được gửi thành công.`, 'success');
     triggerHeartBurst();
 }
 
