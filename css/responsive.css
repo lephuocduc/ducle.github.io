@@ -269,28 +269,6 @@
         font-size: clamp(0.95rem, 4vw, 1.2rem);
     }
 
-    /* ────── WISHES SECTION RESPONSIVE FIX ────── */
-    .ws-card-header {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    .ws-card-right {
-        gap: 6px;
-    }
-
-    .ws-like-count {
-        font-size: 0.95rem;
-        gap: 3px;
-    }
-
-    .ws-like-btn {
-        padding: 4px 10px;
-        font-size: 0.75rem;
-        white-space: nowrap;
-    }
-    /* ────── END WISHES SECTION RESPONSIVE ────── */
-
 
 
     .floating-btn {
