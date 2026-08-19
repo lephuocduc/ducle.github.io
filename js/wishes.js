@@ -303,21 +303,23 @@ function buildCard(w, idx) {
             <div class="ws-avatar" style="background:${bg};color:${fg}">${initials}</div>
         </div>
         <div class="ws-card-mid">
-            <div class="ws-card-top-row">
-                <span class="ws-author-name">${escHtml(w.name)}</span>
-                ${label}
+            <div class="ws-card-header">
+                <div class="ws-card-top-row">
+                    <span class="ws-author-name">${escHtml(w.name)}</span>
+                    ${label}
+                </div>
+                <div class="ws-card-right">
+                    <span class="ws-like-count">
+                        <i class="fas fa-heart ws-heart-icon"></i>
+                        <span id="lc-${w.id}">${w.likes || 0}</span>
+                    </span>
+                    <button class="ws-like-btn" data-id="${w.id}" aria-label="Thả tim lời chúc">
+                        Thả tim
+                    </button>
+                </div>
             </div>
             <p class="ws-card-content">${escHtml(w.content)}</p>
             <span class="ws-card-time"><i class="far fa-clock"></i> ${timeStr}</span>
-        </div>
-        <div class="ws-card-right">
-            <span class="ws-like-count">
-                <i class="fas fa-heart ws-heart-icon"></i>
-                <span id="lc-${w.id}">${w.likes || 0}</span>
-            </span>
-            <button class="ws-like-btn" data-id="${w.id}" aria-label="Thả tim lời chúc">
-                Thả tim
-            </button>
         </div>
     </div>`;
 }

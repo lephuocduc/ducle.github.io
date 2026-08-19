@@ -6,7 +6,8 @@
 @media (max-width: 992px) {
     .navbar {
         padding: 15px 25px;
-        gap: 20px; /* Slightly reduced gap */
+        gap: 20px;
+        /* Slightly reduced gap */
     }
 
     .ceremony-card {
@@ -71,7 +72,8 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        min-width: 44px; /* Ensure minimum touch target size */
+        min-width: 44px;
+        /* Ensure minimum touch target size */
     }
 
     /* Fix nav-brand text overflow when hamburger menu is visible */
@@ -80,8 +82,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        flex: 1; /* Take available space */
-        min-width: 0; /* Allow to shrink */
+        flex: 1;
+        /* Take available space */
+        min-width: 0;
+        /* Allow to shrink */
     }
 
     .nav-menu {
@@ -165,8 +169,10 @@
 .navbar.nav-collapsed .nav-brand {
     overflow: hidden;
     text-overflow: ellipsis;
-    flex: 1; /* Take available space */
-    min-width: 0; /* Allow to shrink */
+    flex: 1;
+    /* Take available space */
+    min-width: 0;
+    /* Allow to shrink */
 }
 
 .navbar.nav-collapsed .nav-menu {
@@ -223,7 +229,8 @@
 @media (max-width: 600px) {
     .navbar {
         padding: 12px 18px;
-        gap: 16px; /* Reduce gap on mobile */
+        gap: 16px;
+        /* Reduce gap on mobile */
     }
 
     /* Fix nav-brand text overflow on small screens */
@@ -232,8 +239,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        flex: 1; /* Take available space */
-        min-width: 0; /* Allow to shrink */
+        flex: 1;
+        /* Take available space */
+        min-width: 0;
+        /* Allow to shrink */
     }
 
     .hero-card {
@@ -259,6 +268,28 @@
     .timeline-item-title {
         font-size: clamp(0.95rem, 4vw, 1.2rem);
     }
+
+    /* ────── WISHES SECTION RESPONSIVE FIX ────── */
+    .ws-card-header {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .ws-card-right {
+        gap: 6px;
+    }
+
+    .ws-like-count {
+        font-size: 0.95rem;
+        gap: 3px;
+    }
+
+    .ws-like-btn {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    /* ────── END WISHES SECTION RESPONSIVE ────── */
 
 
 
@@ -399,6 +430,7 @@
 
 /* Extra small devices (max-width: 400px) */
 @media (max-width: 400px) {
+
     /* Extra fix for nav-brand on very small screens */
     .nav-brand {
         font-size: clamp(1.2rem, 4vw, 1.6rem);
