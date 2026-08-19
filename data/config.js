@@ -169,7 +169,7 @@ export const weddingConfig = {
     ],
 
     // Album ảnh cưới (Masonry Gallery)
-    galleryDriveUrl: "https://drive.google.com/drive/folders/1Itov-IKMkYSUbygz3keuhWxu4emgtmlX?usp=sharing",
+    galleryDriveUrl: "https://drive.google.com/drive/folders/1ET3ro78joijlE40VfAcaFo0KQZEqONzG",
     gallery: [
         { src: "assets/img/NAM_3318.webp", title: "Ánh Mắt Yêu Thương", aspect: "wide" },
         { src: "assets/img/NAM_2906.webp", title: "Khoảnh Khắc Ngọt Ngào", aspect: "tall" },
