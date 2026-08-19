@@ -20,67 +20,76 @@ if (initialConfig) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Tải cấu hình dữ liệu từ config.js
-    const config = initialConfig || loadConfig();
-    if (!config) return;
+    try {
+        // 1. Tải cấu hình dữ liệu từ config.js
+        const config = initialConfig || loadConfig();
+        if (!config) return;
 
-    // Intro screen button & opening curtain effect handling
-    const intro = document.getElementById('intro-screen');
-    const openBtn = document.getElementById('open-invite-btn');
+        // Intro screen button & opening curtain effect handling
+        const intro = document.getElementById('intro-screen');
+        const openBtn = document.getElementById('open-invite-btn');
 
-    if (intro) {
-        // Khóa cuộn trang khi đang hiển thị Intro (cả touch và scroll)
-        document.body.classList.add('no-scroll');
-        document.documentElement.classList.add('no-scroll');
-        window.scrollTo(0, 0);
+        if (intro) {
+            // Khóa cuộn trang khi đang hiển thị Intro (cả touch và scroll)
+            document.body.classList.add('no-scroll');
+            document.documentElement.classList.add('no-scroll');
+            window.scrollTo(0, 0);
 
-        intro.addEventListener('touchmove', (e) => {
-            if (!intro.classList.contains('hidden-intro')) {
-                if (e.cancelable) e.preventDefault();
-            }
-        }, { passive: false });
+            intro.addEventListener('touchmove', (e) => {
+                if (!intro.classList.contains('hidden-intro')) {
+                    if (e.cancelable) e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        if (openBtn && intro) {
+            openBtn.addEventListener('click', () => {
+                intro.classList.add('opening');
+                setTimeout(() => {
+                    intro.classList.add('hidden-intro');
+                    // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
+                    document.body.classList.remove('no-scroll');
+                    document.documentElement.classList.remove('no-scroll');
+                }, 800);
+            });
+        }
+
+        // 2. Render các Section chính hoàn toàn bằng JS
+        renderHero(config);
+        renderCouple(config);
+        renderGiftSection(config);
+        renderFooter(config);
+
+        // 3. Render các Module chuyên biệt
+        const coupleNames = `${config.groom?.shortName || config.groom?.name || ''} & ${config.bride?.shortName || config.bride?.name || ''}`;
+        renderCountdown("countdown-container", config.weddingDate, coupleNames);
+        renderTimeline("timeline-container", config.story);
+        renderCeremonies("ceremonies-container", config.ceremonies);
+        renderGallery("gallery-container", config.gallery);
+        renderGalleryDriveLink(config.galleryDriveUrl);
+        initWishesModule();
+
+        // 4. Khởi tạo nhạc nền, hiệu ứng & animations
+        initNavigationMenu();
+        initSmoothAnchorScroll();
+        initMusicPlayer(config.music, config.weddingDate);
+        initCanvasEffects("effects-canvas");
+        initParallax();
+        initScrollAnimations();
+        initCopyButtons();
+        initBackToTop();
+    } catch (err) {
+        console.error("[main] Lỗi khởi tạo giao diện:", err);
+    } finally {
+        // 5. Tháo màn hình chờ Preloader sau khi hoàn tất
+        hidePreloader();
     }
-
-    if (openBtn && intro) {
-        openBtn.addEventListener('click', () => {
-            intro.classList.add('opening');
-            setTimeout(() => {
-                intro.classList.add('hidden-intro');
-                // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
-                document.body.classList.remove('no-scroll');
-                document.documentElement.classList.remove('no-scroll');
-            }, 800);
-        });
-    }
-
-    // 2. Render các Section chính hoàn toàn bằng JS
-    renderHero(config);
-    renderCouple(config);
-    renderGiftSection(config);
-    renderFooter(config);
-
-    // 3. Render các Module chuyên biệt
-    const coupleNames = `${config.groom?.shortName || config.groom?.name || ''} & ${config.bride?.shortName || config.bride?.name || ''}`;
-    renderCountdown("countdown-container", config.weddingDate, coupleNames);
-    renderTimeline("timeline-container", config.story);
-    renderCeremonies("ceremonies-container", config.ceremonies);
-    renderGallery("gallery-container", config.gallery);
-    renderGalleryDriveLink(config.galleryDriveUrl);
-    initWishesModule();
-
-    // 4. Khởi tạo nhạc nền, hiệu ứng & animations
-    initNavigationMenu();
-    initSmoothAnchorScroll();
-    initMusicPlayer(config.music, config.weddingDate);
-    initCanvasEffects("effects-canvas");
-    initParallax();
-    initScrollAnimations();
-    initCopyButtons();
-    initBackToTop();
-
-    // 5. Tháo màn hình chờ Preloader sau khi hoàn tất
-    hidePreloader();
 });
+
+// Fallback an toàn: Tự động tháo Preloader sau 2.5s phòng trường hợp DOMContentLoaded quá chậm hoặc lỗi bất ngờ
+setTimeout(() => {
+    hidePreloader();
+}, 2500);
 
 // Chỉ preload hero và ảnh đại diện; các ảnh còn lại tải khi khách cuộn đến.
 function preloadImages(config) {

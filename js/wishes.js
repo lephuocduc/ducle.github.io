@@ -1,12 +1,10 @@
 ﻿/**
- * WISHES.JS - LỜI CHÚC MODULE v2
+ * WISHES.JS - LỜI CHÚC MODULE v2 (FIXED FOR INCOGNITO MODE)
  * Bố cục 2 cột form, avatar initials, sort Nổi bật / Mới nhất,
  * like chỉ cộng (mỗi click +1), phân trang 10 lời/lần.
  */
 
 import { weddingConfig } from '../data/config.js?v=20260729-2';
-
-
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const LS_WISHES = 'wedding_wishes_cache_v2';
@@ -25,13 +23,46 @@ let visibleCount = PAGE_SIZE;
 let sortMode = 'hot'; // 'hot' | 'new' | 'old'
 let colorMap = {};    // id -> colorIndex
 
+// Cache for localStorage availability check
+let localStorageAvailable = null;
+
+// ── LocalStorage Helper (Detects Private/Incognito Mode) ──────────────────
+function isLocalStorageAvailable() {
+    if (localStorageAvailable !== null) return localStorageAvailable;
+
+    try {
+        const test = '__ls_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        localStorageAvailable = true;
+        return true;
+    } catch (e) {
+        // Private/Incognito mode or quota exceeded
+        localStorageAvailable = false;
+        console.warn('[wishes] localStorage not available (likely private/incognito mode)');
+        return false;
+    }
+}
+
+function safeGetItem(key) {
+    if (!isLocalStorageAvailable()) return null;
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+
+function safeSetItem(key, value) {
+    if (!isLocalStorageAvailable()) return false;
+    try { localStorage.setItem(key, value); return true; } catch (e) { return false; }
+}
+
 // ── Entry ──────────────────────────────────────────────────────────────────
 export function initWishesModule() {
-    getVisitorId();
     const container = document.getElementById('wishes-container');
     if (!container) return;
     container.innerHTML = buildShell();
     bindShellEvents();
+
+    // Get visitor ID (safe - no DOM access yet)
+    getVisitorId();
 
     const cached = tryParseCached();
     if (cached && Array.isArray(cached) && cached.length > 0) {
@@ -115,7 +146,6 @@ function buildShell() {
                         <button id="ws-submit" type="submit" class="ws-btn-submit">
                             <i class="fas fa-heart"></i> Gửi lời chúc
                         </button>
-
 
                     </form>
                 </div>
@@ -224,7 +254,7 @@ async function fetchWishes() {
     const apiUrl = weddingConfig.wishesApiUrl;
     if (!apiUrl || !apiUrl.trim()) return;
 
-    // Timeout 10s tránh treo "Đang tải lời chúc..." do Google Apps Script cold start
+    // Timeout 10s tránh treo "Đang tải lời chúc...do Google Apps Script cold start
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
 
@@ -459,7 +489,8 @@ async function handleSubmit(e) {
     // Rate limit check: 10 seconds
     const visitorId = getVisitorId();
     const lastTimeKey = 'wedding_last_wish_time';
-    const lastSentTime = parseInt(localStorage.getItem(lastTimeKey) || '0', 10);
+    const lastSentTimeStr = safeGetItem(lastTimeKey);
+    const lastSentTime = lastSentTimeStr ? parseInt(lastSentTimeStr, 10) : 0;
     const now = Date.now();
     const diffSec = Math.ceil((10000 - (now - lastSentTime)) / 1000);
 
@@ -516,8 +547,8 @@ async function handleSubmit(e) {
         }
     }
 
-    // Save last sent time
-    try { localStorage.setItem(lastTimeKey, Date.now().toString()); } catch (e) { }
+    // Save last sent time (safe for incognito mode)
+    safeSetItem(lastTimeKey, Date.now().toString());
 
     // Reset form
     if (nameEl) nameEl.value = '';
@@ -571,13 +602,17 @@ function showToast(msg, type = 'success') {
     t._timer = setTimeout(() => { t.className = 'ws-toast'; }, 5000);
 }
 
-// ── LocalStorage ──────────────────────────────────────────────────────────────
+// ── LocalStorage (FIXED FOR INCOGNITO MODE) ────────────────────────────────────
 function cacheWishes() {
-    try { localStorage.setItem(LS_WISHES, JSON.stringify(allWishes)); } catch (e) { }
+    safeSetItem(LS_WISHES, JSON.stringify(allWishes));
 }
+
 function tryParseCached() {
-    try { return JSON.parse(localStorage.getItem(LS_WISHES)); } catch (e) { return null; }
+    const cached = safeGetItem(LS_WISHES);
+    if (!cached) return null;
+    try { return JSON.parse(cached); } catch (e) { return null; }
 }
+
 function mergeLocalLikes() {
     const cached = tryParseCached();
     if (!cached) return;
@@ -615,12 +650,26 @@ function escHtml(s) {
 }
 
 function getVisitorId() {
-    let vid = localStorage.getItem('wedding_visitor_id');
+    let vid = safeGetItem('wedding_visitor_id');
     if (!vid) {
         vid = typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
             : 'v-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-        try { localStorage.setItem('wedding_visitor_id', vid); } catch (e) { }
+        safeSetItem('wedding_visitor_id', vid);
     }
     return vid;
 }
+
+// Default pinned wishes (fallback khi chưa tải API)
+const DEFAULT_PINNED_WISHES = [
+    {
+        id: 'pinned-1',
+        name: '👰 Cô Dâu & Chú Rể',
+        content: 'Chúc mừng ngày trọng đại của Phước Đức & Thu Sương. Hy vọng đôi bạn sẽ có một hôn nhân hạnh phúc, yêu thương và bình yên.',
+        likes: 0,
+        createdTime: new Date().toISOString(),
+        status: 'approved',
+        isPinned: true,
+        label: 'NGƯỜI SOẠN'
+    }
+];
