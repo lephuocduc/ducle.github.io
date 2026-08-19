@@ -284,10 +284,31 @@
 
     /* Fix footer brand */
     .footer-brand {
-        font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+        font-size: clamp(1.4rem, 5.5vw, 2.2rem);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* Wishes section header fix for small screens */
+    .ws-card-header {
+        gap: 6px;
+    }
+
+    .ws-card-right {
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .ws-like-count {
+        font-size: 0.95rem;
+        gap: 3px;
+    }
+
+    .ws-like-btn {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        white-space: nowrap;
     }
 
     /* Mobile masonry: each column grows independently, so images never leave grid-row gaps. */
@@ -387,9 +408,10 @@
     /* Google Drive Link Card – mobile stack */
     .gallery-drive-card {
         flex-direction: column;
+        align-items: center;
         text-align: center;
         padding: 18px 20px;
-        gap: 14px;
+        gap: 12px;
     }
 
     .gallery-drive-text {
