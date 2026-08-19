@@ -245,20 +245,34 @@
         /* Allow to shrink */
     }
 
+    .intro-content {
+        padding: 30px 10px;
+        width: 95%;
+    }
+
     .hero-card {
-        padding: 30px 15px;
+        padding: 30px 10px;
     }
 
     .couple-card {
-        padding: 25px 18px;
+        padding: 25px 14px;
     }
 
-    /* Giữ tên cô dâu chú rể trên 1 dòng ngay cả khi phóng to chữ */
-    .couple-name {
-        font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+    /* Giữ tên cô dâu chú rể trên 1 dòng và tự động thu nhỏ font scale vừa khít khung chứa */
+    .hero h1,
+    .hero-title,
+    .couple-names,
+    .intro-title,
+    [class*="hero"] h1 {
+        font-size: clamp(0.85rem, 6.5cqw, 1.8rem);
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+    }
+
+    .couple-name {
+        font-size: clamp(1.1rem, 5.5vw, 2.2rem);
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .timeline-card {
@@ -434,5 +448,26 @@
     /* Extra fix for nav-brand on very small screens */
     .nav-brand {
         font-size: clamp(1.2rem, 4vw, 1.6rem);
+    }
+}
+
+/* Extra small mobile devices (max-width: 480px) */
+@media (max-width: 480px) {
+    .intro-content {
+        padding: 22px 8px;
+        width: 96%;
+    }
+
+    .hero-card {
+        padding: 22px 8px;
+    }
+
+    .hero h1,
+    .hero-title,
+    .couple-names,
+    .intro-title,
+    [class*="hero"] h1 {
+        font-size: clamp(0.8rem, 6.8cqw, 1.5rem);
+        white-space: nowrap;
     }
 }

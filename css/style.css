@@ -174,6 +174,7 @@ body.no-scroll {
     width: 92%;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
     overflow: hidden;
+    container-type: inline-size;
 }
 
 .intro-symbol-top {
@@ -185,13 +186,13 @@ body.no-scroll {
 
 .intro-content .intro-title {
     font-family: var(--font-script);
-    font-size: clamp(1.8rem, 5vw, 2.7rem);
+    font-size: clamp(0.85rem, 6.8cqw, 2.7rem);
     color: var(--color-primary);
     line-height: 1.2;
     margin-bottom: 8px;
-    white-space: normal;
-    word-break: break-word;
-    padding: 0 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 4px;
 }
 
 .intro-content .intro-title .heart {
@@ -500,15 +501,25 @@ body.no-scroll {
     margin-bottom: 15px;
 }
 
+/* Heading tên cặp đôi - Tự động scale vừa khít khung chứa, không bị cắt ngắn hay hiện (...) */
+.hero h1,
+.hero-title,
+.couple-names,
+.intro-title,
+[class*="hero"] h1 {
+    white-space: nowrap;  /* Ngăn xuống dòng */
+    overflow: hidden;
+    font-size: clamp(0.85rem, 6.8cqw, 3rem); /* Tự động scale theo độ rộng khung chứa */
+}
+
 .hero-title {
     font-family: var(--font-script);
-    font-size: clamp(1.8rem, 8.5cqw, 4.2rem);
+    font-size: clamp(1rem, 7.5cqw, 4.2rem);
     color: var(--color-primary);
     line-height: 1.25;
     margin-bottom: 20px;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .hero-date {
