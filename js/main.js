@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         initScrollAnimations();
         initCopyButtons();
         initBackToTop();
+        initPreventDoubleTapZoom();
     } catch (err) {
         console.error("[main] Lỗi khởi tạo giao diện:", err);
     } finally {
@@ -90,6 +91,22 @@ document.addEventListener("DOMContentLoaded", () => {
 setTimeout(() => {
     hidePreloader();
 }, 2500);
+
+// Chặn hành vi double-tap to zoom trên các nút và liên kết (đặc biệt trên iOS WebKit)
+function initPreventDoubleTapZoom() {
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+        const target = e.target.closest('button, a, .gift-qr-button, .gallery-card, .lightbox-nav-btn, .ws-like-btn, .ws-load-more, .ws-submit-btn, .nav-toggle, .floating-btn');
+        if (target) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+                target.click();
+            }
+            lastTouchEnd = now;
+        }
+    }, { passive: false });
+}
 
 // Chỉ preload hero và ảnh đại diện; các ảnh còn lại tải khi khách cuộn đến.
 function preloadImages(config) {
