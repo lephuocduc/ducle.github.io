@@ -777,10 +777,89 @@ body.no-scroll {
     text-align: left;
 }
 
+.ceremony-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
 .ceremony-icon {
     font-size: 2.5rem;
     color: var(--color-gold);
-    margin-bottom: 15px;
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+/* Ceremony Status Badges */
+.ceremony-status-container {
+    display: inline-flex;
+    align-items: center;
+}
+
+.ceremony-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+/* 1. Sắp Diễn Ra */
+.ceremony-status.status-upcoming {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--color-gold-dark);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+/* 2. Đang Diễn Ra (Live Status) */
+.ceremony-status.status-ongoing {
+    background: rgba(217, 38, 38, 0.08);
+    color: #c91818;
+    border: 1px solid rgba(217, 38, 38, 0.35);
+    box-shadow: 0 0 12px rgba(217, 38, 38, 0.12);
+    font-weight: 700;
+}
+
+.status-live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e50914;
+    position: relative;
+    box-shadow: 0 0 6px #e50914;
+    animation: livePulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes livePulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 7px rgba(229, 9, 20, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(229, 9, 20, 0);
+    }
+}
+
+/* 3. Đã Diễn Ra */
+.ceremony-status.status-passed {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.25);
+    opacity: 0.85;
 }
 
 .ceremony-tag {
