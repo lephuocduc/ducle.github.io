@@ -1,6 +1,6 @@
 # 💒 Wedding Invitation Website | Thiệp Mời Cưới Online
 
-Một website thiệp mời cưới hiện đại, được xây dựng với **HTML5, CSS3 & ES6 JavaScript**, có giao diện Song Hỷ Xanh Emerald & Champagne Gold, tối ưu hóa cho trải nghiệm di động và SEO.
+Một website thiệp mời cưới hiện đại, được xây dựng với **HTML5, CSS3 & ES6 JavaScript**, có giao diện Song Hỷ Đỏ Ruby (Crimson) & Vàng Champagne (Champagne Gold), tối ưu hóa cho trải nghiệm di động và SEO.
 
 🌐 **Live Demo**: [wedding.phuocducthusuong.com](https://wedding.phuocducthusuong.com)
 
@@ -10,7 +10,7 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 
 ### 🎨 Giao Diện & UX
 - **Responsive Design**: Tối ưu hoàn toàn cho Mobile, Tablet, Laptop
-- **Phong cách Song Hỷ Xanh & Vàng Champagne**: Thiết kế sang trọng, lộng lẫy
+- **Phong cách Song Hỷ Đỏ Ruby & Vàng Champagne**: Thiết kế cưới truyền thống kết hợp hiện đại, sang trọng và trang nhã
 - **Intro Animation**: Màn hình mở thiệp với hiệu ứng rèm động
 - **Floating Controls**: Nút bật/tắt nhạc và nút back-to-top nổi
 
@@ -54,8 +54,9 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 ```
 Invitation/
 ├── index.html                  # SPA Container & Module Loader
+├── CNAME                       # Tên miền tùy chỉnh (wedding.phuocducthusuong.com)
 ├── css/
-│   ├── style.css               # Giao diện chính (Emerald & Champagne Gold)
+│   ├── style.css               # Giao diện chính (Ruby Crimson & Champagne Gold)
 │   ├── animation.css           # Keyframe animations & Scroll effects
 │   ├── responsive.css          # Media queries cho Mobile/Tablet/Desktop
 │   └── variables.css           # CSS Variables (colors, fonts, z-index)
@@ -66,21 +67,21 @@ Invitation/
 │   ├── gallery.js              # Gallery Masonry & Lightbox Modal
 │   ├── music.js                # Trình phát nhạc nền & visual
 │   ├── timeline.js             # Render Love Story Timeline
-│   ├── map.js                  # Google Maps & thông tin lễ cưới
+│   ├── map.js                  # Google Maps, Add to Calendar (.ics) & thông tin lễ cưới
 │   ├── wishes.js               # Form lời chúc, like, phân trang
 │   ├── effects.js              # Canvas Particle (Hearts, Leaves) & Parallax
 │   └── animation.js            # IntersectionObserver Scroll Reveal
 ├── data/
 │   └── config.js               # 📌 FILE DUY NHẤT CẦN CHỈNH SỬA
 ├── tools/
-│   ├── compress-images.mjs     # Script nén ảnh gallery & hero (sharp)
-│   └── img-originals/          # Backup ảnh gốc trước khi nén
+│   └── compress-images.mjs     # Script nén ảnh gallery & hero (sharp)
 ├── Appscript                   # Google Apps Script backend cho lời chúc
 ├── assets/
 │   ├── img/                    # Hình ảnh (cover, groom, bride, gallery, etc.)
+│   │   └── originals/          # Backup ảnh gốc trước khi nén (tạo tự động)
 │   ├── audio/                  # File nhạc nền (.mp3)
 │   ├── icons/                  # Icons & favicons (.svg)
-│   └── ics/                    # Calendar file (.ics)
+│   └── ics/                    # Calendar file (.ics cho Apple Calendar/Webcal)
 ├── robots.txt                  # Cấu hình crawler SEO
 ├── sitemap.xml                 # Sơ đồ trang web XML
 └── README.md                   # Tài liệu hướng dẫn này
@@ -448,5 +449,5 @@ Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp
 
 ---
 
-*Last Updated: 2026-08-08*
+*Last Updated: 2026-09-07*
 *Made with ❤️ by Lê Phước Đức*
