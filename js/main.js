@@ -201,123 +201,281 @@ function renderCouple(config) {
     `;
 }
 
-// Render Gift / QR Section
+// Định dạng số tài khoản thành từng cụm dễ đọc (VD: 0194 5354 401)
+function formatAccountNumber(stk) {
+    if (!stk) return "";
+    const clean = String(stk).replace(/\s+/g, "");
+    if (clean.length <= 10) {
+        return clean.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
+    }
+    return clean.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+}
+
+// Render Gift / QR Section - 1 Thiệp "Mừng Cưới Cô Dâu Chú Rể"
 function renderGiftSection(config) {
     const giftContainer = document.getElementById("gift-container");
     if (!giftContainer) return;
 
-    const groomBank = config.groom.bank;
-    const brideBank = config.bride.bank;
-
-    const groomBankCode = groomBank.bankCode || "TPB";
-    const brideBankCode = brideBank.bankCode || "VCB";
-
-    // VietQR fallback generator
-    const groomQrSrc = groomBank.qrImage || 
-        `https://img.vietqr.io/image/${groomBankCode}-${groomBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.groom.name)}`;
-
-    const brideQrSrc = brideBank.qrImage || 
-        `https://img.vietqr.io/image/${brideBankCode}-${brideBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(config.bride.name)}`;
+    const groomName = config.groom.name;
+    const brideName = config.bride.name;
+    const groomShort = config.groom.shortName || "Phước Đức";
+    const brideShort = config.bride.shortName || "Thu Sương";
+    const groomAvatar = config.groom.avatar || "assets/img/groom.jpg";
+    const brideAvatar = config.bride.avatar || "assets/img/bride.jpg";
 
     giftContainer.innerHTML = `
-        <!-- Thẻ mừng chú rể -->
-        <div class="gift-card reveal-slide-left">
-            <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Chú Rể</h3>
-            <button type="button" class="gift-qr-button" data-qr-src="${groomQrSrc}" data-qr-alt="Mã QR Chuyển Khoản Chú Rể" aria-label="Mở lớn mã QR chuyển khoản chú rể">
-                <img src="${groomQrSrc}" alt="Mã QR Chuyển Khoản Chú Rể" class="gift-qr-img" loading="lazy" decoding="async" />
-            </button>
-            <div class="bank-info-box">
-                <p><strong>Ngân hàng:</strong> ${groomBank.bankName}</p>
-                <p>
-                    <strong>Số TK:</strong> <span class="acc-number">${groomBank.accountNumber}</span>
-                    <button class="btn-copy btn-copy-stk" data-stk="${groomBank.accountNumber}"><i class="fas fa-copy"></i> Sao chép</button>
-                </p>
-                <p><strong>Chủ TK:</strong> ${groomBank.accountOwner}</p>
+        <div class="envelope-card envelope-single reveal-fade" role="button" tabindex="0" aria-label="Mở phong bao mừng cưới cô dâu chú rể">
+            <div class="envelope-top-decor">
+                <span class="wax-seal" title="Song Hỷ Cát Tường">囍</span>
             </div>
-        </div>
-
-        <!-- Thẻ mừng cô dâu -->
-        <div class="gift-card reveal-slide-right">
-            <h3 style="font-family:var(--font-heading); font-size:1.8rem; color:var(--color-primary);">Mừng Cưới Cô Dâu</h3>
-            <button type="button" class="gift-qr-button" data-qr-src="${brideQrSrc}" data-qr-alt="Mã QR Chuyển Khoản Cô Dâu" aria-label="Mở lớn mã QR chuyển khoản cô dâu">
-                <img src="${brideQrSrc}" alt="Mã QR Chuyển Khoản Cô Dâu" class="gift-qr-img" loading="lazy" decoding="async" />
-            </button>
-            <div class="bank-info-box">
-                <p><strong>Ngân hàng:</strong> ${brideBank.bankName}</p>
-                <p>
-                    <strong>Số TK:</strong> <span class="acc-number">${brideBank.accountNumber}</span>
-                    <button class="btn-copy btn-copy-stk" data-stk="${brideBank.accountNumber}"><i class="fas fa-copy"></i> Sao chép</button>
-                </p>
-                <p><strong>Chủ TK:</strong> ${brideBank.accountOwner}</p>
+            <div class="env-couple-row">
+                <div class="env-avatar-item">
+                    <img src="${groomAvatar}" alt="${groomName}" class="env-avatar-img" loading="lazy" decoding="async" />
+                    <span class="env-avatar-tag">Chú Rể</span>
+                </div>
+                <div class="env-heart-badge" aria-hidden="true">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="env-avatar-item">
+                    <img src="${brideAvatar}" alt="${brideName}" class="env-avatar-img" loading="lazy" decoding="async" />
+                    <span class="env-avatar-tag">Cô Dâu</span>
+                </div>
             </div>
+            <span class="envelope-role-tag">HỘP CHÚC PHÚC</span>
+            <h3 class="envelope-name">Mừng Cưới Cô Dâu & Chú Rể</h3>
+            <p class="envelope-couple-names">${groomShort} & ${brideShort}</p>
+            <button type="button" class="btn-open-envelope">
+                <i class="fas fa-envelope-open-text"></i> Mở Phong Bao Mừng Cưới
+            </button>
         </div>
     `;
 
-    initQrLightbox(giftContainer);
+    // Keyboard accessibility cho thẻ phong bao
+    const singleCard = giftContainer.querySelector(".envelope-card");
+    singleCard?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (window.openGiftEnvelopeModal) {
+                window.openGiftEnvelopeModal();
+            }
+        }
+    });
 
-    // Handle VietQR image loading timeout and error fallback
-    giftContainer.querySelectorAll('.gift-qr-img').forEach(img => {
-        const loadTimeout = setTimeout(() => {
-            console.warn('[vietqr] QR code loading timeout (> 5s):', img.src);
-        }, 5000);
+    initGiftModal(config);
+    initQrLightbox();
+}
 
-        img.addEventListener('load', () => clearTimeout(loadTimeout));
-        img.addEventListener('error', () => {
-            clearTimeout(loadTimeout);
-            console.warn('[vietqr] Unable to load QR code image:', img.src);
+// Modal Hộp Phong Bao Mừng Cưới (Hiện QR của cả 2 luôn, không chia tab)
+function initGiftModal(config) {
+    const modal = document.getElementById("gift-modal");
+    const modalBody = document.getElementById("gift-modal-body");
+    const closeBtn = document.getElementById("gift-modal-close-btn");
+    const overlay = modal?.querySelector(".gift-modal-overlay");
+    if (!modal || !modalBody) return;
+
+    function renderModalContent() {
+        const groom = config.groom;
+        const bride = config.bride;
+        const groomBank = groom.bank;
+        const brideBank = bride.bank;
+
+        const groomBankCode = groomBank.bankCode || "TPB";
+        const brideBankCode = brideBank.bankCode || "VCB";
+
+        const groomQrSrc = groomBank.qrImage || 
+            `https://img.vietqr.io/image/${groomBankCode}-${groomBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(groom.name)}`;
+        const brideQrSrc = brideBank.qrImage || 
+            `https://img.vietqr.io/image/${brideBankCode}-${brideBank.accountNumber}-compact2.png?amount=0&addInfo=Mung%20Cuoi%20${encodeURIComponent(bride.name)}`;
+
+        const groomFormattedStk = formatAccountNumber(groomBank.accountNumber);
+        const brideFormattedStk = formatAccountNumber(brideBank.accountNumber);
+
+        const coupleShortNames = `${groom.shortName || 'Phuoc Duc'} ${bride.shortName || 'Thu Suong'}`;
+        const transferMemo = `Mung cuoi ${coupleShortNames}`;
+
+        modalBody.innerHTML = `
+            <div class="gift-modal-header">
+                <div class="wax-seal-mini" title="Song Hỷ">囍</div>
+                <h3 id="gift-modal-title" class="gift-modal-title">Mừng Cưới Cô Dâu & Chú Rể</h3>
+                <p class="gift-modal-subtitle">Quý khách có thể chuyển khoản chúc phúc đến Chú Rể hoặc Cô Dâu dưới đây</p>
+            </div>
+
+            <div class="gift-dual-grid">
+                <!-- Cột Chú Rể -->
+                <div class="gift-person-card">
+                    <div class="gift-person-header">
+                        <div class="gift-person-avatar-wrap">
+                            <img src="${groom.avatar || 'assets/img/groom.jpg'}" alt="${groom.name}" class="gift-person-avatar" />
+                        </div>
+                        <div>
+                            <span class="gift-person-role">MỪNG CƯỚI CHÚ RỂ</span>
+                            <h4 class="gift-person-name">${groom.name}</h4>
+                        </div>
+                    </div>
+
+                    <div class="gift-qr-wrapper">
+                        <button type="button" class="gift-qr-zoom-btn" data-qr-src="${groomQrSrc}" data-qr-alt="Mã QR chuyển khoản chú rể ${groom.name}" title="Chạm để phóng to mã QR">
+                            <img src="${groomQrSrc}" alt="Mã QR chuyển khoản chú rể ${groom.name}" class="gift-modal-qr-img" loading="lazy" decoding="async" />
+                            <span class="qr-zoom-hint"><i class="fas fa-magnifying-glass-plus"></i> Chạm để phóng to mã QR</span>
+                        </button>
+                    </div>
+
+                    <div class="bank-details-card">
+                        <div class="bank-info-item">
+                            <div class="bank-info-label"><i class="fas fa-building-columns"></i> Ngân hàng:</div>
+                            <div class="bank-info-value"><strong>${groomBank.bankName}</strong></div>
+                        </div>
+                        <div class="bank-info-item">
+                            <div class="bank-info-label"><i class="fas fa-user-check"></i> Chủ tài khoản:</div>
+                            <div class="bank-info-value acc-owner-name">${groomBank.accountOwner}</div>
+                        </div>
+                        <div class="bank-info-item acc-item">
+                            <div class="bank-info-label"><i class="fas fa-credit-card"></i> Số tài khoản:</div>
+                            <div class="bank-info-actions">
+                                <span class="acc-formatted-display">${groomFormattedStk}</span>
+                                <button type="button" class="btn-copy btn-copy-stk" data-stk="${groomBank.accountNumber}" title="Sao chép số tài khoản">
+                                    <i class="fas fa-copy"></i> Sao chép STK
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bank-info-item memo-item">
+                            <div class="bank-info-label"><i class="fas fa-pen-fancy"></i> Gợi ý nội dung CK:</div>
+                            <div class="bank-info-actions">
+                                <span class="memo-formatted-display">${transferMemo}</span>
+                                <button type="button" class="btn-copy btn-copy-memo" data-memo="${transferMemo}" title="Sao chép nội dung chuyển khoản">
+                                    <i class="fas fa-copy"></i> Sao chép nội dung
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột Cô Dâu -->
+                <div class="gift-person-card">
+                    <div class="gift-person-header">
+                        <div class="gift-person-avatar-wrap">
+                            <img src="${bride.avatar || 'assets/img/bride.jpg'}" alt="${bride.name}" class="gift-person-avatar" />
+                        </div>
+                        <div>
+                            <span class="gift-person-role">MỪNG CƯỚI CÔ DÂU</span>
+                            <h4 class="gift-person-name">${bride.name}</h4>
+                        </div>
+                    </div>
+
+                    <div class="gift-qr-wrapper">
+                        <button type="button" class="gift-qr-zoom-btn" data-qr-src="${brideQrSrc}" data-qr-alt="Mã QR chuyển khoản cô dâu ${bride.name}" title="Chạm để phóng to mã QR">
+                            <img src="${brideQrSrc}" alt="Mã QR chuyển khoản cô dâu ${bride.name}" class="gift-modal-qr-img" loading="lazy" decoding="async" />
+                            <span class="qr-zoom-hint"><i class="fas fa-magnifying-glass-plus"></i> Chạm để phóng to mã QR</span>
+                        </button>
+                    </div>
+
+                    <div class="bank-details-card">
+                        <div class="bank-info-item">
+                            <div class="bank-info-label"><i class="fas fa-building-columns"></i> Ngân hàng:</div>
+                            <div class="bank-info-value"><strong>${brideBank.bankName}</strong></div>
+                        </div>
+                        <div class="bank-info-item">
+                            <div class="bank-info-label"><i class="fas fa-user-check"></i> Chủ tài khoản:</div>
+                            <div class="bank-info-value acc-owner-name">${brideBank.accountOwner}</div>
+                        </div>
+                        <div class="bank-info-item acc-item">
+                            <div class="bank-info-label"><i class="fas fa-credit-card"></i> Số tài khoản:</div>
+                            <div class="bank-info-actions">
+                                <span class="acc-formatted-display">${brideFormattedStk}</span>
+                                <button type="button" class="btn-copy btn-copy-stk" data-stk="${brideBank.accountNumber}" title="Sao chép số tài khoản">
+                                    <i class="fas fa-copy"></i> Sao chép STK
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bank-info-item memo-item">
+                            <div class="bank-info-label"><i class="fas fa-pen-fancy"></i> Gợi ý nội dung CK:</div>
+                            <div class="bank-info-actions">
+                                <span class="memo-formatted-display">${transferMemo}</span>
+                                <button type="button" class="btn-copy btn-copy-memo" data-memo="${transferMemo}" title="Sao chép nội dung chuyển khoản">
+                                    <i class="fas fa-copy"></i> Sao chép nội dung
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gift-modal-footer">
+                <button type="button" class="btn-close-envelope-modal">
+                    <i class="fas fa-xmark"></i> Đóng Phong Bao
+                </button>
+            </div>
+        `;
+
+        // Bấm QR để phóng to
+        modalBody.querySelectorAll(".gift-qr-zoom-btn").forEach(zoomBtn => {
+            zoomBtn.addEventListener("click", () => {
+                const qrModal = document.getElementById("qr-modal");
+                const qrModalImg = document.getElementById("qr-modal-img");
+                if (qrModal && qrModalImg) {
+                    qrModalImg.src = zoomBtn.dataset.qrSrc;
+                    qrModalImg.alt = zoomBtn.dataset.qrAlt;
+                    qrModal.classList.add("active");
+                }
+            });
         });
+
+        // Nút đóng dưới chân modal
+        const bottomCloseBtn = modalBody.querySelector(".btn-close-envelope-modal");
+        if (bottomCloseBtn) {
+            bottomCloseBtn.addEventListener("click", closeModal);
+        }
+    }
+
+    function openModal() {
+        renderModalContent();
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("no-scroll");
+        document.documentElement.classList.add("no-scroll");
+        closeBtn?.focus();
+    }
+
+    function closeModal() {
+        modal.classList.remove("active");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("no-scroll");
+        document.documentElement.classList.remove("no-scroll");
+    }
+
+    window.openGiftEnvelopeModal = openModal;
+
+    // Gán sự kiện click cho thẻ phong bao trên trang
+    document.querySelectorAll(".envelope-card").forEach(el => {
+        el.addEventListener("click", openModal);
+    });
+
+    closeBtn?.addEventListener("click", closeModal);
+    overlay?.addEventListener("click", closeModal);
+
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("active")) {
+            closeModal();
+        }
     });
 }
 
-function initQrLightbox(giftContainer) {
+function initQrLightbox() {
     const modal = document.getElementById("qr-modal");
     const modalImage = document.getElementById("qr-modal-img");
     const closeButton = document.getElementById("qr-modal-close-btn");
     if (!modal || !modalImage || !closeButton) return;
 
-    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    let firstFocusable = null;
-    let lastFocusable = null;
-
     const close = () => {
         modal.classList.remove("active");
-        document.body.classList.remove("no-scroll");
-        document.documentElement.classList.remove("no-scroll");
-        modalImage.src = ""; // Clear image to stop any audio/video if added later
-    };
-
-    // Trap focus inside modal
-    const handleTabKey = (e) => {
-        if (!modal.classList.contains("active")) return;
-        if (e.key !== "Tab") return;
-
-        const focusables = modal.querySelectorAll(focusableSelector);
-        firstFocusable = focusables[0];
-        lastFocusable = focusables[focusables.length - 1];
-
-        if (e.shiftKey) {
-            if (document.activeElement === firstFocusable) {
-                e.preventDefault();
-                lastFocusable.focus();
-            }
-        } else {
-            if (document.activeElement === lastFocusable) {
-                e.preventDefault();
-                firstFocusable.focus();
-            }
+        // Chỉ gỡ no-scroll nếu modal phong bao không còn mở
+        const giftModal = document.getElementById("gift-modal");
+        if (!giftModal || !giftModal.classList.contains("active")) {
+            document.body.classList.remove("no-scroll");
+            document.documentElement.classList.remove("no-scroll");
         }
+        modalImage.src = "";
     };
-
-    giftContainer.querySelectorAll(".gift-qr-button").forEach(button => {
-        button.addEventListener("click", () => {
-            modalImage.src = button.dataset.qrSrc;
-            modalImage.alt = button.dataset.qrAlt;
-            modal.classList.add("active");
-            document.body.classList.add("no-scroll");
-            document.documentElement.classList.add("no-scroll");
-            closeButton.focus();
-        });
-    });
 
     closeButton.onclick = close;
     modal.onclick = (event) => {
@@ -325,7 +483,6 @@ function initQrLightbox(giftContainer) {
     };
     window.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && modal.classList.contains("active")) close();
-        handleTabKey(event);
     });
 }
 
@@ -343,29 +500,34 @@ function renderFooter(config) {
     `;
 }
 
-// Xử lý nút copy STK
+// Xử lý nút copy STK & Lời nhắn chuyển khoản
 function initCopyButtons() {
     document.addEventListener("click", (e) => {
-        const btn = e.target.closest(".btn-copy-stk");
+        const btn = e.target.closest(".btn-copy");
         if (btn) {
             const stk = btn.getAttribute("data-stk");
-            if (stk) {
-                // Fallback copy cho cả iOS/Android
+            const memo = btn.getAttribute("data-memo");
+            const text = stk || memo;
+            if (text) {
+                const message = memo 
+                    ? "Đã sao chép nội dung chuyển khoản! ✨" 
+                    : "Đã sao chép số tài khoản thành công! ✨";
+
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(stk).then(() => {
-                        showToast("Đã sao chép số tài khoản thành công! ✨");
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast(message);
                     }).catch(() => {
-                        fallbackCopyText(stk);
+                        fallbackCopyText(text, message);
                     });
                 } else {
-                    fallbackCopyText(stk);
+                    fallbackCopyText(text, message);
                 }
             }
         }
     });
 }
 
-function fallbackCopyText(text) {
+function fallbackCopyText(text, successMsg = "Đã sao chép thành công! ✨") {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.position = "fixed";
@@ -375,7 +537,7 @@ function fallbackCopyText(text) {
     textArea.select();
     try {
         document.execCommand("copy");
-        showToast("Đã sao chép số tài khoản thành công! ✨");
+        showToast(successMsg);
     } catch (err) {
         showToast("Không thể sao chép tự động, vui lòng chọn thủ công.");
     }

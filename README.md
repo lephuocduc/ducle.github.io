@@ -28,7 +28,7 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 - **Lightbox Modal**: Xem ảnh phóng to mượt mà
 - **Google Maps Integration**: Nhúng bản đồ chỉ đường cho từng địa điểm
 - **Lời Chúc (Wishes)**: Form gửi lời chúc, thả tim, sắp xếp Nổi bật/Mới nhất — đồng bộ Google Sheets qua Apps Script
-- **QR Code Mừng Cưới**: Hiển thị QR chuyển khoản VietQR, sao chép STK và bấm để phóng to
+- **Hộp Phong Bao Mừng Cưới**: Thiết kế tế nhị dạng phong bao cưới lì xì truyền thống với con dấu Song Hỷ 囍 và avatar cặp đôi; khi mở phong bao sẽ hiển thị đồng thời cả 2 mã QR chuyển khoản VietQR của Chú Rể & Cô Dâu, sao chép nhanh STK và nội dung chuyển khoản gợi ý trên cùng một giao diện
 - **Music Player**: Trình phát nhạc nền với icon visual
 - **Particle Effects**: Hiệu ứng trái tim & cánh hoa rơi trên Canvas
 - **Parallax Effect**: Hiệu ứng parallax nhẹ nhàng
@@ -449,5 +449,5 @@ Website này được tạo với tình yêu và tâm huyết. Hy vọng thiệp
 
 ---
 
-*Last Updated: 2026-09-07*
+*Last Updated: 2026-09-27*
 *Made with ❤️ by Lê Phước Đức*
