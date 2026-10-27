@@ -331,12 +331,12 @@ function renderActiveAlbum(albumId) {
     const dynamicEl = images.map((item, index) => {
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
         const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
-        const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
-        const fullUrl = hasThumbs ? `${host}/${album.folder}/full/${filename}` : `${host}/${album.folder}/${filename}`;
+        const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
+        const fullUrl = getFullUrl(album, filename, hasThumbs, host);
 
         return {
             src: fullUrl,
-            thumb: hasThumbs ? thumbUrl : undefined,
+            thumb: thumbUrl,
             subHtml: `<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>`
         };
     });
@@ -351,7 +351,8 @@ function renderActiveAlbum(albumId) {
         const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
         if (!filename) continue;
 
-        const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
+        const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
+        const fallbackUrl = `${host}/${album.folder}/${filename}`;
 
         htmlContent += `
             <div class="r2-gallery-item" 
@@ -365,7 +366,7 @@ function renderActiveAlbum(albumId) {
                          loading="lazy" 
                          decoding="async"
                          class="r2-thumb-img"
-                         onerror="this.onerror=null; this.src='assets/img/${filename}';" />
+                         onerror="this.onerror=null; this.src='${fallbackUrl}';" />
                     <div class="r2-thumb-skeleton"></div>
                     <div class="r2-hover-overlay">
                         <i class="fas fa-magnifying-glass-plus"></i>
@@ -388,7 +389,37 @@ function renderActiveAlbum(albumId) {
     renderLoadMoreButton(albumId, images.length, renderLimit);
 
     // 6. Khởi tạo Dynamic LightGallery siêu mượt
-    initDynamicLightGallery(gridContainer, dynamicEl, hasThumbs);
+    initDynamicLightGallery(gridContainer, dynamicEl);
+}
+
+/**
+ * Lấy URL ảnh Thumbnail cho từng ảnh (35KB):
+ * 1. Nếu R2 đã có thumbs -> Tải từ R2
+ * 2. Nếu chưa có -> Dùng local thumbs có sẵn trong assets/img/thumbs/{folder}/{filename}
+ * 3. Fallback -> Tải trực tiếp từ R2
+ */
+function getThumbUrl(album, filename, hasThumbs, host) {
+    if (hasThumbs) {
+        return `${host}/${album.folder}/thumbs/${filename}`;
+    }
+    // Chuẩn hóa tên file: nếu là file jpg gốc
+    const baseName = filename.replace(/\.webp$/i, ".JPG");
+    return `assets/img/thumbs/${album.folder}/${baseName}`;
+}
+
+/**
+ * Lấy URL ảnh xem lớn (Full-size 2048px):
+ * 1. Nếu R2 đã có full -> Tải từ R2 {host}/{folder}/full/{filename}
+ * 2. Nếu chưa có -> Dùng local full chuẩn 2048px cực nét: assets/img/full/{folder}/{filename}
+ *    (Khắc phục triệt để lỗi ảnh bị mờ/blur khi zoom out trên điện thoại!)
+ * 3. Fallback -> File R2 gốc
+ */
+function getFullUrl(album, filename, hasThumbs, host) {
+    if (hasThumbs) {
+        return `${host}/${album.folder}/full/${filename}`;
+    }
+    const baseName = filename.replace(/\.webp$/i, ".JPG");
+    return `assets/img/full/${album.folder}/${baseName}`;
 }
 
 /**
@@ -460,31 +491,26 @@ function initLazyImages(container) {
 /**
  * Khởi tạo LightGallery ở chế độ Dynamic (không phụ thuộc thẻ DOM tĩnh)
  */
-function initDynamicLightGallery(gridContainer, dynamicEl, hasThumbs) {
+function initDynamicLightGallery(gridContainer, dynamicEl) {
     if (!window.lightGallery || typeof window.lightGallery !== "function") return;
 
-    // TỐI ƯU QUAN TRỌNG: Nếu chưa có thư mục thumbs chuẩn trên R2 (ảnh đang là file gốc 17MB),
-    // tuyệt đối KHÔNG đưa lgThumbnail vào plugin để tránh LightGallery âm thầm tải 40 ảnh 17MB trong nền!
-    const plugins = [window.lgZoom];
-    if (hasThumbs && window.lgThumbnail) {
-        plugins.push(window.lgThumbnail);
-    }
+    // Luôn kích hoạt lgThumbnail & lgZoom: thumbnails hiện tại siêu nhẹ (chỉ 35KB/ảnh)
+    const plugins = [window.lgZoom, window.lgThumbnail].filter(Boolean);
 
     try {
         lightGalleryInstance = window.lightGallery(gridContainer, {
             dynamic: true,
             dynamicEl: dynamicEl,
-            plugins: plugins.filter(Boolean),
+            plugins: plugins,
             speed: 350,
-            // Nếu chưa có thumbs, không tải trước bất kỳ ảnh nào trong nền (preload: 0)
-            preload: hasThumbs ? 1 : 0,
+            preload: 1,
             download: false,
-            thumbnail: hasThumbs,
-            animateThumb: hasThumbs,
-            showThumbByDefault: false,
-            thumbWidth: 80,
-            thumbHeight: "60px",
-            thumbMargin: 8,
+            thumbnail: true,
+            animateThumb: true,
+            showThumbByDefault: true, // Hiển thị dải thumbnail rõ nét cho toàn bộ ảnh
+            thumbWidth: 70,
+            thumbHeight: "52px",
+            thumbMargin: 6,
             zoom: true,
             scale: 1,
             enableZoomAfter: 0,
@@ -551,7 +577,8 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                 const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
                 if (!filename) continue;
 
-                const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
+                const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
+                const fallbackUrl = `${host}/${album.folder}/${filename}`;
 
                 const card = document.createElement("div");
                 card.className = "r2-gallery-item";
@@ -567,7 +594,7 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                              loading="lazy" 
                              decoding="async"
                              class="r2-thumb-img"
-                             onerror="this.onerror=null; this.src='assets/img/${filename}';" />
+                             onerror="this.onerror=null; this.src='${fallbackUrl}';" />
                         <div class="r2-thumb-skeleton"></div>
                         <div class="r2-hover-overlay">
                             <i class="fas fa-magnifying-glass-plus"></i>

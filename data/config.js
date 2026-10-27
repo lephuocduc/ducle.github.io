@@ -205,18 +205,16 @@ export const weddingConfig = {
                 icon: "fa-heart",
                 // Danh sách tên file ảnh (thêm bớt tên file vào mảng này rất dễ dàng)
                 images: [
-                    "NAM_3318.webp",
-                    "NAM_2906.webp",
-                    "NAM_3103.webp",
-                    "NAM_3230.webp",
-                    "NAM_3814.webp",
-                    "NAM_2934.webp",
-                    "NAM_3954.webp",
-                    "NAM_3511.webp",
-                    "NAM_3648.webp",
-                    "NAM_4087.webp",
-                    "NAM_3632.webp",
-                    "NAM_2843.webp"
+                    "NAM_3641.JPG", "NAM_3511.JPG", "NAM_3814.JPG", "NAM_3256.JPG",
+                    "NAM_4087.JPG", "NAM_2843.JPG", "NAM_3894.JPG", "NAM_4041.JPG",
+                    "NAM_3688.JPG", "NAM_3259.JPG", "NAM_2918.JPG", "NAM_3068.JPG",
+                    "NAM_3016.JPG", "NAM_2893.JPG", "NAM_2900.JPG", "NAM_2837.JPG",
+                    "NAM_3230.JPG", "NAM_3648.JPG", "NAM_3954.JPG", "NAM_3540.JPG",
+                    "NAM_3632.JPG", "NAM_3502.JPG", "NAM_3466.JPG", "NAM_3281.JPG",
+                    "NAM_3293.JPG", "NAM_3318.JPG", "NAM_3415.JPG", "NAM_3863.JPG",
+                    "NAM_4045.JPG", "NAM_2906.JPG", "NAM_2981.JPG", "NAM_3157.JPG",
+                    "NAM_3186.JPG", "NAM_2934.JPG", "NAM_3369.JPG", "NAM_3833.JPG",
+                    "NAM_3988.JPG", "NAM_3665.JPG", "NAM_3407.JPG", "NAM_3103.JPG"
                 ]
             },
             {
