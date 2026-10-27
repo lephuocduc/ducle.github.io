@@ -46,13 +46,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-    <!-- Preload LCP hero image from Cloudflare R2 for fastest first paint -->
-    <link rel="preload" as="image" href="https://media.phuocducthusuong.com/cover.webp">
-
     <!-- Third-party Icons & Styling -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery-bundle.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20261027-11">
+    <link rel="stylesheet" href="css/style.css?v=20261027-12">
     <link rel="stylesheet" href="css/animation.css?v=20260728-3">
     <link rel="stylesheet" href="css/responsive.css?v=20260801-5">
 </head>
@@ -70,7 +67,7 @@
     <!-- Navigation Header -->
     <div id="nav-overlay" class="nav-overlay"></div>
     <nav class="navbar" id="navbar">
-        <a href="#hero-section" class="nav-brand">囍 Phước Đức &amp; Thu Sương</a>
+        <a href="#gallery-section" class="nav-brand">囍 Phước Đức &amp; Thu Sương</a>
         <button id="nav-toggle" class="nav-toggle" aria-label="Mở menu điều hướng">
             <i class="fas fa-bars"></i>
         </button>
@@ -79,7 +76,6 @@
                 <span class="nav-menu-title">Menu</span>
                 <button id="nav-close" class="nav-close" aria-label="Đóng menu">&times;</button>
             </li>
-            <li><a href="#hero-section" class="nav-link">Trang Chủ</a></li>
             <li><a href="#gallery-section" class="nav-link">Albums</a></li>
             <li><a href="#countdown-section" class="nav-link">Lễ Cưới</a></li>
             <li><a href="#couple-section" class="nav-link">Cặp Đôi</a></li>
@@ -89,12 +85,7 @@
         </ul>
     </nav>
 
-    <!-- 1. Hero Section -->
-    <header id="hero-section" class="hero-section">
-        <!-- Rendered dynamically by main.js from config.js -->
-    </header>
-
-    <!-- 2. Gallery Section - 4 Albums Cloudflare R2 -->
+    <!-- 1. Gallery Section - 4 Albums Cloudflare R2 (Đưa lên đầu trang) -->
     <section id="gallery-section" class="section gallery-section">
         <div class="section-header reveal-fade">
             <span class="section-tag">KHOẢNH KHẮC NGÀY VUI</span>
@@ -337,7 +328,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/plugins/zoom/lg-zoom.min.js"></script>
 
     <!-- Main ES6 Entry Script -->
-    <script type="module" src="js/main.js?v=20261027-11"></script>
+    <script type="module" src="js/main.js?v=20261027-12"></script>
 </body>
 
 </html>

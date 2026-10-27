@@ -5,7 +5,7 @@
 
 import { loadConfig } from './config-loader.js?v=20261027-5';
 import { renderCountdown } from './countdown.js?v=20260729-2';
-import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-11';
+import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-12';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';
@@ -24,8 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const config = initialConfig || loadConfig();
         if (!config) return;
 
-        // 2. Render các Section chính hoàn toàn bằng JS
-        renderHero(config);
+        // 2. Render các Section chính hoàn toàn bằng JS (Phần Album đưa lên đầu)
         renderCouple(config);
         renderGiftSection(config);
         renderFooter(config);
@@ -77,11 +76,10 @@ function initPreventDoubleTapZoom() {
     }, { passive: false });
 }
 
-// Chỉ preload hero và ảnh đại diện; các ảnh còn lại tải khi khách cuộn đến.
+// Chỉ preload ảnh đại diện cô dâu chú rể; các ảnh còn lại tải khi khách cuộn đến.
 function preloadImages(config) {
     const urls = new Set();
 
-    if (config.hero?.backgroundImage) urls.add(config.hero.backgroundImage);
     if (config.groom?.avatar) urls.add(config.groom.avatar);
     if (config.bride?.avatar) urls.add(config.bride.avatar);
 
@@ -102,9 +100,10 @@ function renderGalleryDriveLink(url) {
     }
 }
 
-// Render Hero Section
+// Render Hero Section (fallback nếu có thẻ #hero-section)
 function renderHero(config) {
     const heroSection = document.getElementById("hero-section");
+    if (!heroSection) return;
     const bgUrl = config.hero?.backgroundImage || 'https://media.phuocducthusuong.com/cover.webp';
     heroSection.style.backgroundImage = `url('${bgUrl}')`;
 

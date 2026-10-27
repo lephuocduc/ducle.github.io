@@ -4158,7 +4158,7 @@ body.no-scroll {
 
 .gallery-section {
     position: relative;
-    padding-top: 50px;
+    padding-top: clamp(85px, 10vw, 115px);
     padding-bottom: 70px;
 }
 
