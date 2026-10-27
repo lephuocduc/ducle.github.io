@@ -4441,6 +4441,40 @@ html.lg-body-no-scroll {
     backface-visibility: hidden;
 }
 
+/* Chuyển động zoom êm ái, mượt mà, khử hoàn toàn hiện tượng giật nảy */
+.lg-outer.lg-use-transition-for-zoom .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
+    transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
+    will-change: transform;
+}
+
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
+    transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
+    will-change: transform;
+}
+
+/* Nút công cụ phóng to / thu nhỏ trên thanh toolbar */
+.lg-toolbar .lg-icon.lg-zoom-in,
+.lg-toolbar .lg-icon.lg-zoom-out {
+    color: var(--color-gold-light, #fbf2c4) !important;
+    font-size: 20px !important;
+    transition: all 0.2s ease !important;
+}
+
+.lg-toolbar .lg-icon.lg-zoom-in:hover,
+.lg-toolbar .lg-icon.lg-zoom-out:hover {
+    color: #fff !important;
+    transform: scale(1.15) !important;
+}
+
+.lg-toolbar .lg-icon.lg-zoom-out {
+    opacity: 0.45 !important;
+}
+
+.lg-zoomed .lg-toolbar .lg-icon.lg-zoom-out {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
 /* Đảm bảo thanh thumbnail dưới đáy popup luôn hiển thị rõ nét trên cả điện thoại và máy tính */
 .lg-outer .lg-thumb-outer {
     background-color: rgba(18, 0, 0, 0.94) !important;

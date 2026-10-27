@@ -529,9 +529,10 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             thumbHeight: "52px",
             thumbMargin: 6,
             zoom: true,
-            scale: 0.5,               // Bước zoom 0.5 để phóng to/thu nhỏ êm ái
+            scale: 0.25,              // Mỗi nấc zoom là 0.25 (phóng to/thu nhỏ từ từ êm ái: 1.0 -> 1.25 -> 1.5 -> 1.75 -> 2.0...)
             enableZoomAfter: 0,
-            actualSize: true,
+            actualSize: false,        // TẮT nút phóng to 1 mạch 100% gây nhảy vọt sát rạt
+            showZoomInOutIcons: true, // HIỆN 2 nút [+] và [-] trên thanh công cụ để zoom từng nấc từ từ
             mousewheel: false,
             controls: true,           // Mũi tên < và > chuyển ảnh
             keyPress: true,           // Mũi tên bàn phím
@@ -547,6 +548,48 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 thumbHeight: "44px"
             }
         });
+
+        // Tinh chỉnh hành vi Zoom của plugin lgZoom để chuyển động êm ái, từng nấc
+        if (lightGalleryInstance && lightGalleryInstance.zoomPlugin) {
+            const zp = lightGalleryInstance.zoomPlugin;
+
+            // 1. Giới hạn tỷ lệ zoom tối đa ở mức 3.0x (ảnh rõ nét, không bị vỡ hạt hay dí sát rạt)
+            zp.getCurrentImageActualSizeScale = function () {
+                return 3.0;
+            };
+
+            // 2. Tinh chỉnh Double-Click (máy tính) và Double-Tap (điện thoại) zoom từ từ từng nấc:
+            // Nấc 1: 1.0 -> 1.6x (phóng to vừa mắt để ngắm rõ chân dung)
+            // Nấc 2: 1.6 -> 2.4x (cận cảnh chi tiết)
+            // Nấc 3: quay trở về 1.0x ban đầu
+            zp.setActualSize = function (index, event) {
+                if (this.zoomInProgress) return;
+                this.zoomInProgress = true;
+
+                let nextScale = 1.0;
+                if (this.scale < 1.35) {
+                    nextScale = 1.6;
+                } else if (this.scale < 2.05) {
+                    nextScale = 2.4;
+                } else {
+                    nextScale = 1.0;
+                }
+
+                const prevScale = this.scale;
+                this.scale = nextScale;
+                this.setPageCords(event);
+
+                if (nextScale === 1.0) {
+                    this.core.outer.removeClass("lg-zoomed");
+                }
+                this.beginZoom(nextScale);
+                this.zoomImage(nextScale, nextScale - prevScale, true, true);
+
+                setTimeout(() => {
+                    this.zoomInProgress = false;
+                }, 280);
+            };
+        }
 
         // Gắn tương tác: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
         setupGalleryInteractions(gridContainer);
@@ -685,10 +728,10 @@ function setupGalleryInteractions(gridContainer) {
     }
 }
 
-let wheelZoomThrottleTimer = null;
+let lastWheelZoomTime = 0;
 
 /**
- * Xử lý Zoom ảnh khi lăn chuột trên máy tính (Mượt mà, không giật lag)
+ * Xử lý Zoom ảnh khi lăn chuột trên máy tính (Mượt mà, zoom từ từ theo từng nấc)
  */
 function onLgWheelZoom(e) {
     if (!isGalleryOpen || !lightGalleryInstance) return;
@@ -697,30 +740,20 @@ function onLgWheelZoom(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Giới hạn tần suất xử lý (throttle 80ms) để animation zoom mượt 60fps, không bị nghẽn lệnh
-    if (wheelZoomThrottleTimer) return;
-    wheelZoomThrottleTimer = setTimeout(() => {
-        wheelZoomThrottleTimer = null;
-    }, 80);
+    const now = performance.now();
+    // Throttle 60ms để mỗi bước zoom chuyển động mượt mà 60fps
+    if (now - lastWheelZoomTime < 60) return;
+    lastWheelZoomTime = now;
 
     const zoomPlugin = lightGalleryInstance.zoomPlugin;
+    if (!zoomPlugin) return;
 
     if (e.deltaY < 0) {
-        // Cuộn chuột lên -> Phóng to (Zoom In)
-        if (zoomPlugin && typeof zoomPlugin.zoomIn === "function") {
-            zoomPlugin.zoomIn(0.4);
-        } else {
-            const zoomInBtn = document.querySelector(".lg-zoom-in") || document.getElementById("lg-zoom-in");
-            if (zoomInBtn) zoomInBtn.click();
-        }
+        // Cuộn chuột lên -> Phóng to từ từ (Zoom In)
+        zoomPlugin.zoomIn();
     } else if (e.deltaY > 0) {
-        // Cuộn chuột xuống -> Thu nhỏ (Zoom Out)
-        if (zoomPlugin && typeof zoomPlugin.zoomOut === "function") {
-            zoomPlugin.zoomOut(0.4);
-        } else {
-            const zoomOutBtn = document.querySelector(".lg-zoom-out") || document.getElementById("lg-zoom-out");
-            if (zoomOutBtn) zoomOutBtn.click();
-        }
+        // Cuộn chuột xuống -> Thu nhỏ từ từ (Zoom Out)
+        zoomPlugin.zoomOut();
     }
 }
 
