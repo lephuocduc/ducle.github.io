@@ -4443,12 +4443,16 @@ html.lg-body-no-scroll {
     will-change: auto !important;
 }
 
-/* Chuyển động zoom êm ái, mượt mà */
-.lg-outer.lg-use-transition-for-zoom .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
+/* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
+.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
-    will-change: auto !important;
-    -webkit-backface-visibility: visible !important;
-    backface-visibility: visible !important;
+}
+
+/* Khi đang kéo rê ảnh (drag/pan), tắt ngay transition để ngón tay/chuột bám dính 1:1 siêu nhạy */
+.lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-img-wrap,
+.lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-image {
+    transition: none !important;
+    -webkit-transition: none !important;
 }
 
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
