@@ -105,7 +105,15 @@ export default {
       }
     }
 
-    // 2. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumb/...)
+    // 2. PHỤC VỤ GIAO DIỆN WEB TĨNH (HTML, CSS, JS, Fonts, v.v.) TỰ ĐỘNG
+    if (env.ASSETS) {
+      const assetRes = await env.ASSETS.fetch(request);
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+    }
+
+    // 3. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumb/...)
     const key = decodeURIComponent(url.pathname.slice(1));
     if (!key) {
       return new Response("Cloudflare R2 Media Service - Phước Đức & Thu Sương Wedding", { 
