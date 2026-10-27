@@ -519,28 +519,32 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             dynamic: true,
             dynamicEl: dynamicEl,
             plugins: plugins,
-            speed: 350,
-            preload: 1,
+            speed: 300,
+            preload: 2,
             download: false,
             thumbnail: true,
             animateThumb: true,
-            showThumbByDefault: true, // Hiển thị dải thumbnail rõ nét cho toàn bộ ảnh
+            toggleThumb: false,        // Giữ thanh thumbnails luôn mở, không ẩn đi
             thumbWidth: 70,
             thumbHeight: "52px",
             thumbMargin: 6,
             zoom: true,
-            scale: 1,
+            scale: 0.5,               // Bước zoom 0.5 để phóng to/thu nhỏ êm ái
             enableZoomAfter: 0,
             actualSize: true,
-            mousewheel: false, // TẮT cuộn chuột đổi ảnh (chỉ cuộn để zoom ảnh)
-            controls: true,    // Mũi tên < và > chuyển ảnh
-            keyPress: true,    // Mũi tên bàn phím
-            loop: true,        // Xoay vòng ảnh khi đến cuối
+            mousewheel: false,
+            controls: true,           // Mũi tên < và > chuyển ảnh
+            keyPress: true,           // Mũi tên bàn phím
+            loop: true,               // Xoay vòng ảnh khi đến cuối
             hideControlOnEnd: false,
             mobileSettings: {
                 controls: true,
                 showCloseIcon: true,
-                download: false
+                download: false,
+                thumbnail: true,
+                toggleThumb: false,   // Đảm bảo trên điện thoại thumbnails luôn hiển thị
+                thumbWidth: 58,
+                thumbHeight: "44px"
             }
         });
 
@@ -642,6 +646,12 @@ function setupGalleryInteractions(gridContainer) {
         document.body.classList.add("lg-body-no-scroll");
         document.documentElement.classList.add("lg-body-no-scroll");
 
+        // Đảm bảo thanh thumbnails luôn mở sẵn ngay khi vừa mở ảnh trên cả điện thoại & máy tính
+        const lgOuter = document.querySelector(".lg-outer");
+        if (lgOuter) {
+            lgOuter.classList.add("lg-thumb-open");
+        }
+
         // Gắn sự kiện lăn chuột ở capture phase để chặn đứng sự kiện đổi ảnh và chỉ dùng để Zoom
         window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
     });
@@ -675,34 +685,41 @@ function setupGalleryInteractions(gridContainer) {
     }
 }
 
+let wheelZoomThrottleTimer = null;
+
 /**
- * Xử lý Zoom ảnh khi lăn chuột trên máy tính (KHÔNG đổi ảnh)
+ * Xử lý Zoom ảnh khi lăn chuột trên máy tính (Mượt mà, không giật lag)
  */
 function onLgWheelZoom(e) {
-    if (!isGalleryOpen) return;
+    if (!isGalleryOpen || !lightGalleryInstance) return;
 
     // Ngăn chặn hoàn toàn hành vi cuộn chuột đổi ảnh hoặc cuộn trang
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
 
-    if (!lightGalleryInstance) return;
+    // Giới hạn tần suất xử lý (throttle 80ms) để animation zoom mượt 60fps, không bị nghẽn lệnh
+    if (wheelZoomThrottleTimer) return;
+    wheelZoomThrottleTimer = setTimeout(() => {
+        wheelZoomThrottleTimer = null;
+    }, 80);
+
+    const zoomPlugin = lightGalleryInstance.zoomPlugin;
 
     if (e.deltaY < 0) {
         // Cuộn chuột lên -> Phóng to (Zoom In)
-        const zoomInBtn = document.querySelector(".lg-zoom-in") || document.getElementById("lg-zoom-in");
-        if (zoomInBtn) {
-            zoomInBtn.click();
-        } else if (lightGalleryInstance.zoomPlugin) {
-            lightGalleryInstance.zoomPlugin.zoomIn(1.25);
+        if (zoomPlugin && typeof zoomPlugin.zoomIn === "function") {
+            zoomPlugin.zoomIn(0.4);
+        } else {
+            const zoomInBtn = document.querySelector(".lg-zoom-in") || document.getElementById("lg-zoom-in");
+            if (zoomInBtn) zoomInBtn.click();
         }
     } else if (e.deltaY > 0) {
         // Cuộn chuột xuống -> Thu nhỏ (Zoom Out)
-        const zoomOutBtn = document.querySelector(".lg-zoom-out") || document.getElementById("lg-zoom-out");
-        if (zoomOutBtn) {
-            zoomOutBtn.click();
-        } else if (lightGalleryInstance.zoomPlugin) {
-            lightGalleryInstance.zoomPlugin.zoomOut(1.25);
+        if (zoomPlugin && typeof zoomPlugin.zoomOut === "function") {
+            zoomPlugin.zoomOut(0.4);
+        } else {
+            const zoomOutBtn = document.querySelector(".lg-zoom-out") || document.getElementById("lg-zoom-out");
+            if (zoomOutBtn) zoomOutBtn.click();
         }
     }
 }

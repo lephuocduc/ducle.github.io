@@ -4433,24 +4433,33 @@ html.lg-body-no-scroll {
     transform: scale(1.1) !important;
 }
 
-/* Tối ưu độ sắc nét cho ảnh LightGallery trên điện thoại di động (triệt tiêu hiện tượng mờ blur khi zoom out) */
+/* Tối ưu độ sắc nét cho ảnh LightGallery (không dùng transform để tránh chặn zoom của lgZoom) */
 .lg-outer .lg-item .lg-image {
-    image-rendering: -webkit-optimize-contrast !important;
-    image-rendering: high-quality !important;
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-    transform: translateZ(0) !important;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: high-quality;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
-/* Tinh chỉnh thanh thumbnail dưới đáy popup hiển thị sắc nét, đều đặn cho toàn bộ 40 ảnh */
+/* Đảm bảo thanh thumbnail dưới đáy popup luôn hiển thị rõ nét trên cả điện thoại và máy tính */
 .lg-outer .lg-thumb-outer {
-    background-color: rgba(18, 0, 0, 0.92) !important;
-    border-top: 1px solid rgba(212, 175, 55, 0.3) !important;
+    background-color: rgba(18, 0, 0, 0.94) !important;
+    border-top: 1px solid rgba(212, 175, 55, 0.35) !important;
+    transform: translate3d(0, 0, 0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    z-index: 1082 !important;
+    transition: transform 0.25s ease !important;
+}
+
+.lg-outer.lg-has-thumb .lg-inner {
+    bottom: 64px !important;
 }
 
 .lg-outer .lg-thumb-item {
     border: 1.5px solid rgba(212, 175, 55, 0.35) !important;
-    border-radius: 4px !important;
+    border-radius: 6px !important;
     overflow: hidden !important;
     background: #1a0000 !important;
     transition: all 0.2s ease !important;
@@ -4468,6 +4477,28 @@ html.lg-body-no-scroll {
     border-color: var(--color-gold) !important;
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.7) !important;
     transform: scale(1.05) !important;
+}
+
+/* Tinh chỉnh riêng thanh thumbnail cho màn hình điện thoại di động */
+@media (max-width: 768px) {
+    .lg-outer .lg-thumb-outer {
+        height: 56px !important;
+        padding: 4px 6px !important;
+    }
+
+    .lg-outer.lg-has-thumb .lg-inner {
+        bottom: 56px !important;
+    }
+
+    .lg-outer .lg-thumb-item {
+        width: 58px !important;
+        height: 44px !important;
+        border-radius: 4px !important;
+    }
+
+    .lg-outer .lg-toggle-thumb {
+        display: none !important;
+    }
 }
 
 /* Nút Xem Thêm Ảnh (Load More) giảm tải bộ nhớ */
