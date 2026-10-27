@@ -79,7 +79,15 @@ export default {
       }
     }
 
-    // 2. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumbs/...)
+    // 2. PHỤC VỤ GIAO DIỆN WEB TĨNH (HTML, CSS, JS) TỰ ĐỘNG
+    if (env.ASSETS) {
+      const assetRes = await env.ASSETS.fetch(request);
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+    }
+
+    // 3. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumbs/...)
     const key = url.pathname.slice(1);
     if (!key) {
       return new Response("Cloudflare R2 Media Service - Phước Đức & Thu Sương Wedding", { 
@@ -89,7 +97,7 @@ export default {
 
     try {
       if (!env.MY_BUCKET) {
-        return new Response("R2 Bucket not bound", { status: 500, headers: corsHeaders });
+        return new Response("File not found", { status: 404, headers: corsHeaders });
       }
 
       const object = await env.MY_BUCKET.get(key);

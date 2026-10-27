@@ -1,11 +1,12 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ducle-github-io",
+  "main": "cloudflare/worker.js",
   "compatibility_date": "2024-09-23",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   }
 }
