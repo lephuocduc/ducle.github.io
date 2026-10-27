@@ -563,7 +563,13 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 return 2.5;
             };
 
-            // 2. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
+            // 2. Vô hiệu hóa hành vi tự động giật ảnh lên 2500px ở nấc zoom cuối cùng:
+            // LightGallery mặc định có hàm setZoomImageSize tự ép kích thước ảnh thật 2500px sau 550ms
+            // khi đạt mức zoom tối đa (actualSizeScale), làm ảnh đột ngột nhảy vọt và lệch tọa độ.
+            // Vô hiệu hóa hàm này giúp nấc zoom cuối cùng êm ái, chuẩn xác và không bị giật lỗi.
+            zp.setZoomImageSize = function () {};
+
+            // 3. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
             // - Nếu đang phóng to -> thu nhỏ êm ái về 1.0x ban đầu và reset căn giữa chuẩn xác
             // - Nếu đang ở 1.0x -> phóng to mượt mà lên 2.0x đúng ngay vị trí vừa chạm
             zp.setActualSize = function (index, event) {
@@ -581,7 +587,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     const targetScale = 2.0;
                     this.setPageCords(event);
                     this.beginZoom(targetScale);
-                    this.zoomImage(targetScale, targetScale - this.scale, true, true);
+                    this.zoomImage(targetScale, targetScale - this.scale, true, false);
                     this.core.outer.addClass("lg-zoomed");
                     setTimeout(() => {
                         this.zoomInProgress = false;
