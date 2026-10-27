@@ -14,7 +14,8 @@ let activeAlbumId = "01-pre-wedding";
 let isSyncing = false;
 let isGalleryOpen = false;
 let isGalleryInteractionsSetup = false;
-const PAGE_SIZE = 12;
+let imageObserver = null;
+const PAGE_SIZE = 8;
 const currentVisibleCounts = {};
 
 /**
@@ -279,17 +280,19 @@ async function syncAllAlbumsFromR2() {
 
 
 /**
- * 3. RENDER LƯỚI ẢNH & RE-INIT LIGHTGALLERY
- * QUAN TRỌNG: Phá hủy instance LightGallery cũ trước khi render và khởi tạo instance mới
+ * 3. RENDER LƯỚI ẢNH & KHỞI TẠO DYNAMIC LIGHTGALLERY (TỐI ƯU HIỆU NĂNG TỐI ĐA)
+ * - Dynamic Gallery: Không tạo DOM ẩn, không quét thừa phần tử -> Triệt tiêu lỗi offsetWidth của lgZoom
+ * - Lazy Loading: Ảnh lưới chỉ tải khi cuộn tới gần (tiết kiệm băng thông & chống giật lag)
+ * - Safe Thumbnail: Chỉ bật lgThumbnail khi đã có thumbs chuẩn (tránh tải đồng thời 40 ảnh 17MB gốc)
  */
 function renderActiveAlbum(albumId) {
     const gridContainer = document.getElementById("gallery-grid");
     if (!gridContainer || !currentR2Config) return;
 
-    // BƯỚC 1: Phá hủy instance LightGallery cũ đúng cách (tránh đè popup / sai index ảnh cũ)
+    // BƯỚC 1: Phá hủy instance LightGallery cũ đúng cách (tránh đè popup / rò rỉ bộ nhớ)
     if (lightGalleryInstance) {
         try {
-            lightGalleryInstance.destroy(true); // true = complete destroy
+            lightGalleryInstance.destroy(true);
         } catch (err) {
             console.warn("[LightGallery] Lỗi hủy instance:", err);
         }
@@ -321,93 +324,187 @@ function renderActiveAlbum(albumId) {
         return;
     }
 
-    // 1. Phân trang thông minh: Mặc định chỉ hiển thị 12 ảnh ban đầu để web mượt mà (tránh tải đồng thời 660MB ảnh 16MB)
+    const hasThumbs = Boolean(album.hasThumbs);
     const visibleCount = currentVisibleCounts[albumId] || PAGE_SIZE;
 
-    // 2. Tạo các thẻ HTML ảnh chuẩn LightGallery
-    let htmlContent = "";
-
-    images.forEach((item, index) => {
+    // 1. Chuẩn bị danh sách dynamicEl cho toàn bộ ảnh trong album (phục vụ Lightbox duyệt cả album)
+    const dynamicEl = images.map((item, index) => {
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
         const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
-
-        if (!filename) return;
-
-        const hasThumbs = album.hasThumbs !== false;
         const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
         const fullUrl = hasThumbs ? `${host}/${album.folder}/full/${filename}` : `${host}/${album.folder}/${filename}`;
 
-        const isHidden = index >= visibleCount;
-        const hiddenClass = isHidden ? " r2-gallery-hidden-item" : "";
-        const hiddenStyle = isHidden ? ' style="display:none;"' : "";
+        return {
+            src: fullUrl,
+            thumb: hasThumbs ? thumbUrl : undefined,
+            subHtml: `<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>`
+        };
+    });
+
+    // 2. Chỉ render vào DOM đúng số lượng ảnh hiển thị (visibleCount) -> Tuyệt đối không tạo thẻ DOM ẩn
+    let htmlContent = "";
+    const renderLimit = Math.min(visibleCount, images.length);
+
+    for (let index = 0; index < renderLimit; index++) {
+        const item = images[index];
+        const filename = typeof item === "string" ? item : (item.file || item.src || "");
+        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
+        if (!filename) continue;
+
+        const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
 
         htmlContent += `
-            <a href="${fullUrl}" 
-               data-src="${fullUrl}"
-               data-sub-html="<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>"
-               class="r2-gallery-item${hiddenClass}"
-               ${hiddenStyle}
-               aria-label="Xem ảnh ${index + 1}/${images.length}: ${imageTitle}">
+            <div class="r2-gallery-item" 
+                 role="button" 
+                 tabindex="0"
+                 data-gallery-index="${index}" 
+                 aria-label="Xem ảnh ${index + 1}/${images.length}: ${imageTitle}">
                 <div class="r2-thumb-wrap">
-                    <img src="${isHidden ? '' : thumbUrl}" 
-                         data-lazy-src="${thumbUrl}"
+                    <img data-src="${thumbUrl}" 
                          alt="${imageTitle}" 
                          loading="lazy" 
                          decoding="async"
+                         class="r2-thumb-img"
                          onerror="this.onerror=null; this.src='assets/img/${filename}';" />
+                    <div class="r2-thumb-skeleton"></div>
                     <div class="r2-hover-overlay">
                         <i class="fas fa-magnifying-glass-plus"></i>
                         <span class="r2-hover-text">Xem Ảnh</span>
                     </div>
                 </div>
-            </a>
+            </div>
         `;
-    });
+    }
 
     gridContainer.innerHTML = htmlContent;
 
-    // 3. Render nút "Xem Thêm Ảnh" nếu còn ảnh chưa hiển thị trên lưới
-    renderLoadMoreButton(albumId, images.length, visibleCount);
+    // 3. Kích hoạt Lazy Loading qua IntersectionObserver (chỉ tải ảnh khi người dùng cuộn đến gần)
+    initLazyImages(gridContainer);
 
-    // 4. Khởi tạo LightGallery tối ưu hiệu năng (Preload 1 ảnh, Zoom cuộn chuột, Mũi tên trái/phải)
-    if (window.lightGallery && typeof window.lightGallery === "function") {
-        try {
-            lightGalleryInstance = window.lightGallery(gridContainer, {
-                plugins: [window.lgThumbnail, window.lgZoom].filter(Boolean),
-                speed: 350,
-                selector: ".r2-gallery-item",
-                // Tối ưu RAM: Chỉ tải trước 1 ảnh trước & sau, tránh giật lag khi ảnh dung lượng lớn!
-                preload: 1,
-                download: false,
-                thumbnail: true,
-                animateThumb: true,
-                showThumbByDefault: false, // Ẩn dải thumbnail ban đầu để tiết kiệm băng thông
-                thumbWidth: 80,
-                thumbHeight: "60px",
-                thumbMargin: 8,
-                zoom: true,
-                scale: 1,
-                enableZoomAfter: 0,
-                actualSize: true,
-                mousewheel: false, // TẮT hoàn toàn cuộn chuột đổi ảnh (chỉ đổi ảnh bằng nút mũi tên)
-                controls: true,    // Hiển thị nút mũi tên < và > trên màn hình
-                keyPress: true,    // Cho phép phím mũi tên bàn phím
-                loop: true,        // Cuộn xoay vòng khi hết ảnh
-                hideControlOnEnd: false,
-                mobileSettings: {
-                    controls: true,
-                    showCloseIcon: true,
-                    download: false
+    // 4. Gắn sự kiện click mở Lightbox tại đúng index ảnh
+    bindCardClicks(gridContainer);
+
+    // 5. Render nút "Xem Thêm Ảnh" nếu còn ảnh chưa hiển thị trên lưới
+    renderLoadMoreButton(albumId, images.length, renderLimit);
+
+    // 6. Khởi tạo Dynamic LightGallery siêu mượt
+    initDynamicLightGallery(gridContainer, dynamicEl, hasThumbs);
+}
+
+/**
+ * Gắn sự kiện Click / Enter để mở LightGallery tại vị trí ảnh tương ứng
+ */
+function bindCardClicks(container) {
+    container.querySelectorAll(".r2-gallery-item:not([data-click-bound])").forEach(card => {
+        card.setAttribute("data-click-bound", "true");
+        const openIdx = parseInt(card.getAttribute("data-gallery-index"), 10);
+
+        const handleOpen = (e) => {
+            e.preventDefault();
+            if (lightGalleryInstance && !isNaN(openIdx)) {
+                lightGalleryInstance.openGallery(openIdx);
+            }
+        };
+
+        card.addEventListener("click", handleOpen);
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                handleOpen(e);
+            }
+        });
+    });
+}
+
+/**
+ * Lazy Loading thông minh bằng IntersectionObserver:
+ * - Khi card cách viewport 250px mới bắt đầu nạp ảnh
+ * - Hiển thị skeleton shimmer trong lúc tải, fade-in mượt mà khi ảnh sẵn sàng
+ */
+function initLazyImages(container) {
+    if (!("IntersectionObserver" in window)) {
+        // Fallback cho trình duyệt không hỗ trợ
+        container.querySelectorAll("img[data-src]").forEach(img => {
+            img.src = img.getAttribute("data-src");
+            img.removeAttribute("data-src");
+            img.classList.add("loaded");
+        });
+        return;
+    }
+
+    if (!imageObserver) {
+        imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.getAttribute("data-src");
+                    if (src) {
+                        img.src = src;
+                        img.removeAttribute("data-src");
+                        img.addEventListener("load", () => {
+                            img.classList.add("loaded");
+                            const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
+                            if (skeleton) skeleton.style.display = "none";
+                        }, { once: true });
+                    }
+                    observer.unobserve(img);
                 }
             });
+        }, { rootMargin: "250px 0px" });
+    }
 
-            // Gắn các tính năng: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
-            setupGalleryInteractions(gridContainer);
-        } catch (err) {
-            console.error("[LightGallery] Lỗi khởi tạo:", err);
-        }
-    } else {
-        console.warn("[LightGallery] Thư viện LightGallery chưa sẵn sàng.");
+    container.querySelectorAll("img[data-src]").forEach(img => {
+        imageObserver.observe(img);
+    });
+}
+
+/**
+ * Khởi tạo LightGallery ở chế độ Dynamic (không phụ thuộc thẻ DOM tĩnh)
+ */
+function initDynamicLightGallery(gridContainer, dynamicEl, hasThumbs) {
+    if (!window.lightGallery || typeof window.lightGallery !== "function") return;
+
+    // TỐI ƯU QUAN TRỌNG: Nếu chưa có thư mục thumbs chuẩn trên R2 (ảnh đang là file gốc 17MB),
+    // tuyệt đối KHÔNG đưa lgThumbnail vào plugin để tránh LightGallery âm thầm tải 40 ảnh 17MB trong nền!
+    const plugins = [window.lgZoom];
+    if (hasThumbs && window.lgThumbnail) {
+        plugins.push(window.lgThumbnail);
+    }
+
+    try {
+        lightGalleryInstance = window.lightGallery(gridContainer, {
+            dynamic: true,
+            dynamicEl: dynamicEl,
+            plugins: plugins.filter(Boolean),
+            speed: 350,
+            // Nếu chưa có thumbs, không tải trước bất kỳ ảnh nào trong nền (preload: 0)
+            preload: hasThumbs ? 1 : 0,
+            download: false,
+            thumbnail: hasThumbs,
+            animateThumb: hasThumbs,
+            showThumbByDefault: false,
+            thumbWidth: 80,
+            thumbHeight: "60px",
+            thumbMargin: 8,
+            zoom: true,
+            scale: 1,
+            enableZoomAfter: 0,
+            actualSize: true,
+            mousewheel: false, // TẮT cuộn chuột đổi ảnh (chỉ cuộn để zoom ảnh)
+            controls: true,    // Mũi tên < và > chuyển ảnh
+            keyPress: true,    // Mũi tên bàn phím
+            loop: true,        // Xoay vòng ảnh khi đến cuối
+            hideControlOnEnd: false,
+            mobileSettings: {
+                controls: true,
+                showCloseIcon: true,
+                download: false
+            }
+        });
+
+        // Gắn tương tác: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
+        setupGalleryInteractions(gridContainer);
+    } catch (err) {
+        console.error("[LightGallery] Lỗi khởi tạo dynamic:", err);
     }
 }
 
@@ -436,23 +533,58 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
     `;
 
     document.getElementById("gallery-load-more-btn")?.addEventListener("click", () => {
-        currentVisibleCounts[albumId] = visibleCount + PAGE_SIZE;
+        const newCount = visibleCount + nextBatch;
+        currentVisibleCounts[albumId] = newCount;
 
+        const album = currentR2Config.albums.find(a => a.id === albumId);
+        const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+        const images = Array.isArray(album?.images) ? album.images : [];
+        const hasThumbs = Boolean(album?.hasThumbs);
         const gridContainer = document.getElementById("gallery-grid");
-        if (gridContainer) {
-            const hiddenItems = gridContainer.querySelectorAll(".r2-gallery-hidden-item");
-            for (let i = 0; i < nextBatch && i < hiddenItems.length; i++) {
-                const item = hiddenItems[i];
-                item.style.display = "";
-                item.classList.remove("r2-gallery-hidden-item");
-                const img = item.querySelector("img");
-                if (img && img.dataset.lazySrc && !img.src) {
-                    img.src = img.dataset.lazySrc;
-                }
+
+        if (gridContainer && album) {
+            const frag = document.createDocumentFragment();
+
+            for (let index = visibleCount; index < newCount && index < images.length; index++) {
+                const item = images[index];
+                const filename = typeof item === "string" ? item : (item.file || item.src || "");
+                const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
+                if (!filename) continue;
+
+                const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
+
+                const card = document.createElement("div");
+                card.className = "r2-gallery-item";
+                card.setAttribute("role", "button");
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("data-gallery-index", index.toString());
+                card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${images.length}: ${imageTitle}`);
+
+                card.innerHTML = `
+                    <div class="r2-thumb-wrap">
+                        <img data-src="${thumbUrl}" 
+                             alt="${imageTitle}" 
+                             loading="lazy" 
+                             decoding="async"
+                             class="r2-thumb-img"
+                             onerror="this.onerror=null; this.src='assets/img/${filename}';" />
+                        <div class="r2-thumb-skeleton"></div>
+                        <div class="r2-hover-overlay">
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                            <span class="r2-hover-text">Xem Ảnh</span>
+                        </div>
+                    </div>
+                `;
+
+                frag.appendChild(card);
             }
+
+            gridContainer.appendChild(frag);
+            bindCardClicks(gridContainer);
+            initLazyImages(gridContainer);
         }
 
-        renderLoadMoreButton(albumId, totalImages, currentVisibleCounts[albumId]);
+        renderLoadMoreButton(albumId, totalImages, newCount);
     });
 }
 
