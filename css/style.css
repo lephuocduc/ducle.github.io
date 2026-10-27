@@ -4437,10 +4437,12 @@ html.lg-body-no-scroll {
 .lg-outer .lg-item .lg-image,
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image,
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-dummy-img {
-    image-rendering: -webkit-optimize-contrast !important;
     image-rendering: auto !important;
+    image-rendering: -webkit-optimize-contrast !important;
     -webkit-backface-visibility: visible !important;
     backface-visibility: visible !important;
+    -webkit-transform-style: flat !important;
+    transform-style: flat !important;
 }
 
 /* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */

@@ -345,6 +345,9 @@ function renderActiveAlbum(albumId) {
         return {
             src: fullUrl,
             thumb: thumbUrl,
+            width: "2560",
+            height: "3840",
+            size: "2560-3840",
             subHtml: `<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>`
         };
     });
@@ -567,14 +570,52 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 return Math.max(5.0, this.getActualSizeScale(naturalWidth, width));
             };
 
-            // 2. Vô hiệu hóa hành vi tự động ép kích thước 2500px ở nấc cuối:
-            // Giữ cho toàn bộ quá trình zoom, vuốt kéo (pan/drag), cử chỉ 2 ngón tay (pinch)
-            // hoạt động 100% tự nhiên theo hệ tọa độ chuẩn của LightGallery mượt mà 60fps.
-            zp.setZoomImageSize = function () {};
+            // 2. Tối ưu setZoomStyles dùng 2D scale: Ngăn Mobile Safari khóa texture ở độ phân giải thấp
+            zp.setZoomStyles = function (style) {
+                const $slide = this.core.getSlideItem(this.core.index);
+                const $wrap = $slide.find(".lg-img-wrap").first();
+                const $image = $slide.find(".lg-image").first();
+                const $dummy = this.core.outer.find(".lg-current .lg-dummy-img").first();
 
-            // 3. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
+                this.scale = style.scale;
+                const scaleTransform = `scale(${style.scale})`;
+                $image.css("transform", scaleTransform);
+                $dummy.css("transform", scaleTransform);
+                $wrap.css("transform", `translate3d(${style.x}px, ${style.y}px, 0)`);
+            };
+
+            // 3. Cho phép kích hoạt refresh nét kích thước thực tế khi đạt ngưỡng zoom sâu (actual size)
+            zp.setZoomImageSize = function () {
+                const self = this;
+                const $slide = this.core.getSlideItem(this.core.index);
+                const $image = $slide.find(".lg-image").first();
+                const actualScale = this.getCurrentImageActualSizeScale();
+
+                if (this.scale >= actualScale - 0.15) {
+                    setTimeout(() => {
+                        if (self.scale >= actualScale - 0.15) {
+                            $image.addClass("no-transition");
+                            self.imageReset = true;
+                        }
+                    }, 300);
+                    setTimeout(() => {
+                        if (self.scale >= actualScale - 0.15) {
+                            const imgEl = $image.get();
+                            const naturalWidth = imgEl?.naturalWidth;
+                            const naturalHeight = imgEl?.naturalHeight;
+                            if (naturalWidth && naturalHeight) {
+                                $image.css("width", `${naturalWidth}px`).css("height", `${naturalHeight}px`);
+                                self.core.outer.addClass("lg-actual-size");
+                                $image.addClass("reset-transition");
+                            }
+                        }
+                    }, 350);
+                }
+            };
+
+            // 4. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
             // - Nấc 1: 1.0x -> 2.4x (phóng to vừa mắt ngắm rõ chân dung)
-            // - Nấc 2: 2.4x -> 4.5x (cận cảnh siêu chi tiết)
+            // - Nấc 2: 2.4x -> 4.8x (cận cảnh siêu nét, kích hoạt refresh ảnh gốc 4K)
             // - Nấc 3: quay trở về 1.0x ban đầu và reset căn giữa chuẩn xác
             zp.setActualSize = function (index, event) {
                 if (this.zoomInProgress) return;
@@ -583,8 +624,8 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 let nextScale = 1.0;
                 if (this.scale < 2.0) {
                     nextScale = 2.4;
-                } else if (this.scale < 3.8) {
-                    nextScale = 4.5;
+                } else if (this.scale < 4.0) {
+                    nextScale = 4.8;
                 } else {
                     nextScale = 1.0;
                 }
@@ -597,9 +638,10 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     }, 280);
                 } else {
                     // Phóng to lên nextScale tại vị trí chạm/click
+                    const isDeepZoom = nextScale >= 4.5;
                     this.setPageCords(event);
                     this.beginZoom(nextScale);
-                    this.zoomImage(nextScale, nextScale - this.scale, true, false);
+                    this.zoomImage(nextScale, nextScale - this.scale, true, isDeepZoom);
                     this.core.outer.addClass("lg-zoomed");
                     setTimeout(() => {
                         this.zoomInProgress = false;
