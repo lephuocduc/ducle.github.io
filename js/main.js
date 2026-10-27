@@ -3,9 +3,9 @@
  * Khởi tạo ứng dụng thiệp cưới SPA, render toàn bộ DOM từ config.js
  */
 
-import { loadConfig } from './config-loader.js?v=20261027-4';
+import { loadConfig } from './config-loader.js?v=20261027-5';
 import { renderCountdown } from './countdown.js?v=20260729-2';
-import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-4';
+import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-5';
 import { initMusicPlayer } from './music.js?v=20260729-2';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';

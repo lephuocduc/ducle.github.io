@@ -223,10 +223,7 @@ export const weddingConfig = {
                 title: "Tiệc Mừng Lễ Vu Quy",
                 tag: "NHÀ GÁI • 24/10/2026",
                 icon: "fa-champagne-glasses",
-                images: [
-                    "DSCF5639-1.webp",
-                    "DSCF5692.webp"
-                ]
+                images: []
             },
             {
                 id: "03-vu-quy-tan-hon",
@@ -234,12 +231,7 @@ export const weddingConfig = {
                 title: "Lễ Vu Quy & Tân Hôn",
                 tag: "NGHI LỄ • 25/10/2026",
                 icon: "fa-ring",
-                images: [
-                    "bride.jpg",
-                    "groom.jpg",
-                    "IMG_4670.webp",
-                    "IMG_4671.webp"
-                ]
+                images: []
             },
             {
                 id: "04-tiec-cuoi-asianaplaza",
@@ -247,10 +239,7 @@ export const weddingConfig = {
                 title: "Tiệc Cưới Asiana Plaza",
                 tag: "TIỆC CƯỚI • 25/10/2026",
                 icon: "fa-cake-candles",
-                images: [
-                    "NAM_3511.webp",
-                    "NAM_3641.webp"
-                ]
+                images: []
             }
         ]
     },

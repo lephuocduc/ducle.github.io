@@ -325,7 +325,7 @@ function renderActiveAlbum(albumId) {
             <div class="r2-empty-state">
                 <i class="fas fa-camera-retro empty-icon"></i>
                 <h3 class="empty-title">Album ${album.title}</h3>
-                <p class="empty-desc">Hình ảnh đang được chuẩn bị và sẽ sớm được cập nhật trực tuyến!</p>
+                <p class="empty-desc">Hình ảnh đang được chuẩn bị và sẽ sớm được cập nhật</p>
             </div>
         `;
         if (loadMoreWrap) loadMoreWrap.style.display = "none";
