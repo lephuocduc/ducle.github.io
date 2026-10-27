@@ -4433,23 +4433,20 @@ html.lg-body-no-scroll {
     transform: scale(1.1) !important;
 }
 
-/* Tối ưu độ sắc nét cho ảnh LightGallery (không dùng transform để tránh chặn zoom của lgZoom) */
+/* Tối ưu độ sắc nét cho ảnh LightGallery: dùng thuật toán nội suy chất lượng cao nhất của trình duyệt */
 .lg-outer .lg-item .lg-image {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: high-quality;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    image-rendering: auto !important;
+    -webkit-backface-visibility: visible !important;
+    backface-visibility: visible !important;
 }
 
-/* Chuyển động zoom êm ái, mượt mà, khử hoàn toàn hiện tượng giật nảy */
+/* Chuyển động zoom êm ái, mượt mà (không dùng will-change trên image để tránh trình duyệt cố định texture 1x gây mờ) */
 .lg-outer.lg-use-transition-for-zoom .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
-    will-change: transform;
 }
 
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
-    will-change: transform;
 }
 
 /* Nút công cụ phóng to / thu nhỏ trên thanh toolbar */

@@ -589,6 +589,85 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     this.zoomInProgress = false;
                 }, 280);
             };
+
+            // 3. Khắc phục triệt để hiện tượng ảnh mờ / vỡ hạt khi zoom lưng chừng:
+            // Nguyên nhân: LightGallery mặc định chỉ render độ phân giải thật khi zoom hết cỡ (scale >= o),
+            // còn khi zoom lưng chừng thì dùng GPU kéo dãn ảnh nhỏ (400px) gây mờ.
+            // Giải pháp: Sau mỗi bước zoom, tự động cập nhật layout size của ảnh khớp với scale hiện tại,
+            // buộc trình duyệt rasterize trực tiếp từ ảnh gốc 2500px -> Ảnh luôn nét căng ở MỌI nấc zoom!
+            const originalSetZoomStyles = zp.setZoomStyles.bind(zp);
+            zp.setZoomStyles = function (e) {
+                const currentItem = this.core.getSlideItem(this.core.index);
+                const img = currentItem.find(".lg-image").first().get();
+                if (img && img.style.maxWidth === "none") {
+                    img.style.maxWidth = "";
+                    img.style.maxHeight = "";
+                    img.style.width = "";
+                    img.style.height = "";
+                }
+                originalSetZoomStyles(e);
+            };
+
+            const originalResetImageTranslate = zp.resetImageTranslate.bind(zp);
+            zp.resetImageTranslate = function (e) {
+                const currentItem = this.core.getSlideItem(void 0 !== e ? e : this.core.index);
+                const img = currentItem.find(".lg-image").first().get();
+                if (img) {
+                    img.style.maxWidth = "";
+                    img.style.maxHeight = "";
+                    img.style.width = "";
+                    img.style.height = "";
+                    img._baseW = null;
+                    img._baseH = null;
+                }
+                originalResetImageTranslate(e);
+            };
+
+            zp.setZoomImageSize = function () {
+                clearTimeout(this._sharpTimer);
+                const zpInstance = this;
+
+                if (zpInstance.scale <= 1) {
+                    const currentItem = zpInstance.core.getSlideItem(zpInstance.core.index);
+                    const img = currentItem.find(".lg-image").first().get();
+                    if (img) {
+                        img.style.maxWidth = "";
+                        img.style.maxHeight = "";
+                        img.style.width = "";
+                        img.style.height = "";
+                    }
+                    return;
+                }
+
+                // Chờ transition zoom GPU (0.22s) hoàn thành, render lại ảnh ở độ phân giải siêu nét
+                this._sharpTimer = setTimeout(() => {
+                    if (!zpInstance.core.lgOpened || zpInstance.scale <= 1) return;
+                    const currentItem = zpInstance.core.getSlideItem(zpInstance.core.index);
+                    const img = currentItem.find(".lg-image").first().get();
+                    if (!img) return;
+
+                    // Lấy kích thước hiển thị unzoomed chuẩn của ảnh
+                    if (!img._baseW || !img._baseH) {
+                        const container = zpInstance.core.getSlideItem(zpInstance.core.index).get();
+                        const cW = container.clientWidth;
+                        const cH = container.clientHeight;
+                        const nW = img.naturalWidth || cW;
+                        const nH = img.naturalHeight || cH;
+                        const ratio = Math.min(cW / nW, cH / nH, 1);
+                        img._baseW = nW * ratio;
+                        img._baseH = nH * ratio;
+                    }
+
+                    const targetW = Math.round(img._baseW * zpInstance.scale);
+                    const targetH = Math.round(img._baseH * zpInstance.scale);
+
+                    img.style.maxWidth = "none";
+                    img.style.maxHeight = "none";
+                    img.style.width = targetW + "px";
+                    img.style.height = targetH + "px";
+                    img.style.transform = "scale3d(1, 1, 1)";
+                }, 240);
+            };
         }
 
         // Gắn tương tác: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
