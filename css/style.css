@@ -4472,7 +4472,19 @@ html.lg-body-no-scroll {
     pointer-events: auto !important;
 }
 
-/* Đảm bảo thanh thumbnail dưới đáy popup luôn hiển thị rõ nét trên cả điện thoại và máy tính */
+/* Luôn hiển thị thanh thumbnails bên dưới 100% thời gian, khử hoàn toàn lỗi lúc hiện lúc biến mất */
+.lg-outer .lg-components,
+.lg-outer.lg-components-open .lg-components,
+.lg-outer.lg-zoomed .lg-components,
+.lg-outer.lg-hide-items .lg-components,
+.lg-outer:not(.lg-components-open) .lg-components {
+    transform: translate3d(0, 0, 0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    pointer-events: auto !important;
+}
+
 .lg-outer .lg-thumb-outer {
     background-color: rgba(18, 0, 0, 0.94) !important;
     border-top: 1px solid rgba(212, 175, 55, 0.35) !important;

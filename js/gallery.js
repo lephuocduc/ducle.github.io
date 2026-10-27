@@ -524,7 +524,9 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             download: false,
             thumbnail: true,
             animateThumb: true,
-            toggleThumb: false,        // Giữ thanh thumbnails luôn mở, không ẩn đi
+            showThumbByDefault: true,   // Luôn mở thanh thumbnails mặc định
+            toggleThumb: false,         // Giữ thanh thumbnails luôn mở cố định, không cho phép ẩn
+            hideBarsDelay: 0,           // Không tự động ẩn thanh thumbnails hay thanh công cụ khi rảnh tay
             thumbWidth: 70,
             thumbHeight: "52px",
             thumbMargin: 6,
@@ -543,15 +545,17 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 showCloseIcon: true,
                 download: false,
                 thumbnail: true,
-                toggleThumb: false,   // Đảm bảo trên điện thoại thumbnails luôn hiển thị
+                showThumbByDefault: true,
+                toggleThumb: false,   // Đảm bảo trên điện thoại thumbnails luôn hiển thị 100%
                 thumbWidth: 58,
                 thumbHeight: "44px"
             }
         });
 
-        // Tinh chỉnh hành vi Zoom của plugin lgZoom để chuyển động êm ái, từng nấc
-        if (lightGalleryInstance && lightGalleryInstance.zoomPlugin) {
-            const zp = lightGalleryInstance.zoomPlugin;
+        // Tìm plugin zoom trong mảng plugins của LightGallery instance
+        const zp = lightGalleryInstance?.plugins?.find(p => typeof p.zoomIn === "function");
+        if (zp) {
+            lightGalleryInstance.zoomPlugin = zp;
 
             // 1. Giới hạn tỷ lệ zoom tối đa ở mức 3.0x (ảnh rõ nét, không bị vỡ hạt hay dí sát rạt)
             zp.getCurrentImageActualSizeScale = function () {
@@ -762,7 +766,10 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
  * Xử lý các tương tác: Khóa cuộn trang nền, Zoom lăn chuột, Phím mũi tên Trái/Phải
  */
 function setupGalleryInteractions(gridContainer) {
-    // 1. Khóa cuộn trang nền khi mở Lightbox & mở lại khi đóng
+    gridContainer.addEventListener("lgBeforeOpen", () => {
+        isGalleryOpen = true;
+    });
+
     gridContainer.addEventListener("lgAfterOpen", () => {
         isGalleryOpen = true;
         document.body.classList.add("lg-body-no-scroll");
@@ -773,25 +780,24 @@ function setupGalleryInteractions(gridContainer) {
         if (lgOuter) {
             lgOuter.classList.add("lg-thumb-open");
         }
-
-        // Gắn sự kiện lăn chuột ở capture phase để chặn đứng sự kiện đổi ảnh và chỉ dùng để Zoom
-        window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
     });
 
     gridContainer.addEventListener("lgBeforeClose", () => {
         isGalleryOpen = false;
         document.body.classList.remove("lg-body-no-scroll");
         document.documentElement.classList.remove("lg-body-no-scroll");
-
-        window.removeEventListener("wheel", onLgWheelZoom, { capture: true });
     });
 
-    // 2. Gắn phím mũi tên Trái / Phải toàn cục (chỉ gắn 1 lần)
+    // 2. Gắn phím mũi tên & Lăn chuột toàn cục (chỉ gắn 1 lần duy nhất)
     if (!isGalleryInteractionsSetup) {
         isGalleryInteractionsSetup = true;
 
+        // Lăn chuột Zoom ảnh trên máy tính (chặn đứng cuộn đổi ảnh hoặc cuộn trang)
+        window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
+
         window.addEventListener("keydown", (e) => {
-            if (!isGalleryOpen || !lightGalleryInstance) return;
+            const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
+            if (!isOpen || !lightGalleryInstance) return;
 
             if (e.key === "ArrowLeft") {
                 e.preventDefault();
@@ -813,26 +819,37 @@ let lastWheelZoomTime = 0;
  * Xử lý Zoom ảnh khi lăn chuột trên máy tính (Mượt mà, zoom từ từ theo từng nấc)
  */
 function onLgWheelZoom(e) {
-    if (!isGalleryOpen || !lightGalleryInstance) return;
+    // Kiểm tra xem lightbox có đang mở hay không
+    const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
+    if (!isOpen || !lightGalleryInstance) return;
 
-    // Ngăn chặn hoàn toàn hành vi cuộn chuột đổi ảnh hoặc cuộn trang
+    // Ngăn chặn hoàn toàn hành vi cuộn chuột đổi ảnh hoặc cuộn trang web
     e.preventDefault();
     e.stopPropagation();
 
     const now = performance.now();
-    // Throttle 60ms để mỗi bước zoom chuyển động mượt mà 60fps
-    if (now - lastWheelZoomTime < 60) return;
+    // Throttle 50ms để mỗi bước zoom chuyển động mượt mà 60fps
+    if (now - lastWheelZoomTime < 50) return;
     lastWheelZoomTime = now;
 
-    const zoomPlugin = lightGalleryInstance.zoomPlugin;
-    if (!zoomPlugin) return;
+    const zoomPlugin = lightGalleryInstance.zoomPlugin || lightGalleryInstance.plugins?.find(p => typeof p.zoomIn === "function");
 
     if (e.deltaY < 0) {
         // Cuộn chuột lên -> Phóng to từ từ (Zoom In)
-        zoomPlugin.zoomIn();
+        if (zoomPlugin && typeof zoomPlugin.zoomIn === "function") {
+            zoomPlugin.zoomIn();
+        } else {
+            const btnIn = document.getElementById("lg-zoom-in") || document.querySelector(".lg-zoom-in");
+            if (btnIn) btnIn.click();
+        }
     } else if (e.deltaY > 0) {
         // Cuộn chuột xuống -> Thu nhỏ từ từ (Zoom Out)
-        zoomPlugin.zoomOut();
+        if (zoomPlugin && typeof zoomPlugin.zoomOut === "function") {
+            zoomPlugin.zoomOut();
+        } else {
+            const btnOut = document.getElementById("lg-zoom-out") || document.querySelector(".lg-zoom-out");
+            if (btnOut) btnOut.click();
+        }
     }
 }
 
