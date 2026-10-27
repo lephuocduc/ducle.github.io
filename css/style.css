@@ -4443,6 +4443,27 @@ html.lg-body-no-scroll {
     will-change: auto !important;
 }
 
+/* Tái tạo độ sắc nét tuyệt đối (Re-rasterization) cho ảnh khi phóng to: định vị chuẩn xác và khử hoàn toàn bóng mờ */
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.reset-transition {
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    transform: scale3d(1, 1, 1) translate3d(-50%, -50%, 0) !important;
+    max-width: none !important;
+    max-height: none !important;
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: auto !important;
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.no-transition {
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
 /* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
 .lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
@@ -4455,7 +4476,7 @@ html.lg-body-no-scroll {
     -webkit-transition: none !important;
 }
 
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image:not(.reset-transition):not(.no-transition) {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
     will-change: auto !important;
 }
