@@ -12,6 +12,10 @@ let lightGalleryInstance = null;
 let currentR2Config = null;
 let activeAlbumId = "01-pre-wedding";
 let isSyncing = false;
+let isGalleryOpen = false;
+let isGalleryInteractionsSetup = false;
+const PAGE_SIZE = 12;
+const currentVisibleCounts = {};
 
 /**
  * Khởi tạo module Gallery
@@ -327,8 +331,11 @@ function renderActiveAlbum(albumId) {
     }
 
     const album = currentR2Config.albums.find(a => a.id === albumId);
+    const loadMoreWrap = document.getElementById("gallery-load-more-wrap");
+
     if (!album) {
         gridContainer.innerHTML = `<div class="r2-empty-state"><p>Không tìm thấy album.</p></div>`;
+        if (loadMoreWrap) loadMoreWrap.style.display = "none";
         return;
     }
 
@@ -344,15 +351,17 @@ function renderActiveAlbum(albumId) {
                 <p class="empty-desc">Hình ảnh đang được chuẩn bị và sẽ sớm được cập nhật trực tuyến!</p>
             </div>
         `;
+        if (loadMoreWrap) loadMoreWrap.style.display = "none";
         return;
     }
 
-    // BƯỚC 2: Tạo các thẻ HTML ảnh chuẩn LightGallery
-    // Cấu trúc URL: {host}/{folder}/thumbs/{file} và {host}/{folder}/full/{file}
+    // 1. Phân trang thông minh: Mặc định chỉ hiển thị 12 ảnh ban đầu để web mượt mà (tránh tải đồng thời 660MB ảnh 16MB)
+    const visibleCount = currentVisibleCounts[albumId] || PAGE_SIZE;
+
+    // 2. Tạo các thẻ HTML ảnh chuẩn LightGallery
     let htmlContent = "";
 
     images.forEach((item, index) => {
-        // Hỗ trợ cả string ("NAM_3318.webp") hoặc object ({ file: "NAM_3318.webp", title: "..." })
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
         const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
 
@@ -362,14 +371,20 @@ function renderActiveAlbum(albumId) {
         const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
         const fullUrl = hasThumbs ? `${host}/${album.folder}/full/${filename}` : `${host}/${album.folder}/${filename}`;
 
+        const isHidden = index >= visibleCount;
+        const hiddenClass = isHidden ? " r2-gallery-hidden-item" : "";
+        const hiddenStyle = isHidden ? ' style="display:none;"' : "";
+
         htmlContent += `
             <a href="${fullUrl}" 
                data-src="${fullUrl}"
                data-sub-html="<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>"
-               class="r2-gallery-item"
+               class="r2-gallery-item${hiddenClass}"
+               ${hiddenStyle}
                aria-label="Xem ảnh ${index + 1}/${images.length}: ${imageTitle}">
                 <div class="r2-thumb-wrap">
-                    <img src="${thumbUrl}" 
+                    <img src="${isHidden ? '' : thumbUrl}" 
+                         data-lazy-src="${thumbUrl}"
                          alt="${imageTitle}" 
                          loading="lazy" 
                          decoding="async"
@@ -385,29 +400,44 @@ function renderActiveAlbum(albumId) {
 
     gridContainer.innerHTML = htmlContent;
 
-    // BƯỚC 3: Khởi tạo LightGallery mới với plugin lgThumbnail và lgZoom
+    // 3. Render nút "Xem Thêm Ảnh" nếu còn ảnh chưa hiển thị trên lưới
+    renderLoadMoreButton(albumId, images.length, visibleCount);
+
+    // 4. Khởi tạo LightGallery tối ưu hiệu năng (Preload 1 ảnh, Zoom cuộn chuột, Mũi tên trái/phải)
     if (window.lightGallery && typeof window.lightGallery === "function") {
         try {
             lightGalleryInstance = window.lightGallery(gridContainer, {
                 plugins: [window.lgThumbnail, window.lgZoom].filter(Boolean),
-                speed: 400,
+                speed: 350,
                 selector: ".r2-gallery-item",
+                // Tối ưu RAM: Chỉ tải trước 1 ảnh trước & sau, tránh giật lag khi ảnh dung lượng lớn!
+                preload: 1,
                 download: false,
                 thumbnail: true,
                 animateThumb: true,
-                showThumbByDefault: true,
+                showThumbByDefault: false, // Ẩn dải thumbnail ban đầu để tiết kiệm băng thông
                 thumbWidth: 80,
                 thumbHeight: "60px",
                 thumbMargin: 8,
                 zoom: true,
                 scale: 1,
-                enableZoomAfter: 300,
+                enableZoomAfter: 0,
+                actualSize: true,
+                mousewheel: true,
+                enableMouseWheel: true,
+                controls: true, // Hiển thị nút mũi tên < và > trên màn hình
+                keyPress: true, // Cho phép phím mũi tên bàn phím
+                loop: true,     // Cuộn xoay vòng khi hết ảnh
+                hideControlOnEnd: false,
                 mobileSettings: {
                     controls: true,
                     showCloseIcon: true,
                     download: false
                 }
             });
+
+            // Gắn các tính năng: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
+            setupGalleryInteractions(gridContainer);
         } catch (err) {
             console.error("[LightGallery] Lỗi khởi tạo:", err);
         }
@@ -415,3 +445,124 @@ function renderActiveAlbum(albumId) {
         console.warn("[LightGallery] Thư viện LightGallery chưa sẵn sàng.");
     }
 }
+
+/**
+ * Quản lý Nút "Xem Thêm Ảnh" trên lưới
+ */
+function renderLoadMoreButton(albumId, totalImages, visibleCount) {
+    const wrap = document.getElementById("gallery-load-more-wrap");
+    if (!wrap) return;
+
+    if (totalImages <= visibleCount) {
+        wrap.style.display = "none";
+        wrap.innerHTML = "";
+        return;
+    }
+
+    const remaining = totalImages - visibleCount;
+    const nextBatch = Math.min(PAGE_SIZE, remaining);
+
+    wrap.style.display = "flex";
+    wrap.innerHTML = `
+        <button type="button" class="gallery-load-more-btn" id="gallery-load-more-btn" aria-label="Xem thêm ${nextBatch} ảnh">
+            <i class="fas fa-angles-down"></i>
+            <span>Xem Thêm ${nextBatch} Ảnh (Còn ${remaining} ảnh)</span>
+        </button>
+    `;
+
+    document.getElementById("gallery-load-more-btn")?.addEventListener("click", () => {
+        currentVisibleCounts[albumId] = visibleCount + PAGE_SIZE;
+
+        const gridContainer = document.getElementById("gallery-grid");
+        if (gridContainer) {
+            const hiddenItems = gridContainer.querySelectorAll(".r2-gallery-hidden-item");
+            for (let i = 0; i < nextBatch && i < hiddenItems.length; i++) {
+                const item = hiddenItems[i];
+                item.style.display = "";
+                item.classList.remove("r2-gallery-hidden-item");
+                const img = item.querySelector("img");
+                if (img && img.dataset.lazySrc && !img.src) {
+                    img.src = img.dataset.lazySrc;
+                }
+            }
+        }
+
+        renderLoadMoreButton(albumId, totalImages, currentVisibleCounts[albumId]);
+    });
+}
+
+/**
+ * Xử lý các tương tác: Khóa cuộn trang nền, Zoom lăn chuột, Phím mũi tên Trái/Phải
+ */
+function setupGalleryInteractions(gridContainer) {
+    // 1. Khóa cuộn trang nền khi mở Lightbox & mở lại khi đóng
+    gridContainer.addEventListener("lgAfterOpen", () => {
+        isGalleryOpen = true;
+        document.body.classList.add("lg-body-no-scroll");
+        document.documentElement.classList.add("lg-body-no-scroll");
+
+        // Gắn sự kiện lăn chuột trên giao diện Lightbox để Zoom ảnh
+        const lgOuter = document.querySelector(".lg-outer");
+        if (lgOuter) {
+            lgOuter.addEventListener("wheel", onLgWheelZoom, { passive: false });
+        }
+    });
+
+    gridContainer.addEventListener("lgBeforeClose", () => {
+        isGalleryOpen = false;
+        document.body.classList.remove("lg-body-no-scroll");
+        document.documentElement.classList.remove("lg-body-no-scroll");
+
+        const lgOuter = document.querySelector(".lg-outer");
+        if (lgOuter) {
+            lgOuter.removeEventListener("wheel", onLgWheelZoom);
+        }
+    });
+
+    // 2. Gắn phím mũi tên Trái / Phải toàn cục (chỉ gắn 1 lần)
+    if (!isGalleryInteractionsSetup) {
+        isGalleryInteractionsSetup = true;
+
+        window.addEventListener("keydown", (e) => {
+            if (!isGalleryOpen || !lightGalleryInstance) return;
+
+            if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                lightGalleryInstance.goToPrevSlide();
+            } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                lightGalleryInstance.goToNextSlide();
+            } else if (e.key === "Escape") {
+                e.preventDefault();
+                lightGalleryInstance.closeGallery();
+            }
+        });
+    }
+}
+
+/**
+ * Xử lý Zoom ảnh khi lăn chuột trên máy tính
+ */
+function onLgWheelZoom(e) {
+    e.preventDefault();
+    if (!lightGalleryInstance) return;
+
+    if (e.deltaY < 0) {
+        // Cuộn chuột lên -> Phóng to (Zoom In)
+        const zoomInBtn = document.querySelector(".lg-zoom-in");
+        if (zoomInBtn) {
+            zoomInBtn.click();
+        } else if (lightGalleryInstance.zoomPlugin) {
+            lightGalleryInstance.zoomPlugin.zoomIn(1.25);
+        }
+    } else {
+        // Cuộn chuột xuống -> Thu nhỏ (Zoom Out)
+        const zoomOutBtn = document.querySelector(".lg-zoom-out");
+        if (zoomOutBtn) {
+            zoomOutBtn.click();
+        } else if (lightGalleryInstance.zoomPlugin) {
+            lightGalleryInstance.zoomPlugin.zoomOut(1.25);
+        }
+    }
+}
+

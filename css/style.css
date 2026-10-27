@@ -4389,44 +4389,81 @@ body.no-scroll {
     margin: 0;
 }
 
-/* LightGallery Theme Customization */
-.lg-backdrop {
-    background-color: rgba(15, 0, 0, 0.92) !important;
+/* Khóa cuộn trang nền khi mở Lightbox xem ảnh */
+body.lg-body-no-scroll,
+html.lg-body-no-scroll {
+    overflow: hidden !important;
+    height: 100vh !important;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
 }
 
-.lg-toolbar,
+/* Nút mũi tên chuyển ảnh Trái / Phải to rõ, sang trọng */
 .lg-actions .lg-next,
 .lg-actions .lg-prev {
-    background-color: rgba(0, 0, 0, 0.45) !important;
-    border-radius: var(--radius-full);
+    background-color: rgba(30, 0, 0, 0.65) !important;
+    border: 1.5px solid rgba(212, 175, 55, 0.6) !important;
+    color: var(--color-gold-light) !important;
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.3) !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
 }
 
-.lg-thumb-outer {
-    background-color: rgba(20, 0, 0, 0.85) !important;
-    border-top: 1px solid rgba(212, 175, 55, 0.3) !important;
-}
-
-.lg-thumb-item.active,
-.lg-thumb-item:hover {
+.lg-actions .lg-next:hover,
+.lg-actions .lg-prev:hover {
+    background-color: var(--color-primary) !important;
     border-color: var(--color-gold) !important;
+    color: #fff !important;
+    transform: scale(1.1) !important;
 }
 
-.lg-caption-wrap {
-    text-align: center;
-    padding: 4px 10px;
+/* Nút Xem Thêm Ảnh (Load More) giảm tải bộ nhớ */
+.gallery-load-more-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    margin-bottom: 10px;
+    width: 100%;
 }
 
-.lg-caption-wrap h4 {
-    font-family: var(--font-heading);
-    font-size: 1.25rem;
+.gallery-load-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 34px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: var(--color-gold-light);
-    margin: 0 0 3px;
+    border: 1.5px solid rgba(212, 175, 55, 0.6);
+    border-radius: 50px;
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139, 0, 0, 0.25), 0 0 12px rgba(212, 175, 55, 0.25);
+    transition: all 0.3s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-.lg-caption-wrap p {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
-    margin: 0;
+.gallery-load-more-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(139, 0, 0, 0.35), 0 0 16px rgba(212, 175, 55, 0.45);
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    color: #fff;
+}
+
+.gallery-load-more-btn i {
+    font-size: 1rem;
+    color: var(--color-gold);
+    transition: transform 0.3s ease;
+}
+
+.gallery-load-more-btn:hover i {
+    transform: translateY(2px);
 }
 
 /* 3. Responsive: Tablet 3 cột & Điện thoại 2 cột */
