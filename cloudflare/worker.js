@@ -43,25 +43,42 @@ export default {
           });
         }
 
-        // Tự động quét toàn bộ ảnh trong thư mục thumbs/ của album trên R2
-        const listed = await env.MY_BUCKET.list({
-          prefix: prefix,
+        // Tự động quét toàn bộ ảnh trong thư mục của album trên R2
+        let hasThumbs = true;
+        let listed = await env.MY_BUCKET.list({
+          prefix: `${album}/thumbs/`,
           limit: 1000
         });
 
-        // Lọc lấy tên file ảnh hợp lệ (.webp, .jpg, .jpeg, .png)
-        const imageExtensions = [".webp", ".jpg", ".jpeg", ".png", ".gif"];
-        const files = listed.objects
-          .map(obj => obj.key.replace(prefix, ""))
+        const imageExtensions = [".webp", ".jpg", ".jpeg", ".png", ".gif", ".heic"];
+        let files = listed.objects
+          .map(obj => obj.key.replace(`${album}/thumbs/`, ""))
           .filter(filename => {
             if (!filename || filename.includes("/")) return false;
             const lower = filename.toLowerCase();
             return imageExtensions.some(ext => lower.endsWith(ext));
           });
 
+        // Nếu chưa có thư mục thumbs/, tự động quét ảnh trực tiếp trong thư mục album
+        if (files.length === 0) {
+          hasThumbs = false;
+          const rootListed = await env.MY_BUCKET.list({
+            prefix: `${album}/`,
+            limit: 1000
+          });
+          files = rootListed.objects
+            .map(obj => obj.key.replace(`${album}/`, ""))
+            .filter(filename => {
+              if (!filename || filename.includes("/")) return false;
+              const lower = filename.toLowerCase();
+              return imageExtensions.some(ext => lower.endsWith(ext));
+            });
+        }
+
         return new Response(JSON.stringify({
           success: true,
           album: album,
+          hasThumbs: hasThumbs,
           count: files.length,
           images: files
         }), {

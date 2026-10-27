@@ -218,6 +218,9 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
             const data = await res.json();
             if (Array.isArray(data.images)) {
                 newImages = data.images;
+                if (data.hasThumbs !== undefined) {
+                    album.hasThumbs = data.hasThumbs;
+                }
             }
         }
     } catch (e) {
@@ -355,8 +358,9 @@ function renderActiveAlbum(albumId) {
 
         if (!filename) return;
 
-        const thumbUrl = `${host}/${album.folder}/thumbs/${filename}`;
-        const fullUrl = `${host}/${album.folder}/full/${filename}`;
+        const hasThumbs = album.hasThumbs !== false;
+        const thumbUrl = hasThumbs ? `${host}/${album.folder}/thumbs/${filename}` : `${host}/${album.folder}/${filename}`;
+        const fullUrl = hasThumbs ? `${host}/${album.folder}/full/${filename}` : `${host}/${album.folder}/${filename}`;
 
         htmlContent += `
             <a href="${fullUrl}" 
