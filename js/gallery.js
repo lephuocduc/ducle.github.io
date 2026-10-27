@@ -168,8 +168,9 @@ function switchAlbum(targetAlbumId) {
         tab.classList.toggle("active", isCurrent);
         tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
 
-        // Cuộn tab active vào giữa vùng nhìn thấy trên điện thoại
-        if (isCurrent && tab.scrollIntoView) {
+        // Cuộn tab active vào giữa vùng nhìn thấy nếu thanh tabs có cuộn ngang
+        const tabsContainer = document.getElementById("gallery-tabs");
+        if (isCurrent && tab.scrollIntoView && tabsContainer && tabsContainer.scrollWidth > tabsContainer.clientWidth) {
             tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         }
     });
@@ -245,12 +246,13 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     }
 
     // Nếu tìm thấy danh sách ảnh mới từ R2, kiểm tra xem có thay đổi không
-    if (newImages && Array.isArray(newImages)) {
+    // Chú ý: Chỉ ghi đè nếu R2 thực sự có ảnh (> 0) hoặc album ban đầu chưa có ảnh, tránh làm mất 40 ảnh mặc định
+    if (newImages && Array.isArray(newImages) && (newImages.length > 0 || (album.images || []).length === 0)) {
         const currentImagesStr = JSON.stringify(album.images || []);
         const newImagesStr = JSON.stringify(newImages);
 
         if (currentImagesStr !== newImagesStr) {
-            console.log(`[R2 Auto-Sync] Phát hiện ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
+            console.log(`[R2 Auto-Sync] Cập nhật ảnh cho album ${album.title}: ${newImages.length} ảnh`);
             album.images = newImages;
             updateTabBadge(album.id, newImages.length);
 
