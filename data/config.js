@@ -67,17 +67,6 @@ export const weddingConfig = {
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
-    // Nhạc nền
-    music: {
-        url: "assets/audio/canon-in-d.mp3",
-        title: "Canon in D - Pachelbel",
-        specialUrl: "assets/audio/Tonight I celebrate my love.mp3",
-        specialTitle: "Tonight I Celebrate My Love",
-        // Ngày cưới - nhạc đặc biệt chỉ phát trong ngày này, sau đó quay về nhạc thường
-        weddingDate: "2026-10-25T00:00:00",
-        autoplay: true
-    },
-
     // Hành trình yêu thương (Timeline) - Tải trực tiếp từ Cloudflare R2
     story: [
         {

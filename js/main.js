@@ -6,7 +6,6 @@
 import { loadConfig } from './config-loader.js?v=20261027-5';
 import { renderCountdown } from './countdown.js?v=20260729-2';
 import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-5';
-import { initMusicPlayer } from './music.js?v=20260729-2';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';
@@ -40,10 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
         renderGalleryDriveLink(config.galleryDriveUrl);
         initWishesModule();
 
-        // 4. Khởi tạo nhạc nền, hiệu ứng & animations
+        // 4. Khởi tạo menu điều hướng, hiệu ứng & animations
         initNavigationMenu();
         initSmoothAnchorScroll();
-        initMusicPlayer(config.music, config.weddingDate);
         initCanvasEffects("effects-canvas");
         initParallax();
         initScrollAnimations();
