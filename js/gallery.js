@@ -531,8 +531,8 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             thumbHeight: "52px",
             thumbMargin: 6,
             zoom: true,
-            scale: 0.25,              // Mỗi nấc zoom là 0.25 (phóng to/thu nhỏ từ từ êm ái: 1.0 -> 1.25 -> 1.5 -> 1.75 -> 2.0...)
-            infiniteZoom: false,      // Dừng lại khi đạt mức zoom tối đa (2.5x), không zoom vô cực
+            scale: 0.35,              // Mỗi nấc zoom là 0.35 (phóng to/thu nhỏ êm ái, tiến độ vừa phải)
+            infiniteZoom: false,      // Dừng lại khi đạt mức zoom tối đa (5.0x), không zoom vô cực
             enableZoomAfter: 0,
             actualSize: false,        // TẮT nút phóng to 1 mạch 100% gây nhảy vọt sát rạt
             showZoomInOutIcons: true, // HIỆN 2 nút [+] và [-] trên thanh công cụ để zoom từng nấc từ từ
@@ -558,9 +558,9 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
         if (zp) {
             lightGalleryInstance.zoomPlugin = zp;
 
-            // 1. Giới hạn tỷ lệ zoom tối đa ở mức 2.5x: vừa khít màn hình, sắc nét, không bị phóng đại quá mức
+            // 1. Nâng giới hạn tỷ lệ zoom tối đa lên mức 5.0x: tha hồ soi rõ từng chi tiết, nhẫn cưới, hoa cưới
             zp.getCurrentImageActualSizeScale = function () {
-                return 2.5;
+                return 5.0;
             };
 
             // 2. Vô hiệu hóa hành vi tự động giật ảnh lên 2500px ở nấc zoom cuối cùng:
@@ -570,24 +570,33 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             zp.setZoomImageSize = function () {};
 
             // 3. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
-            // - Nếu đang phóng to -> thu nhỏ êm ái về 1.0x ban đầu và reset căn giữa chuẩn xác
-            // - Nếu đang ở 1.0x -> phóng to mượt mà lên 2.0x đúng ngay vị trí vừa chạm
+            // - Nấc 1: 1.0x -> 2.4x (phóng to vừa mắt ngắm rõ chân dung)
+            // - Nấc 2: 2.4x -> 4.5x (cận cảnh siêu chi tiết)
+            // - Nấc 3: quay trở về 1.0x ban đầu và reset căn giữa chuẩn xác
             zp.setActualSize = function (index, event) {
                 if (this.zoomInProgress) return;
                 this.zoomInProgress = true;
 
-                if (this.scale > 1 || this.core.outer.hasClass("lg-zoomed")) {
+                let nextScale = 1.0;
+                if (this.scale < 2.0) {
+                    nextScale = 2.4;
+                } else if (this.scale < 3.8) {
+                    nextScale = 4.5;
+                } else {
+                    nextScale = 1.0;
+                }
+
+                if (nextScale === 1.0) {
                     // Thu nhỏ về 1.0x ban đầu và reset vị trí
                     this.resetZoom();
                     setTimeout(() => {
                         this.zoomInProgress = false;
                     }, 280);
                 } else {
-                    // Phóng to lên 2.0x tại vị trí chạm/click
-                    const targetScale = 2.0;
+                    // Phóng to lên nextScale tại vị trí chạm/click
                     this.setPageCords(event);
-                    this.beginZoom(targetScale);
-                    this.zoomImage(targetScale, targetScale - this.scale, true, false);
+                    this.beginZoom(nextScale);
+                    this.zoomImage(nextScale, nextScale - this.scale, true, false);
                     this.core.outer.addClass("lg-zoomed");
                     setTimeout(() => {
                         this.zoomInProgress = false;
