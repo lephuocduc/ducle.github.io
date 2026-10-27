@@ -1,4 +1,4 @@
-﻿/**
+/**
  * WISHES.JS - LỜI CHÚC MODULE v2 (FIXED FOR INCOGNITO MODE)
  * Bố cục 2 cột form, avatar initials, sort Nổi bật / Mới nhất,
  * like chỉ cộng (mỗi click +1), phân trang 10 lời/lần.
