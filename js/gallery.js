@@ -142,19 +142,6 @@ function renderTabs() {
 
         tabsContainer.appendChild(btn);
     });
-
-    // Nút làm mới danh sách ảnh từ R2
-    const syncBtn = document.createElement("button");
-    syncBtn.type = "button";
-    syncBtn.className = "gallery-tab-btn gallery-sync-tab-btn";
-    syncBtn.id = "gallery-sync-btn";
-    syncBtn.title = "Đồng bộ ảnh mới tải lên từ Cloudflare R2";
-    syncBtn.setAttribute("aria-label", "Làm mới ảnh từ Cloudflare R2");
-    syncBtn.innerHTML = `<i class="fas fa-arrows-rotate"></i><span class="sync-text">Làm Mới</span>`;
-    syncBtn.addEventListener("click", () => {
-        manualRefreshR2();
-    });
-    tabsContainer.appendChild(syncBtn);
 }
 
 /**
@@ -174,7 +161,7 @@ function switchAlbum(targetAlbumId) {
     activeAlbumId = targetAlbumId;
 
     // Cập nhật trạng thái active trên các nút tab
-    const tabs = document.querySelectorAll(".gallery-tab-btn:not(.gallery-sync-tab-btn)");
+    const tabs = document.querySelectorAll(".gallery-tab-btn");
     tabs.forEach(tab => {
         const isCurrent = tab.getAttribute("data-album-id") === targetAlbumId;
         tab.classList.toggle("active", isCurrent);
@@ -290,27 +277,6 @@ async function syncAllAlbumsFromR2() {
     }
 }
 
-/**
- * Người dùng bấm nút "Làm Mới" thủ công
- */
-async function manualRefreshR2() {
-    const btn = document.getElementById("gallery-sync-btn");
-    const icon = btn?.querySelector("i");
-    if (icon) icon.classList.add("fa-spin");
-
-    try {
-        await syncAllAlbumsFromR2();
-        if (window.showToast) {
-            window.showToast("✨ Đã đồng bộ ảnh mới nhất từ Cloudflare R2!");
-        }
-    } catch (e) {
-        console.warn("Lỗi làm mới:", e);
-    } finally {
-        setTimeout(() => {
-            if (icon) icon.classList.remove("fa-spin");
-        }, 600);
-    }
-}
 
 /**
  * 3. RENDER LƯỚI ẢNH & RE-INIT LIGHTGALLERY

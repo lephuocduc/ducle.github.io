@@ -4247,23 +4247,6 @@ body.no-scroll {
     opacity: 0.9;
 }
 
-.gallery-sync-tab-btn {
-    border-left: 1.5px dashed rgba(212, 175, 55, 0.4) !important;
-    border-radius: 0 50px 50px 0 !important;
-    margin-left: 4px;
-    padding-left: 16px;
-    color: var(--color-gold-dark);
-}
-
-.gallery-sync-tab-btn:hover {
-    background: rgba(212, 175, 55, 0.2) !important;
-    color: var(--color-primary-dark);
-}
-
-.gallery-sync-tab-btn i.fa-spin {
-    animation: fa-spin 1s infinite linear;
-}
-
 /* 2. Khung lưới hiển thị ảnh responsive (R2 Gallery Grid) */
 .gallery-content-wrap {
     max-width: 1200px;
