@@ -1,23 +1,31 @@
 /**
  * GOOGLE APPS SCRIPT - Thiệp Cưới Phước Đức & Thu Sương
- * API Endpoint để xử lý Lời Chúc (Wishes)
+ * API Endpoint để xử lý Lời Chúc (Wishes) & Tải Ảnh Sự Kiện Cưới (Photos / Albums)
  * 
  * HƯỚNG DẪN TRIỂN KHAI:
- * 1. Mở Google Sheets mới, đặt tên "Wedding Wishes"
- * 2. Tạo sheet với 7 cột: id | name | content | createdTime | status | likes | isPinned
- * 3. Vào Extensions > Apps Script, dán toàn bộ code này vào
- * 4. Deploy > New Deployment > Web App
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 5. Copy URL triển khai, dán vào weddingConfig.wishesApiUrl trong data/config.js
+ * 1. Mở Google Sheet "Wedding Wishes" hiện tại của bạn
+ * 2. Sheet 1: "Wishes" (7 cột: id | name | content | createdTime | status | likes | isPinned | visitorId)
+ * 3. Sheet 2: "Photos" (Script sẽ TỰ ĐỘNG TẠO nếu chưa có: id | albumId | title | src | driveFileId | driveUrl | createdTime | status)
+ * 4. Vào Extensions > Apps Script, dán toàn bộ code mới này vào
+ * 5. Deploy > Manage Deployments > Nhấn icon Bút Chì > Chọn Version "New Version" > Deploy
+ *    - Execute as: Me (Tài khoản của bạn)
+ *    - Who has access: Anyone (Bất kỳ ai)
+ * 6. Copy URL triển khai, dán vào weddingConfig.wishesApiUrl trong data/config.js
  */
 
 const SHEET_NAME = "Wishes";
-const SPREADSHEET_ID = "1Xy4ZNo2TvxFpVZcxoxtt1ysY-ns8E7WT9CjKj3NTuPY"; // Dien Google Sheets ID cua ban vao day
-const NOTIFY_OWNER_EMAIL = true; // false neu muon tat thong bao email
+const PHOTOS_SHEET_NAME = "Photos";
+const SPREADSHEET_ID = "1Xy4ZNo2TvxFpVZcxoxtt1ysY-ns8E7WT9CjKj3NTuPY"; // Điền Google Sheets ID của bạn
+const NOTIFY_OWNER_EMAIL = true; // false nếu muốn tắt thông báo email
 const OWNER_EMAIL = "leducst1@gmail.com";
 const OWNER_EMAIL_2 = "suongtranst1@gmail.com";
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1Xy4ZNo2TvxFpVZcxoxtt1ysY-ns8E7WT9CjKj3NTuPY/edit#gid=0";
+
+// Mã PIN bảo mật để upload/xóa ảnh (phải trùng với adminPin trong data/config.js)
+const ADMIN_PIN = "251026";
+
+// Tùy chọn: ID thư mục Google Drive để lưu ảnh (nếu để trống, script sẽ tự tạo thư mục "Wedding Photos - Duc & Suong")
+const DRIVE_FOLDER_ID = "";
 
 function getSpreadsheet() {
     if (SPREADSHEET_ID) {
@@ -26,21 +34,26 @@ function getSpreadsheet() {
     return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
 }
 
-// Xu ly GET request - Doc danh sach loi chuc da approved
+// Xử lý GET request - Lấy lời chúc hoặc danh sách ảnh
 function doGet(e) {
     const action = e.parameter.action || "getWishes";
     if (action === "getWishes") {
         return handleGetWishes();
     }
+    if (action === "getPhotos") {
+        return handleGetPhotos();
+    }
     return jsonResponse({ success: false, error: "Unknown action" });
 }
 
-// Xu ly POST request - Gui loi chuc moi / Tha tim
+// Xử lý POST request - Gửi lời chúc, Thả tim, Tải ảnh lên, Xóa ảnh
 function doPost(e) {
     const params = e.parameter;
     const action = params.action;
     if (action === "sendWish") return handleSendWish(params);
     if (action === "likeWish") return handleLikeWish(params);
+    if (action === "uploadPhoto") return handleUploadPhoto(params);
+    if (action === "deletePhoto") return handleDeletePhoto(params);
     return jsonResponse({ success: false, error: "Unknown action" });
 }
 
@@ -172,4 +185,138 @@ function notifyNewWish(name, content, vnTime) {
     } catch (err) {
         console.error("Gui email that bai: " + err.message);
     }
+}
+
+// ==========================================
+// XỬ LÝ QUẢN LÝ ẢNH & GOOGLE DRIVE
+// ==========================================
+
+function getPhotosSheet() {
+    const ss = SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(PHOTOS_SHEET_NAME);
+    if (!sheet) {
+        sheet = ss.insertSheet(PHOTOS_SHEET_NAME);
+        sheet.appendRow(["id", "albumId", "title", "src", "driveFileId", "driveUrl", "createdTime", "status"]);
+        sheet.getRange(1, 1, 1, 8).setFontWeight("bold");
+    }
+    return sheet;
+}
+
+function handleGetPhotos() {
+    const sheet = getPhotosSheet();
+    if (!sheet) return jsonResponse({ success: false, error: "Photos sheet not found" });
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) {
+        return jsonResponse({ success: true, photos: [] });
+    }
+
+    const rows = data.slice(1);
+    const photos = rows
+        .filter(row => row[7] !== "deleted" && row[3])
+        .map(row => ({
+            id: String(row[0]),
+            albumId: String(row[1]),
+            title: String(row[2] || ""),
+            src: String(row[3]),
+            driveFileId: String(row[4] || ""),
+            driveUrl: String(row[5] || ""),
+            createdTime: String(row[6] || "")
+        }));
+
+    return jsonResponse({ success: true, photos: photos });
+}
+
+function getUploadFolder() {
+    if (DRIVE_FOLDER_ID) {
+        return DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    }
+    const folders = DriveApp.getFoldersByName("Wedding Photos - Duc & Suong");
+    if (folders.hasNext()) {
+        return folders.next();
+    }
+    const newFolder = DriveApp.createFolder("Wedding Photos - Duc & Suong");
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return newFolder;
+}
+
+function handleUploadPhoto(params) {
+    const pin = (params.pin || "").trim();
+    if (pin !== ADMIN_PIN) {
+        return jsonResponse({ success: false, error: "invalid_pin", message: "Mã PIN bảo mật không chính xác!" });
+    }
+
+    const albumId = (params.albumId || "tiec-truoc-vu-quy").trim();
+    const title = (params.title || "").trim();
+    const base64Data = params.base64;
+    const mimeType = params.mimeType || "image/jpeg";
+    const filename = params.filename || ("wedding-photo-" + Date.now() + ".jpg");
+
+    if (!base64Data) {
+        return jsonResponse({ success: false, error: "missing_data", message: "Không tìm thấy dữ liệu ảnh!" });
+    }
+
+    try {
+        const pureBase64 = base64Data.indexOf(",") > -1 ? base64Data.split(",")[1] : base64Data;
+        const decoded = Utilities.base64Decode(pureBase64);
+        const blob = Utilities.newBlob(decoded, mimeType, filename);
+
+        const folder = getUploadFolder();
+        const file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+        const fileId = file.getId();
+        // Link CDN ảnh Google Drive tốc độ cao hiển thị trên web
+        const directUrl = "https://lh3.googleusercontent.com/d/" + fileId;
+        const driveUrl = file.getUrl();
+
+        const sheet = getPhotosSheet();
+        const id = "photo-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+        const now = new Date();
+        const vnTime = new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().replace("Z", "+07:00");
+
+        sheet.appendRow([id, albumId, title, directUrl, fileId, driveUrl, vnTime, "active"]);
+
+        return jsonResponse({
+            success: true,
+            photo: {
+                id: id,
+                albumId: albumId,
+                title: title,
+                src: directUrl,
+                driveFileId: fileId,
+                driveUrl: driveUrl,
+                createdTime: vnTime
+            }
+        });
+    } catch (err) {
+        return jsonResponse({ success: false, error: err.message });
+    }
+}
+
+function handleDeletePhoto(params) {
+    const pin = (params.pin || "").trim();
+    if (pin !== ADMIN_PIN) {
+        return jsonResponse({ success: false, error: "invalid_pin", message: "Mã PIN bảo mật không chính xác!" });
+    }
+
+    const photoId = params.id;
+    if (!photoId) return jsonResponse({ success: false, error: "Missing photo id" });
+
+    const sheet = getPhotosSheet();
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === photoId) {
+            sheet.getRange(i + 1, 8).setValue("deleted");
+            const fileId = data[i][4];
+            if (fileId) {
+                try {
+                    DriveApp.getFileById(fileId).setTrashed(true);
+                } catch (e) {}
+            }
+            return jsonResponse({ success: true, id: photoId });
+        }
+    }
+
+    return jsonResponse({ success: false, error: "Photo not found" });
 }

@@ -1,452 +1,413 @@
 /**
  * GALLERY.JS - ES6 MODULE
- * Render bộ sưu tập ảnh kiểu Masonry Grid, Lightbox Modal mờ nền với mũi tên, zoom ảnh & vuốt chuyển ảnh
+ * Tích hợp Thư viện ảnh Cloudflare R2 & LightGallery (lgThumbnail, lgZoom)
+ * - 4 Album: 01-pre-wedding, 02-tiec-mung-vu-quy, 03-vu-quy-tan-hon, 04-tiec-cuoi-asianaplaza
+ * - Cấu trúc R2: {host}/{folder}/thumbs/{file} và {host}/{folder}/full/{file}
+ * - Tabs/Button Group chuyển album mượt mà
+ * - Quản lý vòng đời LightGallery: Destroy instance cũ trước khi re-init instance mới
+ * - Responsive 2 cột trên điện thoại, tự động co giãn trên máy tính
  */
 
-let currentGalleryData = [];
-let currentImageIndex = 0;
-let savedScrollPosition = 0;
+let lightGalleryInstance = null;
+let currentR2Config = null;
+let activeAlbumId = "01-pre-wedding";
+let isSyncing = false;
 
-// State biến cho Zoom & Drag / Pan & Touch
-let currentScale = 1;
-let initialScale = 1;
-let startDistance = 0;
-let panX = 0;
-let panY = 0;
-let isPanning = false;
-let lastTapTime = 0;
+/**
+ * Khởi tạo module Gallery
+ * @param {string} containerId ID vùng chứa gallery (tương thích)
+ * @param {object} config Toàn bộ weddingConfig
+ */
+export function initGalleryModule(containerId, config) {
+    currentR2Config = config?.r2Gallery || getDefaultR2Config();
+    
+    // Nếu container có cấu trúc mới (id gallery-tabs & gallery-grid)
+    const tabsContainer = document.getElementById("gallery-tabs");
+    const gridContainer = document.getElementById("gallery-grid");
 
-// Desktop Mouse Dragging State
-let isMouseDown = false;
-let startMouseX = 0;
-let startMouseY = 0;
-let startPanX = 0;
-let startPanY = 0;
+    if (!tabsContainer || !gridContainer) {
+        // Fallback: nếu gọi vào container cũ thì tự động dựng cấu trúc tabs + grid
+        const parent = document.getElementById(containerId);
+        if (parent) {
+            parent.innerHTML = `
+                <div class="gallery-tabs-container">
+                    <div class="gallery-tabs" id="gallery-tabs" role="tablist"></div>
+                </div>
+                <div class="gallery-content-wrap">
+                    <div id="gallery-grid" class="r2-gallery-grid" aria-live="polite"></div>
+                </div>
+            `;
+        }
+    }
 
-// Touch / Swipe Tracking State
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
-let touchStartTime = 0;
-let startTouchX = 0;
-let startTouchY = 0;
-let isMultiTouch = false;
+    // Mặc định chọn album đầu tiên
+    const defaultAlbum = currentR2Config.albums?.[0];
+    if (defaultAlbum) {
+        activeAlbumId = defaultAlbum.id;
+    }
 
+    // 1. Render giao diện ngay tức thì với dữ liệu sẵn có (không để người dùng chờ)
+    renderTabs();
+    renderActiveAlbum(activeAlbumId);
+
+    // 2. Chạy ngầm tiến trình tự động đồng bộ ảnh từ Cloudflare R2 (Stale-While-Revalidate)
+    if (currentR2Config.autoSync !== false) {
+        setTimeout(() => {
+            syncAllAlbumsFromR2();
+        }, 300);
+    }
+}
+
+/**
+ * Hàm tương thích ngược nếu script cũ gọi renderGallery
+ */
 export function renderGallery(containerId, galleryData) {
-    const container = document.getElementById(containerId);
-    if (!container || !Array.isArray(galleryData)) return;
+    // Được xử lý qua initGalleryModule
+}
 
-    currentGalleryData = galleryData;
-    container.innerHTML = "";
+/**
+ * Cấu hình mặc định phòng trường hợp chưa có trong config.js
+ */
+function getDefaultR2Config() {
+    return {
+        host: "https://media.phuocducthusuong.com",
+        apiUrl: "https://media.phuocducthusuong.com/api/photos",
+        manifestUrl: "https://media.phuocducthusuong.com/photos.json",
+        autoSync: true,
+        albums: [
+            {
+                id: "01-pre-wedding",
+                folder: "01-pre-wedding",
+                title: "Pre-Wedding",
+                icon: "fa-heart",
+                images: []
+            },
+            {
+                id: "02-tiec-mung-vu-quy",
+                folder: "02-tiec-mung-vu-quy",
+                title: "Tiệc Mừng Lễ Vu Quy",
+                icon: "fa-champagne-glasses",
+                images: []
+            },
+            {
+                id: "03-vu-quy-tan-hon",
+                folder: "03-vu-quy-tan-hon",
+                title: "Vu Quy & Tân Hôn",
+                icon: "fa-ring",
+                images: []
+            },
+            {
+                id: "04-tiec-cuoi-asianaplaza",
+                folder: "04-tiec-cuoi-asianaplaza",
+                title: "Tiệc Cưới Asiana Plaza",
+                icon: "fa-cake-candles",
+                images: []
+            }
+        ]
+    };
+}
 
-    galleryData.forEach((item, index) => {
-        const card = document.createElement("div");
-        const aspectClass = item.aspect || "square";
-        // Do not apply scroll-reveal to masonry items: Safari can leave fragmented columns at opacity 0.
-        card.className = `gallery-card ${aspectClass}`;
-        card.setAttribute("role", "button");
-        card.setAttribute("tabindex", "0");
-        card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${galleryData.length}: ${item.title || 'Ảnh kỷ niệm'}`);
+/**
+ * 1. RENDER THANH CHỌN ALBUM (TABS / BUTTON GROUP)
+ */
+function renderTabs() {
+    const tabsContainer = document.getElementById("gallery-tabs");
+    if (!tabsContainer || !currentR2Config?.albums) return;
 
-        card.innerHTML = `
-            <img src="${item.src}" alt="${item.title || 'Ảnh kỷ niệm đám cưới'}" loading="lazy" decoding="async" />
-            <div class="gallery-hover-overlay">
-                <span style="font-family:var(--font-heading); font-size:1.1rem;">${item.title || ''}</span>
-            </div>
+    tabsContainer.innerHTML = "";
+
+    currentR2Config.albums.forEach((album) => {
+        const count = Array.isArray(album.images) ? album.images.length : 0;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `gallery-tab-btn ${album.id === activeAlbumId ? "active" : ""}`;
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-selected", album.id === activeAlbumId ? "true" : "false");
+        btn.setAttribute("data-album-id", album.id);
+
+        btn.innerHTML = `
+            ${album.icon ? `<i class="fas ${album.icon}"></i>` : '<i class="fas fa-camera"></i>'}
+            <span class="tab-title">${album.title}</span>
+            <span class="tab-count" id="tab-count-${album.id}">(${count})</span>
         `;
 
-        // Sự kiện click mở Lightbox
-        card.addEventListener("click", () => openLightbox(index));
-        card.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                openLightbox(index);
-            }
+        btn.addEventListener("click", () => {
+            if (activeAlbumId === album.id) return;
+            switchAlbum(album.id);
         });
 
-        container.appendChild(card);
+        tabsContainer.appendChild(btn);
     });
 
-    initLightboxEvents();
+    // Nút làm mới danh sách ảnh từ R2
+    const syncBtn = document.createElement("button");
+    syncBtn.type = "button";
+    syncBtn.className = "gallery-tab-btn gallery-sync-tab-btn";
+    syncBtn.id = "gallery-sync-btn";
+    syncBtn.title = "Đồng bộ ảnh mới tải lên từ Cloudflare R2";
+    syncBtn.setAttribute("aria-label", "Làm mới ảnh từ Cloudflare R2");
+    syncBtn.innerHTML = `<i class="fas fa-arrows-rotate"></i><span class="sync-text">Làm Mới</span>`;
+    syncBtn.addEventListener("click", () => {
+        manualRefreshR2();
+    });
+    tabsContainer.appendChild(syncBtn);
 }
 
-function updateCursor() {
-    const img = document.getElementById("lightbox-img");
-    if (!img) return;
-    if (currentScale > 1.05) {
-        img.style.cursor = isMouseDown || isPanning ? "grabbing" : "grab";
-    } else {
-        img.style.cursor = "zoom-in";
+/**
+ * Cập nhật số lượng ảnh trên huy hiệu Tab
+ */
+function updateTabBadge(albumId, count) {
+    const badge = document.getElementById(`tab-count-${albumId}`);
+    if (badge) {
+        badge.textContent = `(${count})`;
     }
 }
 
-function clampPan() {
-    const img = document.getElementById("lightbox-img");
-    if (!img || currentScale <= 1.01) {
-        panX = 0;
-        panY = 0;
+/**
+ * 2. CHUYỂN QUA LẠI GIỮA CÁC ALBUM
+ */
+function switchAlbum(targetAlbumId) {
+    activeAlbumId = targetAlbumId;
+
+    // Cập nhật trạng thái active trên các nút tab
+    const tabs = document.querySelectorAll(".gallery-tab-btn:not(.gallery-sync-tab-btn)");
+    tabs.forEach(tab => {
+        const isCurrent = tab.getAttribute("data-album-id") === targetAlbumId;
+        tab.classList.toggle("active", isCurrent);
+        tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
+
+        // Cuộn tab active vào giữa vùng nhìn thấy trên điện thoại
+        if (isCurrent && tab.scrollIntoView) {
+            tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+    });
+
+    renderActiveAlbum(targetAlbumId);
+
+    // Tự động kiểm tra xem album này có ảnh mới upload trên R2 chưa
+    if (currentR2Config?.autoSync !== false) {
+        syncAlbumFromR2(targetAlbumId, true);
+    }
+}
+
+/**
+ * 3. TỰ ĐỘNG ĐỒNG BỘ ẢNH TỪ CLOUDFLARE R2
+ * - Cách 1: Gọi Cloudflare Worker API (/api/photos?album=...)
+ * - Cách 2: Tải file manifest photos.json trên root R2
+ */
+async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
+    if (!currentR2Config?.albums) return;
+    const album = currentR2Config.albums.find(a => a.id === albumId);
+    if (!album) return;
+
+    const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    let newImages = null;
+
+    // CÁCH 1: Thử gọi Cloudflare Worker API (Tự động 100% khi bạn kéo thả ảnh lên R2)
+    const apiUrl = currentR2Config.apiUrl || `${host}/api/photos`;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(`${apiUrl}?album=${encodeURIComponent(album.folder)}&t=${Date.now()}`, {
+            headers: { "Accept": "application/json" },
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.images)) {
+                newImages = data.images;
+            }
+        }
+    } catch (e) {
+        // Worker API chưa sẵn sàng hoặc timeout, bỏ qua và thử tiếp cách 2
+    }
+
+    // CÁCH 2: Thử đọc file photos.json trên R2 nếu có
+    if (!newImages) {
+        try {
+            const manifestUrl = currentR2Config.manifestUrl || `${host}/photos.json`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            const res = await fetch(`${manifestUrl}?t=${Date.now()}`, {
+                headers: { "Accept": "application/json" },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const manifest = await res.json();
+                if (manifest && Array.isArray(manifest[album.id])) {
+                    newImages = manifest[album.id];
+                } else if (manifest && Array.isArray(manifest[album.folder])) {
+                    newImages = manifest[album.folder];
+                }
+            }
+        } catch (e) {
+            // Không tìm thấy file manifest, sử dụng danh sách trong config
+        }
+    }
+
+    // Nếu tìm thấy danh sách ảnh mới từ R2, kiểm tra xem có thay đổi không
+    if (newImages && Array.isArray(newImages)) {
+        const currentImagesStr = JSON.stringify(album.images || []);
+        const newImagesStr = JSON.stringify(newImages);
+
+        if (currentImagesStr !== newImagesStr) {
+            console.log(`[R2 Auto-Sync] Phát hiện ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
+            album.images = newImages;
+            updateTabBadge(album.id, newImages.length);
+
+            if (rerenderIfChanged && album.id === activeAlbumId) {
+                renderActiveAlbum(activeAlbumId);
+            }
+        }
+    }
+}
+
+/**
+ * Đồng bộ toàn bộ các Album từ Cloudflare R2
+ */
+async function syncAllAlbumsFromR2() {
+    if (isSyncing || !currentR2Config?.albums) return;
+    isSyncing = true;
+
+    try {
+        const promises = currentR2Config.albums.map(album => 
+            syncAlbumFromR2(album.id, album.id === activeAlbumId)
+        );
+        await Promise.allSettled(promises);
+    } finally {
+        isSyncing = false;
+    }
+}
+
+/**
+ * Người dùng bấm nút "Làm Mới" thủ công
+ */
+async function manualRefreshR2() {
+    const btn = document.getElementById("gallery-sync-btn");
+    const icon = btn?.querySelector("i");
+    if (icon) icon.classList.add("fa-spin");
+
+    try {
+        await syncAllAlbumsFromR2();
+        if (window.showToast) {
+            window.showToast("✨ Đã đồng bộ ảnh mới nhất từ Cloudflare R2!");
+        }
+    } catch (e) {
+        console.warn("Lỗi làm mới:", e);
+    } finally {
+        setTimeout(() => {
+            if (icon) icon.classList.remove("fa-spin");
+        }, 600);
+    }
+}
+
+/**
+ * 3. RENDER LƯỚI ẢNH & RE-INIT LIGHTGALLERY
+ * QUAN TRỌNG: Phá hủy instance LightGallery cũ trước khi render và khởi tạo instance mới
+ */
+function renderActiveAlbum(albumId) {
+    const gridContainer = document.getElementById("gallery-grid");
+    if (!gridContainer || !currentR2Config) return;
+
+    // BƯỚC 1: Phá hủy instance LightGallery cũ đúng cách (tránh đè popup / sai index ảnh cũ)
+    if (lightGalleryInstance) {
+        try {
+            lightGalleryInstance.destroy(true); // true = complete destroy
+        } catch (err) {
+            console.warn("[LightGallery] Lỗi hủy instance:", err);
+        }
+        lightGalleryInstance = null;
+    }
+
+    const album = currentR2Config.albums.find(a => a.id === albumId);
+    if (!album) {
+        gridContainer.innerHTML = `<div class="r2-empty-state"><p>Không tìm thấy album.</p></div>`;
         return;
     }
-    const imgWidth = img.offsetWidth || img.clientWidth || window.innerWidth;
-    const imgHeight = img.offsetHeight || img.clientHeight || window.innerHeight;
-    const maxPanX = Math.max(0, (imgWidth * currentScale - window.innerWidth) / 2) + 120;
-    const maxPanY = Math.max(0, (imgHeight * currentScale - window.innerHeight) / 2) + 120;
-    panX = Math.min(Math.max(panX, -maxPanX), maxPanX);
-    panY = Math.min(Math.max(panY, -maxPanY), maxPanY);
-}
 
-function resetImageZoom() {
-    currentScale = 1;
-    initialScale = 1;
-    startDistance = 0;
-    panX = 0;
-    panY = 0;
-    isPanning = false;
-    isMouseDown = false;
-    isMultiTouch = false;
-    const img = document.getElementById("lightbox-img");
-    if (img) {
-        img.style.transform = "translate3d(0px, 0px, 0px) scale(1)";
-        img.style.transition = "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)";
-        img.style.cursor = "zoom-in";
+    const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const images = Array.isArray(album.images) ? album.images : [];
+
+    // Trường hợp album chưa có ảnh
+    if (images.length === 0) {
+        gridContainer.innerHTML = `
+            <div class="r2-empty-state">
+                <i class="fas fa-camera-retro empty-icon"></i>
+                <h3 class="empty-title">Album ${album.title}</h3>
+                <p class="empty-desc">Hình ảnh đang được chuẩn bị và sẽ sớm được cập nhật trực tuyến!</p>
+            </div>
+        `;
+        return;
     }
-}
 
-function updateImageTransform(smooth = false) {
-    const img = document.getElementById("lightbox-img");
-    if (!img) return;
-    img.style.transition = smooth ? "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)" : "none";
-    img.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${currentScale})`;
-    updateCursor();
-}
+    // BƯỚC 2: Tạo các thẻ HTML ảnh chuẩn LightGallery
+    // Cấu trúc URL: {host}/{folder}/thumbs/{file} và {host}/{folder}/full/{file}
+    let htmlContent = "";
 
-function openLightbox(index) {
-    const modal = document.getElementById("lightbox-modal");
-    if (!modal || currentGalleryData.length === 0) return;
+    images.forEach((item, index) => {
+        // Hỗ trợ cả string ("NAM_3318.webp") hoặc object ({ file: "NAM_3318.webp", title: "..." })
+        const filename = typeof item === "string" ? item : (item.file || item.src || "");
+        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
 
-    savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        if (!filename) return;
 
-    currentImageIndex = index;
-    renderLightboxThumbnails();
-    updateLightboxImage();
+        const thumbUrl = `${host}/${album.folder}/thumbs/${filename}`;
+        const fullUrl = `${host}/${album.folder}/full/${filename}`;
 
-    modal.classList.add("active");
-    document.body.classList.add("no-scroll");
-    document.documentElement.classList.add("no-scroll");
-    modal.focus();
-}
-
-function closeLightbox() {
-    const modal = document.getElementById("lightbox-modal");
-    if (modal) {
-        modal.classList.remove("active");
-        resetImageZoom();
-        const intro = document.getElementById("intro-screen");
-        if (!intro || intro.classList.contains("hidden-intro")) {
-            document.body.classList.remove("no-scroll");
-            document.documentElement.classList.remove("no-scroll");
-            window.scrollTo({ top: savedScrollPosition, behavior: 'instant' });
-        }
-    }
-}
-
-function renderLightboxThumbnails() {
-    const thumbsContainer = document.getElementById("lightbox-thumbs");
-    if (!thumbsContainer || currentGalleryData.length === 0) return;
-
-    thumbsContainer.innerHTML = "";
-    currentGalleryData.forEach((item, idx) => {
-        const thumb = document.createElement("img");
-        thumb.src = item.src;
-        thumb.alt = item.title || `Xem ảnh ${idx + 1}`;
-        thumb.className = `lightbox-thumb${idx === currentImageIndex ? ' active' : ''}`;
-        thumb.setAttribute("loading", "lazy");
-
-        thumb.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (currentImageIndex !== idx) {
-                currentImageIndex = idx;
-                updateLightboxImage();
-            }
-        });
-        thumbsContainer.appendChild(thumb);
-    });
-}
-
-function updateLightboxThumbnailsActive() {
-    const thumbsContainer = document.getElementById("lightbox-thumbs");
-    if (!thumbsContainer) return;
-
-    const activeThumb = thumbsContainer.querySelector(".lightbox-thumb.active");
-    if (activeThumb) activeThumb.classList.remove("active");
-
-    const targetThumb = thumbsContainer.children[currentImageIndex];
-    if (targetThumb) {
-        targetThumb.classList.add("active");
-        const containerWidth = thumbsContainer.clientWidth;
-        const thumbOffset = targetThumb.offsetLeft;
-        const thumbWidth = targetThumb.clientWidth;
-        const targetScrollLeft = thumbOffset - (containerWidth / 2) + (thumbWidth / 2);
-        thumbsContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-    }
-}
-
-function updateLightboxImage() {
-    const img = document.getElementById("lightbox-img");
-    const caption = document.getElementById("lightbox-caption");
-    if (!img || currentGalleryData.length === 0) return;
-
-    resetImageZoom();
-    const item = currentGalleryData[currentImageIndex];
-    
-    // Gán src trực tiếp tức thì (0ms latency)
-    img.src = item.src;
-    img.alt = item.title || "Ảnh phóng to";
-
-    if (caption) {
-        caption.innerHTML = `<span>${item.title || 'Ảnh kỷ niệm'}</span> <small>(${currentImageIndex + 1}/${currentGalleryData.length})</small>`;
-    }
-    
-    updateLightboxThumbnailsActive();
-
-    // Nạp trước 2 ảnh liền kề (Trái & Phải) ngay vào cache bộ nhớ
-    const nextIdx = (currentImageIndex + 1) % currentGalleryData.length;
-    const prevIdx = (currentImageIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
-    
-    const nextImg = new Image();
-    nextImg.src = currentGalleryData[nextIdx].src;
-
-    const prevImg = new Image();
-    prevImg.src = currentGalleryData[prevIdx].src;
-}
-
-function showNextImage() {
-    if (currentGalleryData.length === 0) return;
-    currentImageIndex = (currentImageIndex + 1) % currentGalleryData.length;
-    updateLightboxImage();
-}
-
-function showPrevImage() {
-    if (currentGalleryData.length === 0) return;
-    currentImageIndex = (currentImageIndex - 1 + currentGalleryData.length) % currentGalleryData.length;
-    updateLightboxImage();
-}
-
-function getDistance(touch1, touch2) {
-    const dx = touch1.clientX - touch2.clientX;
-    const dy = touch1.clientY - touch2.clientY;
-    return Math.hypot(dx, dy);
-}
-
-function initLightboxEvents() {
-    const modal = document.getElementById("lightbox-modal");
-    const img = document.getElementById("lightbox-img");
-    const closeBtn = document.getElementById("lightbox-close-btn");
-    const prevBtn = document.getElementById("lightbox-prev-btn");
-    const nextBtn = document.getElementById("lightbox-next-btn");
-
-    if (!modal) return;
-
-    if (closeBtn) closeBtn.onclick = closeLightbox;
-    if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); showPrevImage(); };
-    if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); showNextImage(); };
-
-    modal.onclick = (e) => {
-        if (e.target === modal || e.target.classList.contains("lightbox-content-wrapper")) {
-            closeLightbox();
-        }
-    };
-
-    // Điều hướng bàn phím (Mũi tên trái/phải, Esc)
-    window.addEventListener("keydown", (e) => {
-        if (!modal.classList.contains("active")) return;
-        if (e.key === "Escape") closeLightbox();
-        if (e.key === "ArrowLeft") showPrevImage();
-        if (e.key === "ArrowRight") showNextImage();
+        htmlContent += `
+            <a href="${fullUrl}" 
+               data-src="${fullUrl}"
+               data-sub-html="<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>"
+               class="r2-gallery-item"
+               aria-label="Xem ảnh ${index + 1}/${images.length}: ${imageTitle}">
+                <div class="r2-thumb-wrap">
+                    <img src="${thumbUrl}" 
+                         alt="${imageTitle}" 
+                         loading="lazy" 
+                         decoding="async"
+                         onerror="this.onerror=null; this.src='assets/img/${filename}';" />
+                    <div class="r2-hover-overlay">
+                        <i class="fas fa-magnifying-glass-plus"></i>
+                        <span class="r2-hover-text">Xem Ảnh</span>
+                    </div>
+                </div>
+            </a>
+        `;
     });
 
-    // Chặn hoàn toàn cuộn trang web khi đang ở trong lightbox (trên cả Desktop và Mobile)
-    modal.addEventListener("wheel", (e) => {
-        if (!modal.classList.contains("active")) return;
-        e.preventDefault();
+    gridContainer.innerHTML = htmlContent;
 
-        // Zoom bằng con lăn chuột trên máy tính
-        const zoomFactor = e.deltaY < 0 ? 1.2 : 0.8;
-        let newScale = currentScale * zoomFactor;
-
-        if (newScale <= 1.05) {
-            resetImageZoom();
-        } else {
-            newScale = Math.min(newScale, 5); // Phóng to tối đa 5 lần
-            currentScale = newScale;
-            clampPan();
-            updateImageTransform(true);
+    // BƯỚC 3: Khởi tạo LightGallery mới với plugin lgThumbnail và lgZoom
+    if (window.lightGallery && typeof window.lightGallery === "function") {
+        try {
+            lightGalleryInstance = window.lightGallery(gridContainer, {
+                plugins: [window.lgThumbnail, window.lgZoom].filter(Boolean),
+                speed: 400,
+                selector: ".r2-gallery-item",
+                download: false,
+                thumbnail: true,
+                animateThumb: true,
+                showThumbByDefault: true,
+                thumbWidth: 80,
+                thumbHeight: "60px",
+                thumbMargin: 8,
+                zoom: true,
+                scale: 1,
+                enableZoomAfter: 300,
+                mobileSettings: {
+                    controls: true,
+                    showCloseIcon: true,
+                    download: false
+                }
+            });
+        } catch (err) {
+            console.error("[LightGallery] Lỗi khởi tạo:", err);
         }
-    }, { passive: false });
-
-    if (img) {
-        img.draggable = false;
-
-        // Double click trên máy tính: Phóng to / Thu nhỏ 1x <-> 2.5x
-        img.addEventListener("dblclick", (e) => {
-            e.preventDefault();
-            if (currentScale > 1.05) {
-                resetImageZoom();
-            } else {
-                currentScale = 2.5;
-                panX = 0;
-                panY = 0;
-                updateImageTransform(true);
-            }
-        });
-
-        // Kéo thả chuột di chuyển ảnh (Desktop Drag & Pan)
-        img.addEventListener("mousedown", (e) => {
-            if (e.button !== 0) return; // Chỉ xử lý chuột trái
-            if (currentScale > 1.05) {
-                e.preventDefault();
-                isMouseDown = true;
-                startMouseX = e.clientX;
-                startMouseY = e.clientY;
-                startPanX = panX;
-                startPanY = panY;
-                updateCursor();
-            }
-        });
-
-        window.addEventListener("mousemove", (e) => {
-            if (isMouseDown && currentScale > 1.05) {
-                e.preventDefault();
-                const dx = e.clientX - startMouseX;
-                const dy = e.clientY - startMouseY;
-                panX = startPanX + dx;
-                panY = startPanY + dy;
-                clampPan();
-                updateImageTransform(false);
-            }
-        });
-
-        window.addEventListener("mouseup", () => {
-            if (isMouseDown) {
-                isMouseDown = false;
-                updateCursor();
-            }
-        });
-
-        // Xử lý Cử chỉ Zoom & Touch trên Mobile
-        img.addEventListener("touchstart", (e) => {
-            if (e.touches.length > 1) {
-                isMultiTouch = true;
-            }
-
-            if (e.touches.length === 2) {
-                // Pinch zoom (2 ngón tay)
-                startDistance = getDistance(e.touches[0], e.touches[1]);
-                initialScale = currentScale;
-            } else if (e.touches.length === 1) {
-                const now = Date.now();
-                // Double tap check
-                if (now - lastTapTime < 300) {
-                    if (currentScale > 1.05) {
-                        resetImageZoom();
-                    } else {
-                        currentScale = 2.5;
-                        panX = 0;
-                        panY = 0;
-                        updateImageTransform(true);
-                    }
-                    lastTapTime = 0;
-                    if (e.cancelable) e.preventDefault();
-                    return;
-                }
-                lastTapTime = now;
-
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                touchStartTime = now;
-                startTouchX = e.touches[0].clientX - panX;
-                startTouchY = e.touches[0].clientY - panY;
-
-                if (currentScale > 1.01) {
-                    isPanning = true;
-                    if (e.cancelable) e.preventDefault();
-                }
-            }
-        }, { passive: false });
-
-        img.addEventListener("touchmove", (e) => {
-            if (e.touches.length > 1) {
-                isMultiTouch = true;
-            }
-
-            if (e.touches.length === 2 && startDistance > 0) {
-                const currentDist = getDistance(e.touches[0], e.touches[1]);
-                const factor = currentDist / startDistance;
-                currentScale = Math.min(Math.max(initialScale * factor, 1), 5);
-                clampPan();
-                updateImageTransform(false);
-                if (e.cancelable) e.preventDefault();
-            } else if (e.touches.length === 1 && (isPanning || currentScale > 1.01)) {
-                panX = e.touches[0].clientX - startTouchX;
-                panY = e.touches[0].clientY - startTouchY;
-                clampPan();
-                updateImageTransform(false);
-                if (e.cancelable) e.preventDefault();
-            }
-        }, { passive: false });
-
-        img.addEventListener("touchend", (e) => {
-            if (e.touches.length < 2) {
-                startDistance = 0;
-            }
-            if (e.touches.length === 0) {
-                isPanning = false;
-                if (currentScale < 1.05) {
-                    resetImageZoom();
-                } else if (currentScale > 5) {
-                    currentScale = 5;
-                    updateImageTransform(true);
-                }
-                updateCursor();
-
-                touchEndX = e.changedTouches[0].clientX;
-                touchEndY = e.changedTouches[0].clientY;
-
-                if (!isMultiTouch && currentScale <= 1.05) {
-                    handleSwipeGesture();
-                }
-
-                isMultiTouch = false;
-            }
-        });
-
-        img.addEventListener("touchcancel", () => {
-            isPanning = false;
-            isMultiTouch = false;
-            startDistance = 0;
-        });
-    }
-
-    modal.addEventListener("touchmove", (e) => {
-        if (modal.classList.contains("active") && currentScale <= 1.05) {
-            if (e.cancelable) e.preventDefault();
-        }
-    }, { passive: false });
-}
-
-function handleSwipeGesture() {
-    const swipeThreshold = 50; // Ngưỡng vuốt ngang 50px
-    const diffX = touchEndX - touchStartX;
-    const diffY = touchEndY - touchStartY;
-    const duration = Date.now() - touchStartTime;
-
-    // Phải là vuốt ngang chủ yếu (|diffX| > |diffY| * 1.5) và thời gian ngắn (< 500ms)
-    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY) * 1.5 && duration < 500) {
-        if (diffX < 0) {
-            showNextImage();
-        } else {
-            showPrevImage();
-        }
+    } else {
+        console.warn("[LightGallery] Thư viện LightGallery chưa sẵn sàng.");
     }
 }

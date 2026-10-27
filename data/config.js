@@ -4,12 +4,18 @@
  * Mọi thay đổi về thông tin, hình ảnh, địa điểm, ngân hàng... chỉ cần chỉnh sửa tại đây.
  */
 
+// Domain lưu trữ hình ảnh Cloudflare R2
+const R2_HOST = "https://media.phuocducthusuong.com";
+
 export const weddingConfig = {
+    // Nguồn ảnh Cloudflare R2 dùng chung toàn website
+    r2Host: R2_HOST,
+
     // Thông tin SEO & Meta
     seo: {
         title: "Duc & Suong’s Wedding - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
         description: "Trân trọng kính mời mọi người, họ hàng hai bên cùng bạn bè thân thiết tới dự Lễ Tân Hôn & Tiệc Cưới của Lê Phước Đức & Trần Thị Thu Sương.",
-        ogImage: "assets/img/og-image.webp",
+        ogImage: `${R2_HOST}/og-image.webp`,
         favicon: "assets/icons/favicon.svg"
     },
 
@@ -20,7 +26,7 @@ export const weddingConfig = {
         title: "Chú Rể",
         father: "Lê Phước Thành",
         mother: "Lê Thị Kim Tâm",
-        avatar: "assets/img/groom.jpg",
+        avatar: `${R2_HOST}/groom.jpg`,
         story: "Một người đàn ông điềm tĩnh, luôn quan tâm và hết lòng vì gia đình.",
         bank: {
             bankName: "TPBank (Ngân hàng Tiên Phong)",
@@ -37,7 +43,7 @@ export const weddingConfig = {
         title: "Cô Dâu",
         father: "Trần Văn Tèo",
         mother: "Bùi Thị Hiền",
-        avatar: "assets/img/bride.jpg",
+        avatar: `${R2_HOST}/bride.jpg`,
         story: "Một cô gái dịu dàng, yêu đời và luôn mang đến nụ cười ấm áp.",
         bank: {
             bankName: "VPBank (Ngân hàng Việt Nam Thịnh Vượng)",
@@ -57,7 +63,7 @@ export const weddingConfig = {
     hero: {
         subtitle: "SAVE THE DATE",
         title: "Lễ Thành Hôn & Tiệc Cưới",
-        backgroundImage: "assets/img/cover.webp",
+        backgroundImage: `${R2_HOST}/cover.webp`,
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
@@ -72,49 +78,49 @@ export const weddingConfig = {
         autoplay: true
     },
 
-    // Hành trình yêu thương (Timeline)
+    // Hành trình yêu thương (Timeline) - Tải trực tiếp từ Cloudflare R2
     story: [
         {
             year: "2016",
             date: "",
             title: "Lần Đầu Gặp Gỡ",
             content: "Giữa dòng đời tấp nập, thật may mắn khi anh gặp em. Từ khoảnh khắc ấy, hai trái tim dần đồng điệu và cùng nhau viết nên câu chuyện tình yêu của riêng mình.",
-            image: "assets/img/IMG_1781.webp"
+            image: `${R2_HOST}/IMG_1781.webp`
         },
         {
             year: "2016",
             date: "12/12/2016",
             title: "Lời Tỏ Tình Ngọt Ngào",
             content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
-            image: "assets/img/LoiToTinhNgotNgao.webp"
+            image: `${R2_HOST}/LoiToTinhNgotNgao.webp`
         },
         {
             year: "2016-2026",
             date: "",
             title: "Cùng Nhau Vượt Qua Thử Thách",
             content: "Không phải lúc nào con đường tình yêu cũng trải đầy hoa hồng. Có những ngày xa cách vì công việc, những lần giận hờn vu vơ, những khó khăn tưởng chừng như thử thách cả hai. Nhưng chính trong những năm tháng ấy, hai đứa đã học cách lắng nghe, thấu hiểu và luôn chọn ở lại bên nhau. Mỗi khó khăn đi qua lại càng làm cho tình yêu thêm vững chắc, để rồi cả hai tin chắc rằng đây chính là người mình muốn đi cùng đến hết cuộc đời.",
-            image: "assets/img/mosaic.webp"
+            image: `${R2_HOST}/mosaic.webp`
         },
         {
             year: "2026",
             date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
-            content: "Dưới ánh hoàng hôn dịu dàng, chiếc nhẫn được trao cùng câu trả lời \“Em đồng ý!\” đã viết tiếp một chương mới cho chuyện tình của chúng mình.",
-            image: "assets/img/NAM_3230.webp"
+            content: "Dưới ánh hoàng hôn dịu dàng, chiếc nhẫn được trao cùng câu trả lời “Em đồng ý!” đã viết tiếp một chương mới cho chuyện tình của chúng mình.",
+            image: `${R2_HOST}/NAM_3230.webp`
         },
         {
             year: "2026",
             date: "04/06/2026",
             title: "Lễ Dạm Ngõ",
             content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
-            image: "assets/img/DSCF5639-1.webp"
+            image: `${R2_HOST}/DSCF5639-1.webp`
         },
         {
             year: "2026",
             date: "25/10/2026",
             title: "Ngày Về Chung Một Nhà",
             content: "Được sự chúc phúc của gia đình hai bên và bạn bè, chúng mình chính thức trở thành vợ chồng!",
-            image: "assets/img/NAM_3641.webp"
+            image: `${R2_HOST}/NAM_3641.webp`
         }
     ],
 
@@ -176,7 +182,82 @@ export const weddingConfig = {
         }
     ],
 
-    // Album ảnh cưới (Masonry Gallery)
+    // Mã PIN bảo mật để mở giao diện tải ảnh từ điện thoại trong ngày cưới (Mặc định: ngày cưới 251026)
+    adminPin: "251026",
+
+    // Cấu hình Nguồn ảnh Cloudflare R2 & Danh sách 4 Album
+    // Host domain: https://media.phuocducthusuong.com
+    // Cấu trúc thư mục trên R2: {folder}/thumbs/{file} và {folder}/full/{file}
+    r2Gallery: {
+        host: R2_HOST,
+        // API Cloudflare Worker để tự động đồng bộ danh sách ảnh khi upload lên R2
+        apiUrl: `${R2_HOST}/api/photos`,
+        // File manifest danh mục ảnh dự phòng trên R2
+        manifestUrl: `${R2_HOST}/photos.json`,
+        // Bật chế độ tự động đồng bộ ảnh mới nhất từ R2
+        autoSync: true,
+        albums: [
+            {
+                id: "01-pre-wedding",
+                folder: "01-pre-wedding",
+                title: "Pre-Wedding",
+                tag: "ALBUM CƯỚI",
+                icon: "fa-heart",
+                // Danh sách tên file ảnh (thêm bớt tên file vào mảng này rất dễ dàng)
+                images: [
+                    "NAM_3318.webp",
+                    "NAM_2906.webp",
+                    "NAM_3103.webp",
+                    "NAM_3230.webp",
+                    "NAM_3814.webp",
+                    "NAM_2934.webp",
+                    "NAM_3954.webp",
+                    "NAM_3511.webp",
+                    "NAM_3648.webp",
+                    "NAM_4087.webp",
+                    "NAM_3632.webp",
+                    "NAM_2843.webp"
+                ]
+            },
+            {
+                id: "02-tiec-mung-vu-quy",
+                folder: "02-tiec-mung-vu-quy",
+                title: "Tiệc Mừng Lễ Vu Quy",
+                tag: "NHÀ GÁI • 24/10/2026",
+                icon: "fa-champagne-glasses",
+                images: [
+                    "DSCF5639-1.webp",
+                    "DSCF5692.webp"
+                ]
+            },
+            {
+                id: "03-vu-quy-tan-hon",
+                folder: "03-vu-quy-tan-hon",
+                title: "Lễ Vu Quy & Tân Hôn",
+                tag: "NGHI LỄ • 25/10/2026",
+                icon: "fa-ring",
+                images: [
+                    "bride.jpg",
+                    "groom.jpg",
+                    "IMG_4670.webp",
+                    "IMG_4671.webp"
+                ]
+            },
+            {
+                id: "04-tiec-cuoi-asianaplaza",
+                folder: "04-tiec-cuoi-asianaplaza",
+                title: "Tiệc Cưới Asiana Plaza",
+                tag: "TIỆC CƯỚI • 25/10/2026",
+                icon: "fa-cake-candles",
+                images: [
+                    "NAM_3511.webp",
+                    "NAM_3641.webp"
+                ]
+            }
+        ]
+    },
+
+    // Album ảnh cưới tương thích ngược
     galleryDriveUrl: "https://drive.google.com/drive/folders/1ET3ro78joijlE40VfAcaFo0KQZEqONzG",
     gallery: [
         { src: "assets/img/NAM_3318.webp", title: "Ánh Mắt Yêu Thương", aspect: "wide" },

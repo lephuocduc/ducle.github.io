@@ -5,7 +5,7 @@
 
 import { loadConfig } from './config-loader.js?v=20260729-2';
 import { renderCountdown } from './countdown.js?v=20260729-2';
-import { renderGallery } from './gallery.js?v=20260729-1';
+import { initGalleryModule, renderGallery } from './gallery.js?v=20261027-1';
 import { initMusicPlayer } from './music.js?v=20260729-2';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
@@ -25,35 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const config = initialConfig || loadConfig();
         if (!config) return;
 
-        // Intro screen button & opening curtain effect handling
-        const intro = document.getElementById('intro-screen');
-        const openBtn = document.getElementById('open-invite-btn');
-
-        if (intro) {
-            // Khóa cuộn trang khi đang hiển thị Intro (cả touch và scroll)
-            document.body.classList.add('no-scroll');
-            document.documentElement.classList.add('no-scroll');
-            window.scrollTo(0, 0);
-
-            intro.addEventListener('touchmove', (e) => {
-                if (!intro.classList.contains('hidden-intro')) {
-                    if (e.cancelable) e.preventDefault();
-                }
-            }, { passive: false });
-        }
-
-        if (openBtn && intro) {
-            openBtn.addEventListener('click', () => {
-                intro.classList.add('opening');
-                setTimeout(() => {
-                    intro.classList.add('hidden-intro');
-                    // Mở khóa cuộn trang sau khi hiệu ứng mở rèm hoàn tất
-                    document.body.classList.remove('no-scroll');
-                    document.documentElement.classList.remove('no-scroll');
-                }, 800);
-            });
-        }
-
         // 2. Render các Section chính hoàn toàn bằng JS
         renderHero(config);
         renderCouple(config);
@@ -65,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCountdown("countdown-container", config.weddingDate, coupleNames);
         renderTimeline("timeline-container", config.story);
         renderCeremonies("ceremonies-container", config.ceremonies);
-        renderGallery("gallery-container", config.gallery);
+        initGalleryModule("gallery-container", config);
         renderGalleryDriveLink(config.galleryDriveUrl);
         initWishesModule();
 
@@ -136,9 +107,15 @@ function renderGalleryDriveLink(url) {
 // Render Hero Section
 function renderHero(config) {
     const heroSection = document.getElementById("hero-section");
-    if (!heroSection) return;
+    const bgUrl = config.hero?.backgroundImage || 'https://media.phuocducthusuong.com/cover.webp';
+    heroSection.style.backgroundImage = `url('${bgUrl}')`;
 
-    heroSection.style.backgroundImage = `url('${config.hero?.backgroundImage || 'assets/hero.jpg'}')`;
+    // Tự động fallback về cover local nếu R2 chưa sẵn sàng
+    const testCover = new Image();
+    testCover.onerror = () => {
+        heroSection.style.backgroundImage = `url('assets/img/cover.webp')`;
+    };
+    testCover.src = bgUrl;
 
     heroSection.innerHTML = `
         <div class="hero-overlay"></div>
@@ -150,14 +127,19 @@ function renderHero(config) {
             <p style="margin-top:15px; font-style:italic; color:var(--color-text-muted); font-family:var(--font-heading); font-size:1.1rem;">
                 "${config.hero?.quote || ''}"
             </p>
+            <div style="margin-top:22px;">
+                <a href="#gallery-section" class="hero-album-cta-btn" aria-label="Xem các album hình cưới">
+                    <i class="fas fa-images"></i> Xem Các Albums Ảnh
+                </a>
+            </div>
         </div>
-        <div class="scroll-indicator" id="scroll-indicator" aria-label="Cuộn xuống">
+        <div class="scroll-indicator" id="scroll-indicator" aria-label="Cuộn xuống xem album">
             <i class="fas fa-chevron-down"></i>
         </div>
     `;
 
     document.getElementById("scroll-indicator")?.addEventListener("click", () => {
-        document.getElementById("couple-section")?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById("gallery-section")?.scrollIntoView({ behavior: "smooth" });
     });
 }
 
@@ -170,7 +152,7 @@ function renderCouple(config) {
         <!-- Chú Rể -->
         <div class="couple-card reveal-slide-left">
             <div class="avatar-frame">
-                <img src="${config.groom.avatar}" alt="Chú Rể ${config.groom.name}" />
+                <img src="${config.groom.avatar}" alt="Chú Rể ${config.groom.name}" onerror="this.onerror=null; this.src='assets/img/groom.jpg';" />
             </div>
             <span class="couple-role">${config.groom.title || 'CHÚ RỂ'}</span>
             <h3 class="couple-name">${config.groom.name}</h3>
@@ -188,7 +170,7 @@ function renderCouple(config) {
         <!-- Cô Dâu -->
         <div class="couple-card reveal-slide-right">
             <div class="avatar-frame">
-                <img src="${config.bride.avatar}" alt="Cô Dâu ${config.bride.name}" />
+                <img src="${config.bride.avatar}" alt="Cô Dâu ${config.bride.name}" onerror="this.onerror=null; this.src='assets/img/bride.jpg';" />
             </div>
             <span class="couple-role">${config.bride.title || 'CÔ DÂU'}</span>
             <h3 class="couple-name">${config.bride.name}</h3>
@@ -230,14 +212,14 @@ function renderGiftSection(config) {
             </div>
             <div class="env-couple-row">
                 <div class="env-avatar-item">
-                    <img src="${groomAvatar}" alt="${groomName}" class="env-avatar-img" loading="lazy" decoding="async" />
+                    <img src="${groomAvatar}" alt="${groomName}" class="env-avatar-img" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='assets/img/groom.jpg';" />
                     <span class="env-avatar-tag">Chú Rể</span>
                 </div>
                 <div class="env-heart-badge" aria-hidden="true">
                     <i class="fas fa-heart"></i>
                 </div>
                 <div class="env-avatar-item">
-                    <img src="${brideAvatar}" alt="${brideName}" class="env-avatar-img" loading="lazy" decoding="async" />
+                    <img src="${brideAvatar}" alt="${brideName}" class="env-avatar-img" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='assets/img/bride.jpg';" />
                     <span class="env-avatar-tag">Cô Dâu</span>
                 </div>
             </div>

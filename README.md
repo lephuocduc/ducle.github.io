@@ -24,8 +24,10 @@ Một website thiệp mời cưới hiện đại, được xây dựng với **
 - **Countdown Timer**: Bộ đếm ngược đến ngày cưới (Ngày - Giờ - Phút - Giây)
 - **Thông Tin Lễ Cưới**: Đếm ngược + lịch trình nghi lễ & tiệc cưới trong cùng một section
 - **Love Story Timeline**: Hành trình yêu thương với ảnh và dòng thời gian
-- **Gallery Masonry**: Album ảnh cưới responsive với Lazy Loading
-- **Lightbox Modal**: Xem ảnh phóng to mượt mà
+- **Bộ Sưu Tập Album 4 Sự Kiện**: Phân chia album riêng biệt dạng thẻ sang trọng theo 4 sự kiện chính (Tiệc Trước Lễ Vu Quy, Lễ Vu Quy, Lễ Tân Hôn, Tiệc Cưới Nhà Hàng và Ảnh Cưới Pre-Wedding)
+- **Xem Chi Tiết Từng Album & Quick Switcher**: Giao diện chi tiết từng sự kiện với Masonry Grid, Quick Switcher chuyển album nhanh, và nút mở Google Drive xem/tải ảnh gốc chất lượng cao
+- **Upload Ảnh Bí Mật (Admin Form)**: Giao diện bảo mật bằng mã PIN trên web, cho phép Cô Dâu & Chú Rể chọn và đăng ảnh trực tiếp từ điện thoại trong ngày cưới, nén ảnh tự động trên Canvas (tải nhanh trên 4G) và cập nhật hiển thị ngay lập tức
+- **Lightbox Modal**: Xem ảnh phóng to mượt mà, hỗ trợ vuốt chuyển ảnh trên mobile, zoom 2 ngón (pinch zoom) và kéo rê chuột trên máy tính
 - **Google Maps Integration**: Nhúng bản đồ chỉ đường cho từng địa điểm
 - **Lời Chúc (Wishes)**: Form gửi lời chúc, thả tim, sắp xếp Nổi bật/Mới nhất — đồng bộ Google Sheets qua Apps Script
 - **Hộp Phong Bao Mừng Cưới**: Thiết kế tế nhị dạng phong bao cưới lì xì truyền thống với con dấu Song Hỷ 囍 và avatar cặp đôi; khi mở phong bao sẽ hiển thị đồng thời cả 2 mã QR chuyển khoản VietQR của Chú Rể & Cô Dâu, sao chép nhanh STK và nội dung chuyển khoản gợi ý trên cùng một giao diện

@@ -11,13 +11,13 @@
     <meta name="description" content="Trân trọng kính mời mọi người cùng tới tham dự ngày vui của chúng mình.">
     <meta property="og:title" content="Duc &amp; Suong’s Wedding - Phước Đức &amp; Thu Sương">
     <meta property="og:description" content="Trân trọng kính mời mọi người cùng tới tham dự ngày vui của chúng mình.">
-    <meta property="og:image" content="https://wedding.phuocducthusuong.com/assets/img/og-image.webp" />
+    <meta property="og:image" content="https://media.phuocducthusuong.com/og-image.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://wedding.phuocducthusuong.com/" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://wedding.phuocducthusuong.com/assets/img/og-image.webp">
+    <meta name="twitter:image" content="https://media.phuocducthusuong.com/og-image.webp">
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
     <link rel="shortcut icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%238B0000'/><circle cx='50' cy='50' r='45.5' fill='none' stroke='%23D4AF37' stroke-width='3'/><text x='50' y='58' text-anchor='middle' font-family='serif' font-size='52' font-weight='700' fill='%23D4AF37'>囍</text></svg>">
@@ -41,43 +41,23 @@
     </script>
 
     <!-- Preconnect to external origins to reduce latency -->
+    <link rel="preconnect" href="https://media.phuocducthusuong.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-    <!-- Preload LCP hero image for fastest first paint -->
-    <link rel="preload" as="image" href="assets/img/cover.webp">
+    <!-- Preload LCP hero image from Cloudflare R2 for fastest first paint -->
+    <link rel="preload" as="image" href="https://media.phuocducthusuong.com/cover.webp">
 
     <!-- Third-party Icons & Styling -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery-bundle.min.css">
     <link rel="stylesheet" href="css/style.css?v=20260823-5">
     <link rel="stylesheet" href="css/animation.css?v=20260728-3">
     <link rel="stylesheet" href="css/responsive.css?v=20260801-5">
 </head>
 
 <body>
-
-    <!-- Intro Invitation Screen -->
-    <section id="intro-screen" class="intro-screen">
-        <div class="intro-bg-symbols">
-            <span class="bg-xi xi-1">囍</span>
-            <span class="bg-xi xi-2">囍</span>
-            <span class="bg-xi xi-3">囍</span>
-            <span class="bg-xi xi-4">囍</span>
-            <span class="bg-xi xi-5">囍</span>
-            <span class="bg-xi xi-6">囍</span>
-        </div>
-        <div class="intro-content">
-            <div class="intro-symbol-top">囍</div>
-            <h1 class="intro-title">Phước Đức <span class="heart">❤️</span> Thu Sương</h1>
-            <p class="intro-subtitle">Wedding Celebration</p>
-            <button id="open-invite-btn" class="btn-open-invite">
-                Bắt Đầu
-            </button>
-        </div>
-        <div class="curtain curtain-left"></div>
-        <div class="curtain curtain-right"></div>
-    </section>
 
     <div id="preloader" class="preloader" aria-label="Đang tải thiệp cưới">
         <div class="preloader-symbol">囍</div>
@@ -100,10 +80,10 @@
                 <button id="nav-close" class="nav-close" aria-label="Đóng menu">&times;</button>
             </li>
             <li><a href="#hero-section" class="nav-link">Trang Chủ</a></li>
-            <li><a href="#couple-section" class="nav-link">Cặp Đôi</a></li>
+            <li><a href="#gallery-section" class="nav-link">Albums</a></li>
             <li><a href="#countdown-section" class="nav-link">Lễ Cưới</a></li>
+            <li><a href="#couple-section" class="nav-link">Cặp Đôi</a></li>
             <li><a href="#story-section" class="nav-link">Hành Trình</a></li>
-            <li><a href="#gallery-section" class="nav-link">Album</a></li>
             <li><a href="#wishes-section" class="nav-link">Lời Chúc</a></li>
             <li><a href="#gift-section" class="nav-link">Mừng Cưới</a></li>
         </ul>
@@ -113,6 +93,32 @@
     <header id="hero-section" class="hero-section">
         <!-- Rendered dynamically by main.js from config.js -->
     </header>
+
+    <!-- 2. Gallery Section - 4 Albums Cloudflare R2 -->
+    <section id="gallery-section" class="section gallery-section">
+        <div class="section-header reveal-fade">
+            <span class="section-tag">KHOẢNH KHẮC NGÀY VUI</span>
+            <h2 class="section-title">Album Hình Cưới</h2>
+            <div class="section-divider"><i class="fas fa-camera-retro"></i></div>
+            <p class="section-desc" style="max-width: 650px; margin: 10px auto 0; color: var(--color-text-muted); font-size: 0.95rem;">
+                Chọn từng album bên dưới để xem trọn vẹn những khoảnh khắc hạnh phúc của chúng mình
+            </p>
+        </div>
+
+        <!-- Thanh chọn Album Tabs (Button Group) -->
+        <div class="gallery-tabs-container reveal-fade">
+            <div class="gallery-tabs" id="gallery-tabs" role="tablist" aria-label="Danh sách album cưới">
+                <!-- Rendered dynamically by gallery.js -->
+            </div>
+        </div>
+
+        <!-- Khung lưới hiển thị ảnh của Album đang chọn (Lightbox kích hoạt qua selector .r2-gallery-item) -->
+        <div class="gallery-content-wrap">
+            <div id="gallery-grid" class="r2-gallery-grid" aria-live="polite">
+                <!-- Rendered dynamically by gallery.js -->
+            </div>
+        </div>
+    </section>
 
     <!-- 2. Couple Section (Groom & Bride) -->
     <section id="couple-section" class="section">
@@ -159,33 +165,7 @@
         </div>
     </section>
 
-    <!-- 5. Gallery Section (Masonry Grid & Lightbox) -->
-    <section id="gallery-section" class="section">
-        <div class="section-header reveal-fade">
-            <span class="section-tag">ALBUM HÌNH CƯỚI</span>
-            <h2 class="section-title">Góc Kỷ Niệm</h2>
-            <div class="section-divider"><i class="fas fa-camera-retro"></i></div>
-        </div>
-        <div id="gallery-container" class="gallery-grid">
-            <!-- Rendered dynamically by gallery.js -->
-        </div>
 
-        <!-- Google Drive Full Album Link -->
-        <div class="gallery-drive-link reveal-fade">
-            <div class="gallery-drive-card">
-                <i class="fab fa-google-drive gallery-drive-icon"></i>
-                <div class="gallery-drive-text">
-                    <p class="gallery-drive-title">Xem Toàn Bộ Album</p>
-                    <p class="gallery-drive-desc">Xem tất cả hình chất lượng cao trên Google Drive</p>
-                </div>
-                <a id="gallery-drive-btn" href="#" target="_blank" rel="noopener noreferrer" class="gallery-drive-btn"
-                    aria-label="Mở Google Drive xem album cưới đầy đủ">
-                    <i class="fas fa-external-link-alt"></i>
-                    Mở Album
-                </a>
-            </div>
-        </div>
-    </section>
 
     <!-- 6. Wishes Section - Lời Chúc -->
     <section id="wishes-section" class="section wishes-section">
@@ -199,19 +179,7 @@
         </div>
     </section>
 
-    <!-- Lightbox Zoom Image Modal -->
-    <div id="lightbox-modal" class="lightbox-modal" tabindex="-1" role="dialog" aria-label="Xem hình ảnh phóng to">
-        <button id="lightbox-close-btn" class="lightbox-close-btn" aria-label="Đóng ảnh">&times;</button>
-        <button id="lightbox-prev-btn" class="lightbox-nav-btn prev-btn" aria-label="Ảnh trước"><i
-                class="fas fa-chevron-left"></i></button>
-        <div class="lightbox-content-wrapper">
-            <img id="lightbox-img" class="lightbox-img" src="" alt="Ảnh chi tiết">
-            <div id="lightbox-caption" class="lightbox-caption"></div>
-            <div id="lightbox-thumbs" class="lightbox-thumbs-strip"></div>
-        </div>
-        <button id="lightbox-next-btn" class="lightbox-nav-btn next-btn" aria-label="Ảnh tiếp theo"><i
-                class="fas fa-chevron-right"></i></button>
-    </div>
+
 
     <!-- QR code enlargement modal -->
     <div id="qr-modal" class="qr-modal" role="dialog" aria-modal="true" aria-label="Mã QR phóng to">
@@ -242,6 +210,113 @@
         </div>
     </section>
 
+    <!-- Admin PIN Authentication Modal -->
+    <div id="admin-pin-modal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title" aria-hidden="true">
+        <div class="admin-modal-overlay"></div>
+        <div class="admin-modal-dialog pin-dialog">
+            <button id="admin-pin-close" class="admin-modal-close" aria-label="Đóng">&times;</button>
+            <div class="pin-card-header">
+                <div class="pin-symbol">囍</div>
+                <h3 id="pin-modal-title" class="pin-title">Quản Trị Ảnh Sự Kiện</h3>
+                <p class="pin-desc">Khu vực dành riêng cho Cô Dâu &amp; Chú Rể cập nhật hình ảnh ngày cưới trực tiếp từ điện thoại.</p>
+            </div>
+            <form id="admin-pin-form" class="pin-form">
+                <div class="pin-input-group">
+                    <input type="password" id="admin-pin-input" class="pin-input" inputmode="numeric" maxlength="10" placeholder="Nhập mã PIN bí mật" autocomplete="current-password" required />
+                    <button type="button" id="pin-toggle-visibility" class="pin-eye-btn" aria-label="Hiện/Ẩn mã PIN"><i class="fas fa-eye"></i></button>
+                </div>
+                <div id="pin-error-msg" class="pin-error" style="display:none;"></div>
+                <button type="submit" class="pin-submit-btn"><i class="fas fa-unlock-alt"></i> Mở Bảng Quản Trị</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Upload Photos Modal -->
+    <div id="admin-upload-modal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title" aria-hidden="true">
+        <div class="admin-modal-overlay"></div>
+        <div class="admin-modal-dialog upload-dialog">
+            <div class="upload-modal-header">
+                <div class="upload-header-left">
+                    <span class="upload-badge"><i class="fas fa-cloud-arrow-up"></i> Quản Trị Viên</span>
+                    <h3 id="upload-modal-title" class="upload-title">Đăng Tải Ảnh Ngày Cưới</h3>
+                </div>
+                <div class="upload-header-right">
+                    <button id="admin-logout-btn" class="upload-logout-btn" title="Đăng xuất quyền quản trị"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    <button id="admin-upload-close" class="admin-modal-close" aria-label="Đóng">&times;</button>
+                </div>
+            </div>
+
+            <div class="upload-modal-body">
+                <!-- 1. Chọn Album sự kiện -->
+                <div class="upload-field-group">
+                    <label class="upload-label" for="upload-album-select"><i class="fas fa-folder-open"></i> Đăng vào sự kiện:</label>
+                    <select id="upload-album-select" class="upload-select">
+                        <!-- Options generated dynamically -->
+                    </select>
+                </div>
+
+                <!-- 2. Vùng chọn ảnh hoặc chụp ảnh -->
+                <div class="upload-field-group">
+                    <label class="upload-label"><i class="fas fa-images"></i> Chọn ảnh từ thư viện hoặc chụp trực tiếp:</label>
+                    <div id="upload-dropzone" class="upload-dropzone">
+                        <input type="file" id="upload-file-input" class="upload-file-input" accept="image/*" multiple />
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon"><i class="fas fa-camera-retro"></i></div>
+                            <p class="dropzone-title">Chạm vào đây để chọn ảnh hoặc chụp</p>
+                            <p class="dropzone-subtitle">Hỗ trợ chọn nhiều ảnh cùng lúc (.jpg, .png, .webp, .heic)</p>
+                            <span class="dropzone-btn"><i class="fas fa-plus"></i> Chọn Hình Ảnh</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Tùy chọn nén ảnh tự động -->
+                <div class="upload-compression-toggle">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="upload-compress-check" checked />
+                        <span class="checkmark"></span>
+                        <span class="compress-text">Tự động tối ưu dung lượng ảnh (Tải nhanh gấp 10 lần, sắc nét trên điện thoại)</span>
+                    </label>
+                </div>
+
+                <!-- 4. Chú thích ảnh (tùy chọn) -->
+                <div class="upload-field-group">
+                    <label class="upload-label" for="upload-caption-input"><i class="fas fa-pen-fancy"></i> Chú thích ảnh (tùy chọn):</label>
+                    <input type="text" id="upload-caption-input" class="upload-input" placeholder="Ví dụ: Rước dâu nhà gái, Nâng ly cùng bạn bè..." maxlength="100" />
+                </div>
+
+                <!-- 5. Xem trước ảnh đã chọn -->
+                <div id="upload-preview-section" class="upload-preview-section" style="display:none;">
+                    <div class="preview-header">
+                        <span class="preview-count" id="upload-preview-count">0 ảnh đã chọn</span>
+                        <button type="button" id="upload-clear-all" class="preview-clear-btn"><i class="fas fa-trash"></i> Xóa tất cả</button>
+                    </div>
+                    <div id="upload-preview-grid" class="upload-preview-grid"></div>
+                </div>
+
+                <!-- 6. Thanh tiến trình tải lên -->
+                <div id="upload-progress-container" class="upload-progress-container" style="display:none;">
+                    <div class="progress-info">
+                        <span id="upload-progress-status">Đang chuẩn bị tải lên...</span>
+                        <span id="upload-progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="upload-progress-bar" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <!-- 7. Hộp thông báo kết quả -->
+                <div id="upload-alert-box" class="upload-alert-box" style="display:none;"></div>
+            </div>
+
+            <div class="upload-modal-footer">
+                <button type="button" id="upload-cancel-btn" class="upload-btn-secondary">Đóng</button>
+                <button type="button" id="upload-submit-btn" class="upload-btn-primary" disabled>
+                    <i class="fas fa-cloud-arrow-up"></i> Bắt Đầu Tải Lên
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Buttons (Music Toggle & Back to Top) -->
     <div class="floating-controls">
         <button id="music-toggle-btn" class="floating-btn music-btn" aria-label="Bật/Tắt nhạc nền"
@@ -258,8 +333,13 @@
         <!-- Rendered dynamically by main.js -->
     </footer>
 
+    <!-- LightGallery Core & Plugins JS (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/lightgallery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/plugins/thumbnail/lg-thumbnail.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/plugins/zoom/lg-zoom.min.js"></script>
+
     <!-- Main ES6 Entry Script -->
-    <script type="module" src="js/main.js?v=20260823-1"></script>
+    <script type="module" src="js/main.js?v=20261027-2"></script>
 </body>
 
 </html>
