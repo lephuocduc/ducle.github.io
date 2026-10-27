@@ -5,10 +5,7 @@
   "observability": {
     "enabled": true
   },
-  "assets": {
-    "directory": ".",
-    "binding": "ASSETS"
-  },
+
   "r2_buckets": [
     {
       "binding": "MY_BUCKET",

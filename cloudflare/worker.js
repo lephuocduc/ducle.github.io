@@ -31,7 +31,6 @@ export default {
     // 1. API ĐỒNG BỘ ẢNH TỰ ĐỘNG: /api/photos?album=01-pre-wedding
     if (url.pathname === "/api/photos" || url.pathname === "/api/photos/") {
       const album = url.searchParams.get("album") || "01-pre-wedding";
-      const prefix = `${album}/thumbs/`;
 
       try {
         if (!env.MY_BUCKET) {
@@ -43,49 +42,59 @@ export default {
           });
         }
 
-        // Tự động quét toàn bộ ảnh trong thư mục của album trên R2
-        let hasThumbs = true;
-        let listed = await env.MY_BUCKET.list({
-          prefix: `${album}/thumbs/`,
-          limit: 1000
-        });
-
         const imageExtensions = [".webp", ".jpg", ".jpeg", ".png", ".gif", ".heic"];
-        let files = listed.objects
-          .map(obj => obj.key.replace(`${album}/thumbs/`, ""))
-          .filter(filename => {
-            if (!filename || filename.includes("/")) return false;
-            const lower = filename.toLowerCase();
-            return imageExtensions.some(ext => lower.endsWith(ext));
-          });
 
-        // Nếu chưa có thư mục thumbs/, tự động quét ảnh trực tiếp trong thư mục album
-        if (files.length === 0) {
-          hasThumbs = false;
-          const rootListed = await env.MY_BUCKET.list({
-            prefix: `${album}/`,
+        // Danh sách thư mục ưu tiên quét ảnh:
+        // 1. {album}/thumb/ (Chuẩn mới: ảnh nhỏ)
+        // 2. {album}/thumbs/ (Tương thích ngược)
+        // 3. {album}/full/ (Nếu chưa có thumb)
+        // 4. {album}/ (Gốc của album)
+        const candidates = [
+          { dir: `${album}/thumb/`, name: "thumb", isThumb: true },
+          { dir: `${album}/thumbs/`, name: "thumbs", isThumb: true },
+          { dir: `${album}/full/`, name: "full", isThumb: false },
+          { dir: `${album}/`, name: "", isThumb: false }
+        ];
+
+        let files = [];
+        let detectedThumbDir = "thumb";
+        let hasThumbs = false;
+
+        for (const candidate of candidates) {
+          const listed = await env.MY_BUCKET.list({
+            prefix: candidate.dir,
             limit: 1000
           });
-          files = rootListed.objects
-            .map(obj => obj.key.replace(`${album}/`, ""))
+
+          const matched = (listed.objects || [])
+            .map(obj => obj.key.slice(candidate.dir.length))
             .filter(filename => {
               if (!filename || filename.includes("/")) return false;
               const lower = filename.toLowerCase();
               return imageExtensions.some(ext => lower.endsWith(ext));
             });
+
+          if (matched.length > 0) {
+            files = matched;
+            detectedThumbDir = candidate.isThumb ? candidate.name : "thumb";
+            hasThumbs = candidate.isThumb;
+            break;
+          }
         }
 
         return new Response(JSON.stringify({
           success: true,
           album: album,
           hasThumbs: hasThumbs,
+          thumbDir: detectedThumbDir,
+          fullDir: "full",
           count: files.length,
           images: files
         }), {
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": "public, max-age=60, s-maxage=60"
+            "Cache-Control": "public, max-age=30, s-maxage=30"
           }
         });
       } catch (err) {
@@ -96,16 +105,8 @@ export default {
       }
     }
 
-    // 2. PHỤC VỤ GIAO DIỆN WEB TĨNH (HTML, CSS, JS) TỰ ĐỘNG
-    if (env.ASSETS) {
-      const assetRes = await env.ASSETS.fetch(request);
-      if (assetRes.status !== 404) {
-        return assetRes;
-      }
-    }
-
-    // 3. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumbs/...)
-    const key = url.pathname.slice(1);
+    // 2. TỰ ĐỘNG TẢI FILE TỪ R2 NẾU TRUY CẬP TRỰC TIẾP (VD: /cover.webp hoặc /01-pre-wedding/thumb/...)
+    const key = decodeURIComponent(url.pathname.slice(1));
     if (!key) {
       return new Response("Cloudflare R2 Media Service - Phước Đức & Thu Sương Wedding", { 
         headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" } 
@@ -127,6 +128,16 @@ export default {
       headers.set("etag", object.httpEtag);
       headers.set("Access-Control-Allow-Origin", "*");
       headers.set("Cache-Control", "public, max-age=31536000, immutable");
+
+      // Đảm bảo Content-Type chuẩn cho file ảnh
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.endsWith(".jpg") || lowerKey.endsWith(".jpeg")) {
+        headers.set("Content-Type", "image/jpeg");
+      } else if (lowerKey.endsWith(".webp")) {
+        headers.set("Content-Type", "image/webp");
+      } else if (lowerKey.endsWith(".png")) {
+        headers.set("Content-Type", "image/png");
+      }
 
       return new Response(object.body, { headers });
     } catch (err) {

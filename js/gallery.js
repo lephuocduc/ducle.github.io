@@ -214,6 +214,12 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
                 if (data.hasThumbs !== undefined) {
                     album.hasThumbs = data.hasThumbs;
                 }
+                if (data.thumbDir) {
+                    album.thumbDir = data.thumbDir;
+                }
+                if (data.fullDir) {
+                    album.fullDir = data.fullDir;
+                }
             }
         }
     } catch (e) {
@@ -354,7 +360,8 @@ function renderActiveAlbum(albumId) {
         if (!filename) continue;
 
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
-        const fallbackUrl = `${host}/${album.folder}/${filename}`;
+        const fullUrl = getFullUrl(album, filename, hasThumbs, host);
+        const fallbackUrl = fullUrl;
 
         htmlContent += `
             <div class="r2-gallery-item" 
@@ -395,33 +402,41 @@ function renderActiveAlbum(albumId) {
 }
 
 /**
- * Lấy URL ảnh Thumbnail cho từng ảnh (35KB):
- * 1. Nếu R2 đã có thumbs -> Tải từ R2
- * 2. Nếu chưa có -> Dùng local thumbs có sẵn trong assets/img/thumbs/{folder}/{filename}
- * 3. Fallback -> Tải trực tiếp từ R2
+ * Lấy URL ảnh Thumbnail cho từng ảnh (ảnh nhỏ lấy từ folder thumb):
+ * Format: {host}/{album.folder}/thumb/{filename}
  */
 function getThumbUrl(album, filename, hasThumbs, host) {
-    if (hasThumbs) {
-        return `${host}/${album.folder}/thumbs/${filename}`;
+    if (!filename) return "";
+    if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("/")) {
+        return filename;
     }
-    // Chuẩn hóa tên file: nếu là file jpg gốc
-    const baseName = filename.replace(/\.webp$/i, ".JPG");
-    return `assets/img/thumbs/${album.folder}/${baseName}`;
+
+    const cleanHost = (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
+    const cleanFile = filename.trim();
+
+    // Mặc định thư mục ảnh nhỏ là "thumb" theo đúng yêu cầu cấu trúc thư mục mới
+    const thumbDir = album?.thumbDir || "thumb";
+    return `${cleanHost}/${cleanFolder}/${thumbDir}/${cleanFile}`;
 }
 
 /**
- * Lấy URL ảnh xem lớn (Full-size 2048px):
- * 1. Nếu R2 đã có full -> Tải từ R2 {host}/{folder}/full/{filename}
- * 2. Nếu chưa có -> Dùng local full chuẩn 2048px cực nét: assets/img/full/{folder}/{filename}
- *    (Khắc phục triệt để lỗi ảnh bị mờ/blur khi zoom out trên điện thoại!)
- * 3. Fallback -> File R2 gốc
+ * Lấy URL ảnh xem lớn (ảnh bự lấy từ folder full):
+ * Format: {host}/{album.folder}/full/{filename}
  */
 function getFullUrl(album, filename, hasThumbs, host) {
-    if (hasThumbs) {
-        return `${host}/${album.folder}/full/${filename}`;
+    if (!filename) return "";
+    if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("/")) {
+        return filename;
     }
-    const baseName = filename.replace(/\.webp$/i, ".JPG");
-    return `assets/img/full/${album.folder}/${baseName}`;
+
+    const cleanHost = (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
+    const cleanFile = filename.trim();
+
+    // Mặc định thư mục ảnh lớn là "full" theo đúng yêu cầu cấu trúc thư mục mới
+    const fullDir = album?.fullDir || "full";
+    return `${cleanHost}/${cleanFolder}/${fullDir}/${cleanFile}`;
 }
 
 /**
