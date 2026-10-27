@@ -389,11 +389,10 @@ function renderActiveAlbum(albumId) {
                 scale: 1,
                 enableZoomAfter: 0,
                 actualSize: true,
-                mousewheel: true,
-                enableMouseWheel: true,
-                controls: true, // Hiển thị nút mũi tên < và > trên màn hình
-                keyPress: true, // Cho phép phím mũi tên bàn phím
-                loop: true,     // Cuộn xoay vòng khi hết ảnh
+                mousewheel: false, // TẮT hoàn toàn cuộn chuột đổi ảnh (chỉ đổi ảnh bằng nút mũi tên)
+                controls: true,    // Hiển thị nút mũi tên < và > trên màn hình
+                keyPress: true,    // Cho phép phím mũi tên bàn phím
+                loop: true,        // Cuộn xoay vòng khi hết ảnh
                 hideControlOnEnd: false,
                 mobileSettings: {
                     controls: true,
@@ -467,11 +466,8 @@ function setupGalleryInteractions(gridContainer) {
         document.body.classList.add("lg-body-no-scroll");
         document.documentElement.classList.add("lg-body-no-scroll");
 
-        // Gắn sự kiện lăn chuột trên giao diện Lightbox để Zoom ảnh
-        const lgOuter = document.querySelector(".lg-outer");
-        if (lgOuter) {
-            lgOuter.addEventListener("wheel", onLgWheelZoom, { passive: false });
-        }
+        // Gắn sự kiện lăn chuột ở capture phase để chặn đứng sự kiện đổi ảnh và chỉ dùng để Zoom
+        window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
     });
 
     gridContainer.addEventListener("lgBeforeClose", () => {
@@ -479,10 +475,7 @@ function setupGalleryInteractions(gridContainer) {
         document.body.classList.remove("lg-body-no-scroll");
         document.documentElement.classList.remove("lg-body-no-scroll");
 
-        const lgOuter = document.querySelector(".lg-outer");
-        if (lgOuter) {
-            lgOuter.removeEventListener("wheel", onLgWheelZoom);
-        }
+        window.removeEventListener("wheel", onLgWheelZoom, { capture: true });
     });
 
     // 2. Gắn phím mũi tên Trái / Phải toàn cục (chỉ gắn 1 lần)
@@ -507,23 +500,29 @@ function setupGalleryInteractions(gridContainer) {
 }
 
 /**
- * Xử lý Zoom ảnh khi lăn chuột trên máy tính
+ * Xử lý Zoom ảnh khi lăn chuột trên máy tính (KHÔNG đổi ảnh)
  */
 function onLgWheelZoom(e) {
+    if (!isGalleryOpen) return;
+
+    // Ngăn chặn hoàn toàn hành vi cuộn chuột đổi ảnh hoặc cuộn trang
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
     if (!lightGalleryInstance) return;
 
     if (e.deltaY < 0) {
         // Cuộn chuột lên -> Phóng to (Zoom In)
-        const zoomInBtn = document.querySelector(".lg-zoom-in");
+        const zoomInBtn = document.querySelector(".lg-zoom-in") || document.getElementById("lg-zoom-in");
         if (zoomInBtn) {
             zoomInBtn.click();
         } else if (lightGalleryInstance.zoomPlugin) {
             lightGalleryInstance.zoomPlugin.zoomIn(1.25);
         }
-    } else {
+    } else if (e.deltaY > 0) {
         // Cuộn chuột xuống -> Thu nhỏ (Zoom Out)
-        const zoomOutBtn = document.querySelector(".lg-zoom-out");
+        const zoomOutBtn = document.querySelector(".lg-zoom-out") || document.getElementById("lg-zoom-out");
         if (zoomOutBtn) {
             zoomOutBtn.click();
         } else if (lightGalleryInstance.zoomPlugin) {
