@@ -4466,18 +4466,40 @@ html.lg-body-no-scroll {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
 }
 
-/* Nút công cụ phóng to / thu nhỏ trên thanh toolbar */
+/* Nút công cụ phóng to / thu nhỏ và tải ảnh gốc trên thanh toolbar */
 .lg-toolbar .lg-icon.lg-zoom-in,
-.lg-toolbar .lg-icon.lg-zoom-out {
+.lg-toolbar .lg-icon.lg-zoom-out,
+.lg-toolbar .lg-icon.lg-download,
+.lg-toolbar #lg-download,
+.lg-toolbar .lg-icon.lg-close {
     color: var(--color-gold-light, #fbf2c4) !important;
     font-size: 20px !important;
     transition: all 0.2s ease !important;
+    text-decoration: none !important;
 }
 
 .lg-toolbar .lg-icon.lg-zoom-in:hover,
-.lg-toolbar .lg-icon.lg-zoom-out:hover {
+.lg-toolbar .lg-icon.lg-zoom-out:hover,
+.lg-toolbar .lg-icon.lg-download:hover,
+.lg-toolbar #lg-download:hover,
+.lg-toolbar .lg-icon.lg-close:hover {
     color: #fff !important;
     transform: scale(1.15) !important;
+}
+
+.lg-toolbar .lg-download.is-downloading {
+    opacity: 0.6 !important;
+    pointer-events: none !important;
+    animation: lgDownloadSpin 0.8s linear infinite !important;
+}
+
+@keyframes lgDownloadSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .lg-toolbar .lg-icon.lg-zoom-out {

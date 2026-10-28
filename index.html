@@ -47,7 +47,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery-bundle.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20261028-2">
+    <link rel="stylesheet" href="css/style.css?v=20261028-3">
     <link rel="stylesheet" href="css/animation.css?v=20260728-3">
     <link rel="stylesheet" href="css/responsive.css?v=20260801-5">
 </head>
@@ -153,8 +153,6 @@
         </div>
     </section>
 
-
-
     <!-- 6. Wishes Section - Lời Chúc -->
     <section id="wishes-section" class="section wishes-section">
         <div class="section-header reveal-fade">
@@ -166,8 +164,6 @@
             <!-- Rendered dynamically by wishes.js -->
         </div>
     </section>
-
-
 
     <!-- QR code enlargement modal -->
     <div id="qr-modal" class="qr-modal" role="dialog" aria-modal="true" aria-label="Mã QR phóng to">
@@ -199,125 +195,6 @@
         </div>
     </section>
 
-    <!-- Admin PIN Authentication Modal -->
-    <div id="admin-pin-modal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title"
-        aria-hidden="true">
-        <div class="admin-modal-overlay"></div>
-        <div class="admin-modal-dialog pin-dialog">
-            <button id="admin-pin-close" class="admin-modal-close" aria-label="Đóng">&times;</button>
-            <div class="pin-card-header">
-                <div class="pin-symbol">囍</div>
-                <h3 id="pin-modal-title" class="pin-title">Quản Trị Ảnh Sự Kiện</h3>
-                <p class="pin-desc">Khu vực dành riêng cho Cô Dâu &amp; Chú Rể cập nhật hình ảnh ngày cưới trực tiếp từ
-                    điện thoại.</p>
-            </div>
-            <form id="admin-pin-form" class="pin-form">
-                <div class="pin-input-group">
-                    <input type="password" id="admin-pin-input" class="pin-input" inputmode="numeric" maxlength="10"
-                        placeholder="Nhập mã PIN bí mật" autocomplete="current-password" required />
-                    <button type="button" id="pin-toggle-visibility" class="pin-eye-btn" aria-label="Hiện/Ẩn mã PIN"><i
-                            class="fas fa-eye"></i></button>
-                </div>
-                <div id="pin-error-msg" class="pin-error" style="display:none;"></div>
-                <button type="submit" class="pin-submit-btn"><i class="fas fa-unlock-alt"></i> Mở Bảng Quản Trị</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Admin Upload Photos Modal -->
-    <div id="admin-upload-modal" class="admin-modal" role="dialog" aria-modal="true"
-        aria-labelledby="upload-modal-title" aria-hidden="true">
-        <div class="admin-modal-overlay"></div>
-        <div class="admin-modal-dialog upload-dialog">
-            <div class="upload-modal-header">
-                <div class="upload-header-left">
-                    <span class="upload-badge"><i class="fas fa-cloud-arrow-up"></i> Quản Trị Viên</span>
-                    <h3 id="upload-modal-title" class="upload-title">Đăng Tải Ảnh Ngày Cưới</h3>
-                </div>
-                <div class="upload-header-right">
-                    <button id="admin-logout-btn" class="upload-logout-btn" title="Đăng xuất quyền quản trị"><i
-                            class="fas fa-sign-out-alt"></i> Đăng xuất</button>
-                    <button id="admin-upload-close" class="admin-modal-close" aria-label="Đóng">&times;</button>
-                </div>
-            </div>
-
-            <div class="upload-modal-body">
-                <!-- 1. Chọn Album sự kiện -->
-                <div class="upload-field-group">
-                    <label class="upload-label" for="upload-album-select"><i class="fas fa-folder-open"></i> Đăng vào sự
-                        kiện:</label>
-                    <select id="upload-album-select" class="upload-select">
-                        <!-- Options generated dynamically -->
-                    </select>
-                </div>
-
-                <!-- 2. Vùng chọn ảnh hoặc chụp ảnh -->
-                <div class="upload-field-group">
-                    <label class="upload-label"><i class="fas fa-images"></i> Chọn ảnh từ thư viện hoặc chụp trực
-                        tiếp:</label>
-                    <div id="upload-dropzone" class="upload-dropzone">
-                        <input type="file" id="upload-file-input" class="upload-file-input" accept="image/*" multiple />
-                        <div class="dropzone-content">
-                            <div class="dropzone-icon"><i class="fas fa-camera-retro"></i></div>
-                            <p class="dropzone-title">Chạm vào đây để chọn ảnh hoặc chụp</p>
-                            <p class="dropzone-subtitle">Hỗ trợ chọn nhiều ảnh cùng lúc (.jpg, .png, .webp, .heic)</p>
-                            <span class="dropzone-btn"><i class="fas fa-plus"></i> Chọn Hình Ảnh</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Tùy chọn nén ảnh tự động -->
-                <div class="upload-compression-toggle">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="upload-compress-check" checked />
-                        <span class="checkmark"></span>
-                        <span class="compress-text">Tự động tối ưu dung lượng ảnh (Tải nhanh gấp 10 lần, sắc nét trên
-                            điện thoại)</span>
-                    </label>
-                </div>
-
-                <!-- 4. Chú thích ảnh (tùy chọn) -->
-                <div class="upload-field-group">
-                    <label class="upload-label" for="upload-caption-input"><i class="fas fa-pen-fancy"></i> Chú thích
-                        ảnh (tùy chọn):</label>
-                    <input type="text" id="upload-caption-input" class="upload-input"
-                        placeholder="Ví dụ: Rước dâu nhà gái, Nâng ly cùng bạn bè..." maxlength="100" />
-                </div>
-
-                <!-- 5. Xem trước ảnh đã chọn -->
-                <div id="upload-preview-section" class="upload-preview-section" style="display:none;">
-                    <div class="preview-header">
-                        <span class="preview-count" id="upload-preview-count">0 ảnh đã chọn</span>
-                        <button type="button" id="upload-clear-all" class="preview-clear-btn"><i
-                                class="fas fa-trash"></i> Xóa tất cả</button>
-                    </div>
-                    <div id="upload-preview-grid" class="upload-preview-grid"></div>
-                </div>
-
-                <!-- 6. Thanh tiến trình tải lên -->
-                <div id="upload-progress-container" class="upload-progress-container" style="display:none;">
-                    <div class="progress-info">
-                        <span id="upload-progress-status">Đang chuẩn bị tải lên...</span>
-                        <span id="upload-progress-percent">0%</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="upload-progress-bar" class="progress-bar-fill"></div>
-                    </div>
-                </div>
-
-                <!-- 7. Hộp thông báo kết quả -->
-                <div id="upload-alert-box" class="upload-alert-box" style="display:none;"></div>
-            </div>
-
-            <div class="upload-modal-footer">
-                <button type="button" id="upload-cancel-btn" class="upload-btn-secondary">Đóng</button>
-                <button type="button" id="upload-submit-btn" class="upload-btn-primary" disabled>
-                    <i class="fas fa-cloud-arrow-up"></i> Bắt Đầu Tải Lên
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Floating Button (Back to Top) -->
     <div class="floating-controls">
         <button id="back-to-top-btn" class="floating-btn back-to-top" aria-label="Về đầu trang" title="Về đầu trang">
@@ -337,7 +214,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/plugins/zoom/lg-zoom.min.js"></script>
 
     <!-- Main ES6 Entry Script -->
-    <script type="module" src="js/main.js?v=20261028-2"></script>
+    <script type="module" src="js/main.js?v=20261028-3"></script>
 </body>
 
 </html>

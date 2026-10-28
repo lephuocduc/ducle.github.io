@@ -352,6 +352,8 @@ function renderActiveAlbum(albumId) {
         return {
             src: fullUrl,
             thumb: thumbUrl,
+            downloadUrl: fullUrl,
+            download: filename,
             width: "2560",
             height: "3840",
             size: "2560-3840",
@@ -531,7 +533,10 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             plugins: plugins,
             speed: 300,
             preload: 2,
-            download: false,
+            download: true,
+            strings: {
+                download: "Tải ảnh gốc"
+            },
             thumbnail: true,
             animateThumb: true,
             showThumbByDefault: true,   // Luôn mở thanh thumbnails mặc định
@@ -555,7 +560,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             mobileSettings: {
                 controls: false,      // Ẩn 2 nút mũi tên < và > trên điện thoại
                 showCloseIcon: true,
-                download: false,
+                download: true,
                 thumbnail: true,
                 showThumbByDefault: true,
                 toggleThumb: false,   // Đảm bảo trên điện thoại thumbnails luôn hiển thị 100%
@@ -816,6 +821,13 @@ function setupGalleryInteractions(gridContainer) {
         isGalleryOpen = true;
     });
 
+    const updateDownloadTooltip = () => {
+        const dlBtn = document.querySelector("#lg-download, .lg-toolbar .lg-download");
+        if (dlBtn && !dlBtn.getAttribute("title")) {
+            dlBtn.setAttribute("title", "Tải ảnh gốc");
+        }
+    };
+
     gridContainer.addEventListener("lgAfterOpen", () => {
         isGalleryOpen = true;
         document.body.classList.add("lg-body-no-scroll");
@@ -826,7 +838,10 @@ function setupGalleryInteractions(gridContainer) {
         if (lgOuter) {
             lgOuter.classList.add("lg-thumb-open");
         }
+        updateDownloadTooltip();
     });
+
+    gridContainer.addEventListener("lgAfterSlide", updateDownloadTooltip);
 
     gridContainer.addEventListener("lgBeforeClose", () => {
         isGalleryOpen = false;
@@ -837,6 +852,45 @@ function setupGalleryInteractions(gridContainer) {
     // 2. Gắn phím mũi tên & Lăn chuột toàn cục (chỉ gắn 1 lần duy nhất)
     if (!isGalleryInteractionsSetup) {
         isGalleryInteractionsSetup = true;
+
+        // Bắt sự kiện tải ảnh gốc (Download) bằng fetch + Blob để lưu file trực tiếp về máy
+        document.addEventListener("click", async (e) => {
+            const dlBtn = e.target.closest("#lg-download, .lg-download");
+            if (!dlBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = dlBtn.getAttribute("href");
+            if (!url) return;
+
+            const downloadAttr = dlBtn.getAttribute("download");
+            const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.webp";
+
+            dlBtn.classList.add("is-downloading");
+            dlBtn.setAttribute("aria-busy", "true");
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const tempLink = document.createElement("a");
+                tempLink.style.display = "none";
+                tempLink.href = blobUrl;
+                tempLink.download = filename;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+            } catch (err) {
+                console.warn("[LightGallery Download] Tải blob trực tiếp không thành công, mở tab mới:", err);
+                window.open(url, "_blank", "noopener,noreferrer");
+            } finally {
+                dlBtn.classList.remove("is-downloading");
+                dlBtn.removeAttribute("aria-busy");
+            }
+        }, true);
 
         // Lăn chuột Zoom ảnh trên máy tính (chặn đứng cuộn đổi ảnh hoặc cuộn trang)
         window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
