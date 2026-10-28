@@ -4250,67 +4250,6 @@ body.no-scroll {
     opacity: 0.9;
 }
 
-/* Thanh Sắp Xếp Thứ Tự Ảnh (Cũ -> Mới / Mới -> Cũ) */
-.gallery-sort-bar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-bottom: 16px;
-    padding: 0 4px;
-}
-
-.gallery-sort-label {
-    font-size: 0.84rem;
-    color: var(--color-text-muted);
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.gallery-sort-btn {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    color: var(--color-text-main);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.gallery-sort-btn:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-1px);
-}
-
-.gallery-sort-btn.active {
-    background: var(--color-primary);
-    color: #ffffff;
-    border-color: var(--color-primary);
-    box-shadow: 0 3px 10px rgba(184, 51, 42, 0.28);
-}
-
-@media (max-width: 576px) {
-    .gallery-sort-bar {
-        justify-content: center;
-        gap: 6px;
-        margin-bottom: 12px;
-    }
-    .gallery-sort-btn {
-        padding: 5px 11px;
-        font-size: 0.74rem;
-        gap: 4px;
-    }
-}
-
 /* 2. Khung lưới hiển thị ảnh responsive (R2 Gallery Grid) */
 .gallery-content-wrap {
     max-width: 1000px;

@@ -75,7 +75,7 @@ export default {
             });
 
           if (matched.length > 0) {
-            files = matched.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+            files = matched;
             detectedThumbDir = candidate.isThumb ? candidate.name : "thumb";
             hasThumbs = candidate.isThumb;
             break;
