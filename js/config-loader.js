@@ -16,13 +16,25 @@ export function loadConfig() {
         document.title = weddingConfig.seo.title || "Duc & Suong’s Wedding";
 
         const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', weddingConfig.seo.description || '');
+        if (metaDesc) {
+            if (weddingConfig.seo.description) {
+                metaDesc.setAttribute('content', weddingConfig.seo.description);
+            } else {
+                metaDesc.remove();
+            }
+        }
 
         const ogTitle = document.querySelector('meta[property="og:title"]');
         if (ogTitle) ogTitle.setAttribute('content', weddingConfig.seo.title || '');
 
         const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogDesc) ogDesc.setAttribute('content', weddingConfig.seo.description || '');
+        if (ogDesc) {
+            if (weddingConfig.seo.description) {
+                ogDesc.setAttribute('content', weddingConfig.seo.description);
+            } else {
+                ogDesc.remove();
+            }
+        }
 
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', weddingConfig.seo.ogImage || '');
