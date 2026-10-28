@@ -4586,21 +4586,70 @@ html.lg-body-no-scroll {
     background: radial-gradient(circle at center, #260202 0%, #120000 60%, #050000 100%) !important;
 }
 
+/* Khung ảnh chiếm tối đa chiều cao từ đỉnh tới ngay trên thanh thumbnails (80px), tuyệt đối không đè thumbnails */
+.lg-outer .lg-inner,
 .lg-outer.lg-has-thumb .lg-inner {
-    top: 48px !important;
-    bottom: 64px !important;
+    top: 0 !important;
+    bottom: 80px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
 }
 
 .lg-outer .lg-item,
 .lg-outer .lg-img-wrap {
     padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
 }
 
+/* Ảnh luôn phóng to tối đa theo chiều rộng hoặc chiều dài tùy cái nào tới trước, tuyệt đối không crop */
 .lg-outer .lg-item .lg-image {
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
     height: auto !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: auto !important;
+}
+
+/* Tiêu đề ảnh (Pre-wedding - Ảnh ...) nổi thanh lịch trên ảnh ngay trên thanh thumbnails, không đẩy/co kéo ảnh */
+.lg-sub-html {
+    position: absolute !important;
+    bottom: 84px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: center !important;
+    z-index: 1081 !important;
+    pointer-events: none !important;
+    background: transparent !important;
+}
+
+.lg-sub-html p,
+.lg-caption-wrap p {
+    margin: 0 !important;
+    display: inline-block !important;
+    color: var(--color-gold-light, #fbf2c4) !important;
+    font-size: 0.92rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.9) !important;
+    background: rgba(18, 0, 0, 0.65) !important;
+    padding: 5px 18px !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(212, 175, 55, 0.35) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
 }
 
 .lg-outer .lg-thumb-item {
@@ -4627,27 +4676,38 @@ html.lg-body-no-scroll {
 
 /* Tinh chỉnh riêng thanh thumbnail và khung ảnh cho màn hình điện thoại di động */
 @media (max-width: 768px) {
-    /* Khung ảnh cách thanh toolbar trên và thumbnails dưới vừa khít, không bị che khuất */
+    /* Khung ảnh trên điện thoại chiếm từ 0 tới sát trên thanh thumbnails (54px) */
     .lg-outer .lg-inner,
     .lg-outer.lg-has-thumb .lg-inner {
-        top: 48px !important;
-        bottom: 58px !important;
+        top: 0 !important;
+        bottom: 54px !important;
     }
 
     /* Thanh toolbar nổi phía trên ảnh với nền gradient mờ */
     .lg-toolbar {
-        background: linear-gradient(180deg, rgba(15, 0, 0, 0.85) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
+        background: linear-gradient(180deg, rgba(15, 0, 0, 0.85) 0%, rgba(15, 0, 0, 0.35) 70%, transparent 100%) !important;
         z-index: 1083 !important;
         padding-top: max(4px, env(safe-area-inset-top, 4px)) !important;
     }
 
-    /* Thanh thumbnail nổi phía dưới ảnh với nền gradient mờ */
+    /* Thanh thumbnail nổi phía dưới ảnh */
     .lg-outer .lg-thumb-outer {
         height: 54px !important;
         padding: 4px 6px !important;
-        background: linear-gradient(0deg, rgba(15, 0, 0, 0.9) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
-        border-top: none !important;
+        background: rgba(15, 0, 0, 0.94) !important;
+        border-top: 1px solid rgba(212, 175, 55, 0.25) !important;
         z-index: 1082 !important;
+    }
+
+    /* Tiêu đề ảnh nổi trên điện thoại ngay trên thanh thumbnails */
+    .lg-sub-html {
+        bottom: 58px !important;
+    }
+
+    .lg-sub-html p,
+    .lg-caption-wrap p {
+        font-size: 0.82rem !important;
+        padding: 3px 14px !important;
     }
 
     /* TẤT CẢ ẢNH (NGANG & DỌC) ĐỀU FIT 100% TRỌN VẸN - TUYỆT ĐỐI KHÔNG CẮT CROP (CONTAIN) */

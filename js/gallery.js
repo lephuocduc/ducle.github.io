@@ -533,6 +533,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             speed: 300,
             preload: 1,
             download: true,
+            allowMediaOverlap: true,
             strings: {
                 download: "Tải ảnh gốc"
             },
