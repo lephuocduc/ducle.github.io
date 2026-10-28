@@ -1,5 +1,14 @@
-test-dir
 .git
+.git/**
+.wrangler
+.wrangler/**
+test-dir
+test-dir/**
 tools
+tools/**
 cloudflare
+cloudflare/**
 assets/audio
+assets/audio/**
+Appscript
+README.md
