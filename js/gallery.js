@@ -548,7 +548,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             dynamicEl: dynamicEl,
             plugins: plugins,
             speed: 300,
-            preload: 1,
+            preload: 3,
             download: true,
             allowMediaOverlap: true,
             zoomFromOrigin: false,
