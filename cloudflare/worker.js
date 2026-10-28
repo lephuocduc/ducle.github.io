@@ -147,6 +147,12 @@ export default {
         headers.set("Content-Type", "image/png");
       }
 
+      // Nếu có query download, ép trình duyệt lưu trực tiếp file về máy
+      if (url.searchParams.has("download")) {
+        const dlName = url.searchParams.get("download") || key.split("/").pop() || "wedding-photo.jpg";
+        headers.set("Content-Disposition", `attachment; filename="${dlName}"`);
+      }
+
       return new Response(object.body, { headers });
     } catch (err) {
       return new Response("Error fetching object: " + err.message, { status: 500, headers: corsHeaders });

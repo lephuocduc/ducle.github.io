@@ -349,10 +349,15 @@ function renderActiveAlbum(albumId) {
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
 
+        const workerOrigin = "https://ducle-github-io.duc-todo-api.workers.dev";
+        const downloadUrl = fullUrl.includes("media.phuocducthusuong.com")
+            ? fullUrl.replace("https://media.phuocducthusuong.com", workerOrigin)
+            : fullUrl;
+
         return {
             src: fullUrl,
             thumb: thumbUrl,
-            downloadUrl: fullUrl,
+            downloadUrl: downloadUrl,
             download: filename,
             width: "2560",
             height: "3840",
@@ -821,10 +826,13 @@ function setupGalleryInteractions(gridContainer) {
         isGalleryOpen = true;
     });
 
-    const updateDownloadTooltip = () => {
+    const updateDownloadButton = () => {
         const dlBtn = document.querySelector("#lg-download, .lg-toolbar .lg-download");
-        if (dlBtn && !dlBtn.getAttribute("title")) {
-            dlBtn.setAttribute("title", "Tải ảnh gốc");
+        if (dlBtn) {
+            dlBtn.removeAttribute("target"); // Gỡ bỏ target="_blank" để tuyệt đối không mở tab mới
+            if (!dlBtn.getAttribute("title")) {
+                dlBtn.setAttribute("title", "Tải ảnh gốc về máy");
+            }
         }
     };
 
@@ -838,10 +846,10 @@ function setupGalleryInteractions(gridContainer) {
         if (lgOuter) {
             lgOuter.classList.add("lg-thumb-open");
         }
-        updateDownloadTooltip();
+        updateDownloadButton();
     });
 
-    gridContainer.addEventListener("lgAfterSlide", updateDownloadTooltip);
+    gridContainer.addEventListener("lgAfterSlide", updateDownloadButton);
 
     gridContainer.addEventListener("lgBeforeClose", () => {
         isGalleryOpen = false;
@@ -853,7 +861,7 @@ function setupGalleryInteractions(gridContainer) {
     if (!isGalleryInteractionsSetup) {
         isGalleryInteractionsSetup = true;
 
-        // Bắt sự kiện tải ảnh gốc (Download) bằng fetch + Blob để lưu file trực tiếp về máy
+        // Bắt sự kiện tải ảnh gốc (Download) bằng fetch + Blob để lưu file trực tiếp về máy, tuyệt đối không mở tab mới
         document.addEventListener("click", async (e) => {
             const dlBtn = e.target.closest("#lg-download, .lg-download");
             if (!dlBtn) return;
@@ -861,11 +869,17 @@ function setupGalleryInteractions(gridContainer) {
             e.preventDefault();
             e.stopPropagation();
 
-            const url = dlBtn.getAttribute("href");
+            let url = dlBtn.getAttribute("href");
             if (!url) return;
 
             const downloadAttr = dlBtn.getAttribute("download");
-            const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.webp";
+            const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.jpg";
+
+            // Đảm bảo URL tải đi qua domain có CORS (*) để tạo được Blob lưu về máy
+            const workerDomain = "https://ducle-github-io.duc-todo-api.workers.dev";
+            if (url.includes("media.phuocducthusuong.com")) {
+                url = url.replace("https://media.phuocducthusuong.com", workerDomain);
+            }
 
             dlBtn.classList.add("is-downloading");
             dlBtn.setAttribute("aria-busy", "true");
@@ -882,10 +896,17 @@ function setupGalleryInteractions(gridContainer) {
                 document.body.appendChild(tempLink);
                 tempLink.click();
                 document.body.removeChild(tempLink);
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
             } catch (err) {
-                console.warn("[LightGallery Download] Tải blob trực tiếp không thành công, mở tab mới:", err);
-                window.open(url, "_blank", "noopener,noreferrer");
+                console.error("[LightGallery Download] Lỗi tải blob trực tiếp:", err);
+                // Fallback an toàn: kích hoạt tải file về máy, TUYỆT ĐỐI không mở tab mới
+                const fallbackLink = document.createElement("a");
+                fallbackLink.style.display = "none";
+                fallbackLink.href = url + (url.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(filename);
+                fallbackLink.setAttribute("download", filename);
+                document.body.appendChild(fallbackLink);
+                fallbackLink.click();
+                document.body.removeChild(fallbackLink);
             } finally {
                 dlBtn.classList.remove("is-downloading");
                 dlBtn.removeAttribute("aria-busy");
