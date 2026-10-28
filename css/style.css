@@ -4249,7 +4249,7 @@ body.no-scroll {
 
 /* 2. Khung lưới hiển thị ảnh responsive (R2 Gallery Grid) */
 .gallery-content-wrap {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -4257,7 +4257,7 @@ body.no-scroll {
 .r2-gallery-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 12px;
     transition: opacity 0.3s ease;
 }
 
@@ -4268,11 +4268,11 @@ body.no-scroll {
     overflow: hidden;
     background: #2b0000;
     border: 1px solid rgba(212, 175, 55, 0.35);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     text-decoration: none;
     cursor: pointer;
     content-visibility: auto;
-    contain-intrinsic-size: 300px 225px;
+    contain-intrinsic-size: 220px 220px;
     transform: translateZ(0);
     will-change: transform;
     outline: none;
@@ -4281,15 +4281,15 @@ body.no-scroll {
 
 .r2-gallery-item:hover,
 .r2-gallery-item:focus-visible {
-    transform: translateY(-5px);
-    box-shadow: 0 14px 35px rgba(139, 0, 0, 0.2), 0 0 15px rgba(212, 175, 55, 0.35);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(139, 0, 0, 0.2), 0 0 12px rgba(212, 175, 55, 0.35);
     border-color: var(--color-gold);
 }
 
 .r2-thumb-wrap {
     position: relative;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     background: linear-gradient(135deg, #2a0000 0%, #1a0000 100%);
 }
@@ -4599,11 +4599,14 @@ html.lg-body-no-scroll {
     transform: translateY(2px);
 }
 
-/* 3. Responsive: Tablet 3 cột & Điện thoại 2 cột */
+/* 3. Responsive: Tablet & Màn hình vừa (4 cột cân xứng với 16 ảnh) */
 @media (max-width: 992px) {
+    .gallery-content-wrap {
+        max-width: 850px;
+    }
     .r2-gallery-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
     }
 }
 
@@ -4710,11 +4713,19 @@ html.lg-body-no-scroll {
     }
 }
 
-/* Điện thoại di động: chính xác 2 cột, auto co giãn */
+/* Điện thoại di động: Lưới 4 cột nhỏ gọn, thẩm mỹ cao (4 hàng × 4 cột = 16 ảnh) */
 @media (max-width: 600px) {
+    .gallery-content-wrap {
+        padding: 0 10px;
+    }
+
     .r2-gallery-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    .r2-gallery-item {
+        border-radius: 8px;
     }
 
     .r2-thumb-wrap {
@@ -4722,10 +4733,25 @@ html.lg-body-no-scroll {
     }
 
     .r2-hover-overlay i {
-        font-size: 1.4rem;
+        font-size: 1.1rem;
     }
 
     .r2-hover-text {
-        font-size: 0.9rem;
+        font-size: 0.72rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .gallery-content-wrap {
+        padding: 0 8px;
+    }
+
+    .r2-gallery-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px !important;
+    }
+
+    .r2-gallery-item {
+        border-radius: 6px;
     }
 }

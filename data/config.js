@@ -209,7 +209,7 @@ export const weddingConfig = {
             {
                 id: "02-tiec-mung-vu-quy",
                 folder: "02-tiec-mung-vu-quy",
-                title: "Tiệc Mừng Lễ Vu Quy",
+                title: "Tiệc Mừng Vu Quy",
                 tag: "NHÀ GÁI • 24/10/2026",
                 icon: "fa-champagne-glasses",
                 images: []

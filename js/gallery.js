@@ -15,7 +15,7 @@ let isSyncing = false;
 let isGalleryOpen = false;
 let isGalleryInteractionsSetup = false;
 let imageObserver = null;
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 16;
 const currentVisibleCounts = {};
 
 /**
@@ -25,7 +25,7 @@ const currentVisibleCounts = {};
  */
 export function initGalleryModule(containerId, config) {
     currentR2Config = config?.r2Gallery || getDefaultR2Config();
-    
+
     // Nếu container có cấu trúc mới (id gallery-tabs & gallery-grid)
     const tabsContainer = document.getElementById("gallery-tabs");
     const gridContainer = document.getElementById("gallery-grid");
@@ -90,7 +90,7 @@ function getDefaultR2Config() {
             {
                 id: "02-tiec-mung-vu-quy",
                 folder: "02-tiec-mung-vu-quy",
-                title: "Tiệc Mừng Lễ Vu Quy",
+                title: "Tiệc Mừng Vu Quy",
                 icon: "fa-champagne-glasses",
                 images: []
             },
@@ -277,7 +277,7 @@ async function syncAllAlbumsFromR2() {
     isSyncing = true;
 
     try {
-        const promises = currentR2Config.albums.map(album => 
+        const promises = currentR2Config.albums.map(album =>
             syncAlbumFromR2(album.id, album.id === activeAlbumId)
         );
         await Promise.allSettled(promises);
@@ -539,11 +539,12 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             enableZoomAfter: 0,
             actualSize: false,        // TẮT nút phóng to 1 mạch 100% gây nhảy vọt sát rạt
             showZoomInOutIcons: true, // HIỆN 2 nút [+] và [-] trên thanh công cụ để zoom từng nấc từ từ
-            mousewheel: false,
             controls: true,           // Mũi tên < và > chuyển ảnh
             keyPress: true,           // Mũi tên bàn phím
             loop: true,               // Xoay vòng ảnh khi đến cuối
             hideControlOnEnd: false,
+            enableDrag: false,        // Tắt kéo trượt đổi ảnh bằng chuột trên máy tính (chặn trôi ảnh do quán tính chuột)
+            enableSwipe: true,        // Giữ vuốt chuyển ảnh trên màn hình cảm ứng điện thoại
             mobileSettings: {
                 controls: true,
                 showCloseIcon: true,
@@ -613,41 +614,81 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 }
             };
 
-            // 4. Chạm đúp (Double-Tap trên điện thoại) và Nhấp đúp chuột (Double-Click trên máy tính):
-            // - Nấc 1: 1.0x -> 2.4x (phóng to vừa mắt ngắm rõ chân dung)
-            // - Nấc 2: 2.4x -> 4.8x (cận cảnh siêu nét, kích hoạt refresh ảnh gốc 4K)
-            // - Nấc 3: quay trở về 1.0x ban đầu và reset căn giữa chuẩn xác
+            // 4. Nhấp đúp chuột (Double-Click) & Chạm đúp (Double-Tap) Toggle Zoom 2 chiều chuẩn xác:
+            // - Nếu ĐANG PHÓNG TO (scale > 1.05 hoặc có class lg-zoomed): Luôn luôn THU NHỎ (Zoom Out) về 1.0x ban đầu và căn giữa hoàn toàn.
+            // - Nếu ĐANG BÌNH THƯỜNG (scale = 1.0x): Phóng to 2.5x ngay tại tâm điểm con trỏ chuột/chạm.
             zp.setActualSize = function (index, event) {
                 if (this.zoomInProgress) return;
                 this.zoomInProgress = true;
 
-                let nextScale = 1.0;
-                if (this.scale < 2.0) {
-                    nextScale = 2.4;
-                } else if (this.scale < 4.0) {
-                    nextScale = 4.8;
-                } else {
-                    nextScale = 1.0;
-                }
+                const isCurrentlyZoomed = this.scale > 1.05 || this.core.outer.hasClass("lg-zoomed");
 
-                if (nextScale === 1.0) {
-                    // Thu nhỏ về 1.0x ban đầu và reset vị trí
+                if (isCurrentlyZoomed) {
+                    // Thu nhỏ 100% về 1.0x ban đầu
                     this.resetZoom();
+                    this.core.outer.removeClass("lg-zoomed lg-actual-size");
                     setTimeout(() => {
                         this.zoomInProgress = false;
-                    }, 280);
+                    }, 220);
                 } else {
-                    // Phóng to lên nextScale tại vị trí chạm/click
-                    const isDeepZoom = nextScale >= 4.5;
+                    // Phóng to 2.5x tại vị trí click/tap
+                    const targetScale = 2.5;
                     this.setPageCords(event);
-                    this.beginZoom(nextScale);
-                    this.zoomImage(nextScale, nextScale - this.scale, true, isDeepZoom);
+                    this.beginZoom(targetScale);
+                    this.zoomImage(targetScale, targetScale - this.scale, true, false);
                     this.core.outer.addClass("lg-zoomed");
                     setTimeout(() => {
                         this.zoomInProgress = false;
-                    }, 280);
+                    }, 220);
                 }
             };
+
+            // 5. Khử hoàn toàn quán tính / chớn trượt khi rê kéo ảnh (pan) lúc phóng to:
+            // Thả chuột hoặc buông ngón tay ở đâu, ảnh dừng cố định ngay tại đúng vị trí đó, tuyệt đối không trôi tiếp
+            zp.touchendZoom = function (startCords, endCords, allowX, allowY) {
+                const deltaX = endCords.x - startCords.x;
+                const deltaY = endCords.y - startCords.y;
+
+                // Giữ nguyên tọa độ thực 1:1, tuyệt đối không nhân thêm hệ số quán tính tốc độ (a *= r, n *= l)
+                const newPos = {
+                    x: this.left + deltaX,
+                    y: this.top + deltaY
+                };
+
+                const possibleCords = this.getPossibleSwipeDragCords();
+
+                // Giới hạn trong khung nhìn an toàn (không bị kéo lọt ra ngoài)
+                if (allowY) {
+                    if (this.isBeyondPossibleTop(newPos.y, possibleCords.minY)) {
+                        newPos.y = possibleCords.minY;
+                    } else if (this.isBeyondPossibleBottom(newPos.y, possibleCords.maxY)) {
+                        newPos.y = possibleCords.maxY;
+                    }
+                    this.top = newPos.y;
+                } else {
+                    newPos.y = this.top;
+                }
+
+                if (allowX) {
+                    if (this.isBeyondPossibleLeft(newPos.x, possibleCords.minX)) {
+                        newPos.x = possibleCords.minX;
+                    } else if (this.isBeyondPossibleRight(newPos.x, possibleCords.maxX)) {
+                        newPos.x = possibleCords.maxX;
+                    }
+                    this.left = newPos.x;
+                } else {
+                    newPos.x = this.left;
+                }
+
+                const $wrap = this.core.getSlideItem(this.core.index).find(".lg-img-wrap").first();
+                this.setZoomSwipeStyles($wrap, newPos);
+                this.positionChanged = true;
+            };
+
+            // 6. Nâng cấp bộ bắt sự kiện Rê Kéo (Zoom Drag):
+            // - Ngưỡng rê chuột 5px: Chặn hoàn toàn hiện tượng rung lắc chuột làm xê dịch ảnh khi click / double-click
+            // - Bắt dblclick trên ảnh và khung ảnh: Đảm bảo nhấp đúp luôn nhận diện và zoom out ngay lập tức
+            setupSmoothZoomDrag(zp);
         }
 
         // Gắn tương tác: Khóa cuộn trang nền, Cuộn chuột để Zoom, Phím mũi tên Trái/Phải
@@ -828,4 +869,103 @@ function onLgWheelZoom(e) {
         }
     }
 }
+
+/**
+ * Nâng cấp trải nghiệm rê kéo & nhấp đúp phóng to/thu nhỏ:
+ * - Thiết lập ngưỡng rê chuột (DRAG_THRESHOLD = 5px) để chặn hoàn toàn hiện tượng rung lắc tay click chuột làm ảnh xê dịch
+ * - Bắt sự kiện dblclick trên ảnh và khung ảnh: Đảm bảo nhấp đúp luôn nhận diện và thu nhỏ (zoom out) 100% tin cậy
+ */
+function setupSmoothZoomDrag(zp) {
+    if (!zp) return;
+
+    // Gỡ các sự kiện mousedown, mousemove, mouseup mặc định của lgZoom
+    zp.core.outer.off("mousedown.lg.zoom");
+    zp.$LG(window).off("mousemove.lg.zoom.global" + zp.core.lgId);
+    zp.$LG(window).off("mouseup.lg.zoom.global" + zp.core.lgId);
+    zp.core.outer.off("dblclick.lg");
+
+    // Đảm bảo dblclick trên ảnh và khung ảnh luôn kích hoạt setActualSize để zoom out/in
+    zp.core.outer.on("dblclick.lg", function (e) {
+        if (!zp.isImageSlide(zp.core.index)) return;
+        const $slide = zp.core.getSlideItem(zp.core.index);
+        const $target = zp.$LG(e.target);
+        if ($target.hasClass("lg-item") || $slide.get()?.contains(e.target)) {
+            e.preventDefault();
+            e.stopPropagation();
+            zp.setActualSize(zp.core.index, e);
+        }
+    });
+
+    let startTime = 0;
+    let startCords = {};
+    let endCords = {};
+    let isMouseDown = false;
+    let isDragging = false;
+    let allowX = false;
+    let allowY = false;
+    let possibleCords = null;
+    let $imgWrap = null;
+    const DRAG_THRESHOLD = 5; // Ngưỡng tối thiểu 5px mới tính là rê kéo ảnh
+
+    zp.core.outer.on("mousedown.lg.zoom", function (e) {
+        if (!zp.isImageSlide(zp.core.index)) return;
+        const $slide = zp.core.getSlideItem(zp.core.index);
+        const $target = zp.$LG(e.target);
+
+        if ($target.hasClass("lg-item") || $slide.get()?.contains(e.target)) {
+            $imgWrap = $slide.find(".lg-img-wrap").first();
+            const allowed = zp.getDragAllowedAxises(0);
+            allowY = allowed.allowY;
+            allowX = allowed.allowX;
+
+            const isZoomed = zp.core.outer.hasClass("lg-zoomed") || zp.scale > 1.05;
+            if (isZoomed && $target.hasClass("lg-object") && (allowX || allowY)) {
+                e.preventDefault();
+                startTime = Date.now();
+                startCords = zp.getDragCords(e);
+                endCords = { ...startCords };
+                possibleCords = zp.getPossibleSwipeDragCords();
+                isMouseDown = true;
+                isDragging = false;
+            }
+        }
+    });
+
+    zp.$LG(window).on("mousemove.lg.zoom.global" + zp.core.lgId, function (e) {
+        if (!isMouseDown) return;
+
+        const currentCords = zp.getDragCords(e);
+        const distance = Math.hypot(currentCords.x - startCords.x, currentCords.y - startCords.y);
+
+        // Chỉ khi con trỏ di chuyển vượt qua ngưỡng 5px mới bắt đầu kích hoạt chế độ rê kéo
+        // Giúp các cú click chuột hoặc double-click không bao giờ làm xê dịch ảnh
+        if (!isDragging) {
+            if (distance > DRAG_THRESHOLD) {
+                isDragging = true;
+                zp.core.outer.removeClass("lg-grab").addClass("lg-grabbing lg-zoom-dragging");
+            } else {
+                return;
+            }
+        }
+
+        endCords = currentCords;
+        const swipeCords = zp.getZoomSwipeCords(startCords, endCords, allowX, allowY, possibleCords);
+        zp.setZoomSwipeStyles($imgWrap, swipeCords);
+    });
+
+    zp.$LG(window).on("mouseup.lg.zoom.global" + zp.core.lgId, function (e) {
+        if (isMouseDown) {
+            isMouseDown = false;
+            zp.core.outer.removeClass("lg-zoom-dragging lg-grabbing").addClass("lg-grab");
+
+            if (isDragging) {
+                isDragging = false;
+                endCords = zp.getDragCords(e);
+                const duration = Date.now() - startTime;
+                zp.touchendZoom(startCords, endCords, allowX, allowY, duration);
+            }
+        }
+    });
+}
+
 
