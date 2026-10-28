@@ -359,9 +359,6 @@ function renderActiveAlbum(albumId) {
             thumb: thumbUrl,
             downloadUrl: downloadUrl,
             download: filename,
-            width: "2560",
-            height: "3840",
-            size: "2560-3840",
             subHtml: `<div class='lg-caption-wrap'><p>${imageTitle}</p></div>`
         };
     });
@@ -539,6 +536,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             speed: 300,
             preload: 2,
             download: true,
+            allowMediaOverlap: true,
             strings: {
                 download: "Tải ảnh gốc"
             },
@@ -826,6 +824,163 @@ function setupGalleryInteractions(gridContainer) {
         isGalleryOpen = true;
     });
 
+    const cleanDummyImages = () => {
+        document.querySelectorAll(".lg-dummy-img").forEach(el => el.remove());
+    };
+
+    const updateSlideOrientation = () => {
+        cleanDummyImages();
+        const activeSlide = document.querySelector(".lg-outer .lg-current");
+        if (!activeSlide) return;
+        const img = activeSlide.querySelector(".lg-image");
+        if (!img) return;
+
+        const checkAspect = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+                if (img.naturalHeight >= img.naturalWidth) {
+                    activeSlide.classList.add("is-portrait");
+                    activeSlide.classList.remove("is-landscape");
+                } else {
+                    activeSlide.classList.add("is-landscape");
+                    activeSlide.classList.remove("is-portrait");
+                }
+            }
+        };
+
+        if (img.complete && img.naturalWidth) {
+            checkAspect();
+        } else {
+            img.addEventListener("load", checkAspect, { once: true });
+        }
+    };
+
+    const setupFitToggleButton = () => {
+        const toolbar = document.querySelector(".lg-toolbar");
+        if (!toolbar || toolbar.querySelector("#lg-fit-toggle")) return;
+
+        const fitBtn = document.createElement("button");
+        fitBtn.id = "lg-fit-toggle";
+        fitBtn.className = "lg-icon lg-fit-toggle";
+        fitBtn.type = "button";
+        fitBtn.setAttribute("aria-label", "Chuyển chế độ: Tràn màn hình / Toàn cảnh");
+        fitBtn.setAttribute("title", "Chuyển sang xem Toàn cảnh (gốc)");
+        fitBtn.innerHTML = '<i class="fas fa-compress"></i>';
+
+        const dlBtn = toolbar.querySelector("#lg-download, .lg-download");
+        if (dlBtn) {
+            toolbar.insertBefore(fitBtn, dlBtn);
+        } else {
+            toolbar.appendChild(fitBtn);
+        }
+
+        fitBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const lgOuter = document.querySelector(".lg-outer");
+            if (!lgOuter) return;
+            const isContain = lgOuter.classList.toggle("lg-contain-mode");
+            fitBtn.innerHTML = isContain 
+                ? '<i class="fas fa-expand"></i>' 
+                : '<i class="fas fa-compress"></i>';
+            fitBtn.setAttribute("title", isContain ? "Tràn màn hình (không viền đen)" : "Xem toàn cảnh (gốc)");
+        });
+    };
+
+    const isIOSDevice = () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    };
+
+    // Bộ đệm (Cache) lưu trước File đã convert sang JPEG sẵn sàng cho Web Share API trên iOS
+    const shareFileCache = new Map();
+
+    const preloadShareFile = async (rawUrl, filename) => {
+        if (!rawUrl || !isIOSDevice()) return null;
+        let fetchUrl = rawUrl;
+        const workerDomain = "https://ducle-github-io.duc-todo-api.workers.dev";
+        if (fetchUrl.includes("media.phuocducthusuong.com")) {
+            fetchUrl = fetchUrl.replace("https://media.phuocducthusuong.com", workerDomain);
+        }
+
+        if (shareFileCache.has(fetchUrl)) {
+            return shareFileCache.get(fetchUrl);
+        }
+
+        const task = (async () => {
+            try {
+                const response = await fetch(fetchUrl);
+                if (!response.ok) return null;
+                const blob = await response.blob();
+
+                // iOS Safari không hỗ trợ mimeType WebP khi gọi navigator.canShare({ files })
+                // Vì vậy luôn convert sang JPEG để iOS hiển thị nút "Lưu hình ảnh" (Save Image) vào Apple Photos
+                let shareFile = null;
+                const isWebP = filename.toLowerCase().endsWith(".webp") || blob.type === "image/webp";
+
+                if (isWebP) {
+                    try {
+                        const img = new Image();
+                        const tempBlobUrl = URL.createObjectURL(blob);
+                        img.src = tempBlobUrl;
+                        await img.decode();
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.naturalWidth || img.width;
+                        canvas.height = img.naturalHeight || img.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+                        URL.revokeObjectURL(tempBlobUrl);
+
+                        const jpegBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.95));
+                        if (jpegBlob) {
+                            const jpegName = filename.replace(/\.[^.]+$/, "") + ".jpg";
+                            shareFile = new File([jpegBlob], jpegName, { type: "image/jpeg" });
+                        }
+                    } catch (convErr) {
+                        console.warn("[Share Preload] Convert JPEG lỗi:", convErr);
+                    }
+                }
+
+                if (!shareFile) {
+                    const mimeType = blob.type || (filename.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+                    shareFile = new File([blob], filename, { type: mimeType });
+                }
+
+                if (shareFileCache.size > 12) {
+                    const firstKey = shareFileCache.keys().next().value;
+                    shareFileCache.delete(firstKey);
+                }
+                return shareFile;
+            } catch (err) {
+                console.warn("[Share Preload] Lỗi chuẩn bị file:", err);
+                return null;
+            }
+        })();
+
+        shareFileCache.set(fetchUrl, task);
+        task.then(res => {
+            if (res) {
+                shareFileCache.set(fetchUrl, res);
+            } else {
+                shareFileCache.delete(fetchUrl);
+            }
+        });
+
+        return task;
+    };
+
+    const triggerPreloadCurrentSlide = () => {
+        if (!isIOSDevice()) return;
+        const dlBtn = document.querySelector("#lg-download, .lg-toolbar .lg-download");
+        if (!dlBtn) return;
+        const url = dlBtn.getAttribute("href");
+        const downloadAttr = dlBtn.getAttribute("download");
+        const filename = downloadAttr || (url ? url.split("/").pop().split("?")[0] : "wedding-photo.jpg");
+        if (url) {
+            preloadShareFile(url, filename);
+        }
+    };
+
     const updateDownloadButton = () => {
         const dlBtn = document.querySelector("#lg-download, .lg-toolbar .lg-download");
         if (dlBtn) {
@@ -847,21 +1002,29 @@ function setupGalleryInteractions(gridContainer) {
             lgOuter.classList.add("lg-thumb-open");
         }
         updateDownloadButton();
+        setupFitToggleButton();
+        updateSlideOrientation();
+        triggerPreloadCurrentSlide();
     });
 
-    gridContainer.addEventListener("lgAfterSlide", updateDownloadButton);
+    gridContainer.addEventListener("lgAfterSlide", () => {
+        updateDownloadButton();
+        updateSlideOrientation();
+        triggerPreloadCurrentSlide();
+    });
 
     gridContainer.addEventListener("lgBeforeClose", () => {
         isGalleryOpen = false;
         document.body.classList.remove("lg-body-no-scroll");
         document.documentElement.classList.remove("lg-body-no-scroll");
+        cleanDummyImages();
     });
 
     // 2. Gắn phím mũi tên & Lăn chuột toàn cục (chỉ gắn 1 lần duy nhất)
     if (!isGalleryInteractionsSetup) {
         isGalleryInteractionsSetup = true;
 
-        // Bắt sự kiện tải ảnh gốc (Download) bằng fetch + Blob để lưu file trực tiếp về máy, tuyệt đối không mở tab mới
+        // Bắt sự kiện tải ảnh gốc (Download)
         document.addEventListener("click", async (e) => {
             const dlBtn = e.target.closest("#lg-download, .lg-download");
             if (!dlBtn) return;
@@ -877,17 +1040,73 @@ function setupGalleryInteractions(gridContainer) {
 
             // Đảm bảo URL tải đi qua domain có CORS (*) để tạo được Blob lưu về máy
             const workerDomain = "https://ducle-github-io.duc-todo-api.workers.dev";
-            if (url.includes("media.phuocducthusuong.com")) {
-                url = url.replace("https://media.phuocducthusuong.com", workerDomain);
+            let fetchUrl = url;
+            if (fetchUrl.includes("media.phuocducthusuong.com")) {
+                fetchUrl = fetchUrl.replace("https://media.phuocducthusuong.com", workerDomain);
             }
 
+            // ========================================================
+            // GIẢI PHÁP WEBSHARE API TRÊN iOS (IPHONE / IPAD)
+            // Mở trực tiếp Bảng chia sẻ (Share Sheet) có sẵn nút "Lưu hình ảnh" (Save Image)
+            // ========================================================
+            if (isIOSDevice() && typeof navigator.share === "function") {
+                const cached = shareFileCache.get(fetchUrl);
+
+                // TRƯỜNG HỢP 1 (Hầu hết các lần chạm): File đã được preload sẵn trong RAM
+                // Gọi navigator.share() ĐỒNG BỘ NGAY LẬP TỨC trong user gesture tap!
+                // Nhờ đó iOS Safari không bị mất Transient User Activation, mở thẳng Share Sheet tức thì
+                if (cached instanceof File) {
+                    if (!navigator.canShare || navigator.canShare({ files: [cached] })) {
+                        try {
+                            await navigator.share({
+                                files: [cached],
+                                title: filename
+                            });
+                            return; // Thành công mở Share Sheet iOS (người dùng chọn "Lưu hình ảnh" là xong)
+                        } catch (shareErr) {
+                            if (shareErr.name === "AbortError") return; // Người dùng chủ động bấm Hủy
+                            console.warn("[iOS Share Sheet] Lỗi share synchronous:", shareErr);
+                        }
+                    }
+                }
+
+                // TRƯỜNG HỢP 2: Nếu người dùng chạm quá nhanh (< 200ms) trước khi preload xong
+                dlBtn.classList.add("is-downloading");
+                dlBtn.setAttribute("aria-busy", "true");
+                try {
+                    const file = cached instanceof Promise ? await cached : await preloadShareFile(url, filename);
+                    if (file && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: filename
+                            });
+                            return;
+                        } catch (shareErr) {
+                            if (shareErr.name === "AbortError") return;
+                            console.warn("[iOS Share Sheet] Lỗi sau khi chờ file:", shareErr);
+                        }
+                    }
+                } catch (err) {
+                    console.warn("[iOS Share Sheet] Lỗi:", err);
+                } finally {
+                    dlBtn.classList.remove("is-downloading");
+                    dlBtn.removeAttribute("aria-busy");
+                }
+            }
+
+            // ========================================================
+            // FALLBACK CHO MÁY TÍNH / ANDROID HOẶC KHI SHARE SHEET KHÔNG HỖ TRỢ
+            // Tải file trực tiếp về máy, tuyệt đối không mở tab mới
+            // ========================================================
             dlBtn.classList.add("is-downloading");
             dlBtn.setAttribute("aria-busy", "true");
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(fetchUrl);
                 if (!response.ok) throw new Error("HTTP error " + response.status);
                 const blob = await response.blob();
+
                 const blobUrl = URL.createObjectURL(blob);
                 const tempLink = document.createElement("a");
                 tempLink.style.display = "none";
@@ -899,10 +1118,9 @@ function setupGalleryInteractions(gridContainer) {
                 setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
             } catch (err) {
                 console.error("[LightGallery Download] Lỗi tải blob trực tiếp:", err);
-                // Fallback an toàn: kích hoạt tải file về máy, TUYỆT ĐỐI không mở tab mới
                 const fallbackLink = document.createElement("a");
                 fallbackLink.style.display = "none";
-                fallbackLink.href = url + (url.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(filename);
+                fallbackLink.href = fetchUrl + (fetchUrl.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(filename);
                 fallbackLink.setAttribute("download", filename);
                 document.body.appendChild(fallbackLink);
                 fallbackLink.click();

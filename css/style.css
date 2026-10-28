@@ -4175,18 +4175,15 @@ body.no-scroll {
 .gallery-tabs {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
+    justify-content: center;
+    gap: 6px;
     background: linear-gradient(135deg, rgba(255, 253, 249, 0.96) 0%, rgba(255, 248, 235, 0.96) 100%);
     border: 1.5px solid rgba(212, 175, 55, 0.4);
     border-radius: 50px;
-    padding: 6px 8px;
+    padding: 5px 6px;
     box-shadow: 0 4px 20px rgba(139, 0, 0, 0.08), 0 2px 8px rgba(212, 175, 55, 0.15);
     width: max-content;
     max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
     margin: 0 auto;
 }
 
@@ -4197,14 +4194,14 @@ body.no-scroll {
 .gallery-tab-btn {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
+    gap: 6px;
+    padding: 7px 13px;
     background: transparent;
     color: var(--color-text-muted);
     border: 1px solid transparent;
     border-radius: 50px;
     font-family: var(--font-body);
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
@@ -4212,14 +4209,18 @@ body.no-scroll {
     transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
+.gallery-tab-btn .tab-title {
+    white-space: nowrap;
+}
+
 .gallery-tab-btn i {
     color: var(--color-gold-dark);
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .gallery-tab-btn .tab-count {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     opacity: 0.75;
 }
 
@@ -4422,9 +4423,10 @@ html.lg-body-no-scroll {
 
 /* Tinh chỉnh caption hiển thị tên ảnh rõ nét, gọn gàng và sang trọng */
 .lg-sub-html {
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.78) 100%) !important;
+    background: linear-gradient(180deg, transparent 0%, rgba(15, 0, 0, 0.82) 100%) !important;
     padding: 8px 16px 12px !important;
     z-index: 1081 !important;
+    pointer-events: none !important;
 }
 
 .lg-caption-wrap {
@@ -4442,14 +4444,30 @@ html.lg-body-no-scroll {
 
 /* Tối ưu độ sắc nét cho ảnh LightGallery trên màn hình Retina / điện thoại */
 .lg-outer .lg-item .lg-image,
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image,
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-dummy-img {
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
     image-rendering: auto !important;
     image-rendering: -webkit-optimize-contrast !important;
     -webkit-backface-visibility: visible !important;
     backface-visibility: visible !important;
     -webkit-transform-style: flat !important;
     transform-style: flat !important;
+}
+
+/* Khử triệt để ảnh dummy trùng lặp gây lỗi nhấn giữ 2 lần trên iOS Safari */
+.lg-outer .lg-dummy-img {
+    display: none !important;
+    pointer-events: none !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+}
+
+.lg-outer .lg-item,
+.lg-outer .lg-img-wrap {
+    -webkit-touch-callout: none !important;
+}
+
+.lg-outer .lg-item .lg-image {
+    -webkit-touch-callout: default !important;
 }
 
 /* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
@@ -4468,11 +4486,9 @@ html.lg-body-no-scroll {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
 }
 
-/* Nút công cụ phóng to / thu nhỏ và tải ảnh gốc trên thanh toolbar */
+/* Nút công cụ phóng to / thu nhỏ và đóng trên thanh toolbar */
 .lg-toolbar .lg-icon.lg-zoom-in,
 .lg-toolbar .lg-icon.lg-zoom-out,
-.lg-toolbar .lg-icon.lg-download,
-.lg-toolbar #lg-download,
 .lg-toolbar .lg-icon.lg-close {
     color: var(--color-gold-light, #fbf2c4) !important;
     font-size: 20px !important;
@@ -4482,11 +4498,58 @@ html.lg-body-no-scroll {
 
 .lg-toolbar .lg-icon.lg-zoom-in:hover,
 .lg-toolbar .lg-icon.lg-zoom-out:hover,
-.lg-toolbar .lg-icon.lg-download:hover,
-.lg-toolbar #lg-download:hover,
 .lg-toolbar .lg-icon.lg-close:hover {
     color: #fff !important;
     transform: scale(1.15) !important;
+}
+
+/* Nút công cụ đổi chế độ Tràn màn hình / Toàn cảnh */
+.lg-toolbar .lg-fit-toggle {
+    color: var(--color-gold-light, #fbf2c4) !important;
+    font-size: 18px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+.lg-toolbar .lg-fit-toggle:hover {
+    color: #fff !important;
+    transform: scale(1.15) !important;
+}
+
+/* Nút tải ảnh nổi bật, sang trọng màu vàng hoàng gia */
+.lg-toolbar .lg-icon.lg-download,
+.lg-toolbar #lg-download {
+    color: #fff !important;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.45) 0%, rgba(139, 0, 0, 0.55) 100%) !important;
+    border: 1px solid rgba(212, 175, 55, 0.65) !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 34px !important;
+    margin: 6px 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+.lg-toolbar .lg-icon.lg-download:hover,
+.lg-toolbar #lg-download:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.8) 0%, rgba(180, 20, 20, 0.85) 100%) !important;
+    border-color: var(--color-gold) !important;
+    color: #fff !important;
+    transform: scale(1.12) !important;
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.7) !important;
 }
 
 .lg-toolbar .lg-download.is-downloading {
@@ -4537,8 +4600,26 @@ html.lg-body-no-scroll {
     transition: transform 0.25s ease !important;
 }
 
+/* Khung nền hiển thị ảnh (Backdrop) với hiệu ứng Vignette Burgundy hoàng gia sang trọng */
+.lg-backdrop {
+    background: radial-gradient(circle at center, #260202 0%, #120000 60%, #050000 100%) !important;
+}
+
 .lg-outer.lg-has-thumb .lg-inner {
+    top: 48px !important;
     bottom: 64px !important;
+}
+
+.lg-outer .lg-item,
+.lg-outer .lg-img-wrap {
+    padding: 0 !important;
+}
+
+.lg-outer .lg-item .lg-image {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
 }
 
 .lg-outer .lg-thumb-item {
@@ -4563,15 +4644,44 @@ html.lg-body-no-scroll {
     transform: scale(1.05) !important;
 }
 
-/* Tinh chỉnh riêng thanh thumbnail cho màn hình điện thoại di động */
+/* Tinh chỉnh riêng thanh thumbnail và khung ảnh cho màn hình điện thoại di động */
 @media (max-width: 768px) {
+    /* Cho khung hiển thị ảnh chiếm trọn 100% màn hình, không bị trừ viền đen trên dưới */
+    .lg-outer .lg-inner,
+    .lg-outer.lg-has-thumb .lg-inner {
+        top: 0 !important;
+        bottom: 0 !important;
+    }
+
+    /* Thanh toolbar nổi phía trên ảnh với nền gradient mờ */
+    .lg-toolbar {
+        background: linear-gradient(180deg, rgba(15, 0, 0, 0.75) 0%, rgba(15, 0, 0, 0.25) 70%, transparent 100%) !important;
+        z-index: 1083 !important;
+        padding-top: max(8px, env(safe-area-inset-top, 8px)) !important;
+    }
+
+    /* Thanh thumbnail nổi phía dưới ảnh với nền gradient mờ */
     .lg-outer .lg-thumb-outer {
         height: 56px !important;
         padding: 4px 6px !important;
+        background: linear-gradient(0deg, rgba(15, 0, 0, 0.88) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
+        border-top: none !important;
+        z-index: 1082 !important;
     }
 
-    .lg-outer.lg-has-thumb .lg-inner {
-        bottom: 56px !important;
+    /* Mặc định trên điện thoại: Ảnh dọc lấp kín 100% toàn màn hình (Fit Screen) không còn bất kỳ khoảng đen nào */
+    .lg-outer:not(.lg-contain-mode) .lg-item.is-portrait .lg-image,
+    .lg-outer:not(.lg-contain-mode) .lg-item:not(.lg-landscape) .lg-image {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+    }
+
+    /* Khi đang zoom thì chuyển về contain / 2D transform scale tự nhiên */
+    .lg-outer.lg-zoomed .lg-item .lg-image {
+        object-fit: contain !important;
     }
 
     .lg-outer .lg-thumb-item {
@@ -4639,12 +4749,12 @@ html.lg-body-no-scroll {
     }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 960px) {
     .gallery-tabs-container {
         padding: 0 14px;
         margin: 14px auto 24px;
         width: 100%;
-        max-width: 520px;
+        max-width: 560px;
     }
 
     /* Trên điện thoại & Tablet: Hiển thị dạng lưới 2 cột × 2 hàng -> Thấy đủ 100% 4 Album, không bị cắt chữ hoặc thanh cuộn che */
