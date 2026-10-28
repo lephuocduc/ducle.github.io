@@ -68,30 +68,6 @@ export function renderCeremonies(containerId, ceremoniesData) {
                 </iframe>
             </div>` : '';
 
-        const mapsBtn = item.mapDirectUrl ? `
-            <a href="${item.mapDirectUrl}" target="_blank" rel="noopener noreferrer" class="btn-copy" style="text-decoration:none; display:inline-block; padding:8px 20px;">
-                <i class="fas fa-route"></i> Mở Google Maps
-            </a>` : '';
-
-        // webcal:// is handled reliably by iOS Calendar, while Android browsers
-        // generally need the Google Calendar URL instead.
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const resolvedCalendarUrl = isIOS
-            ? (item.calendarWebcalUrl || item.calendarUrl)
-            : (item.calendarUrl || item.calendarWebcalUrl);
-
-        const calendarBtn = resolvedCalendarUrl ? `
-            <a href="${resolvedCalendarUrl}" target="_blank" rel="noopener noreferrer" class="btn-copy" style="text-decoration:none; display:inline-block; padding:8px 20px; background: var(--color-gold-dark);">
-                <i class="far fa-calendar-plus"></i> Thêm vào Lịch
-            </a>` : '';
-
-        const actions = mapsBtn || calendarBtn ? `
-            <div class="ceremony-actions">
-                ${mapsBtn}
-                ${calendarBtn}
-            </div>` : '';
-
         const statusInfo = getEventStatus(item.startTime, item.endTime);
         const statusHtml = statusInfo ? statusInfo.html : '';
 
@@ -107,7 +83,6 @@ export function renderCeremonies(containerId, ceremoniesData) {
                 ${item.title ? `<h3 class="ceremony-title">${item.title}</h3>` : ''}
                 <div class="ceremony-time"><i class="far fa-clock"></i> ${item.time}</div>
                 <div class="ceremony-address"><i class="fas fa-location-dot"></i> ${item.address}</div>
-                ${actions}
             </div>
             ${item.blessing ? `<div class="ceremony-blessing"><i class="fas fa-quote-left" aria-hidden="true"></i><p>${item.blessing}</p></div>` : ''}
             ${mapSection}
