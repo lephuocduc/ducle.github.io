@@ -4408,29 +4408,34 @@ html.lg-body-no-scroll {
     overscroll-behavior: none !important;
 }
 
-/* Nút mũi tên chuyển ảnh Trái / Phải to rõ, sang trọng */
+/* Ẩn hoàn toàn 2 nút mũi tên chuyển ảnh Trái / Phải theo yêu cầu để không che màn hình */
+.lg-actions,
 .lg-actions .lg-next,
 .lg-actions .lg-prev {
-    background-color: rgba(30, 0, 0, 0.65) !important;
-    border: 1.5px solid rgba(212, 175, 55, 0.6) !important;
-    color: var(--color-gold-light) !important;
-    width: 52px !important;
-    height: 52px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.3) !important;
-    cursor: pointer !important;
-    transition: all 0.25s ease !important;
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
 }
 
-.lg-actions .lg-next:hover,
-.lg-actions .lg-prev:hover {
-    background-color: var(--color-primary) !important;
-    border-color: var(--color-gold) !important;
-    color: #fff !important;
-    transform: scale(1.1) !important;
+/* Tinh chỉnh caption hiển thị tên ảnh rõ nét, gọn gàng và sang trọng */
+.lg-sub-html {
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.78) 100%) !important;
+    padding: 8px 16px 12px !important;
+    z-index: 1081 !important;
+}
+
+.lg-caption-wrap {
+    text-align: center;
+}
+
+.lg-caption-wrap p {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-gold-light, #f5e6b8);
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 /* Tối ưu độ sắc nét cho ảnh LightGallery trên màn hình Retina / điện thoại */

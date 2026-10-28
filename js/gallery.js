@@ -355,7 +355,7 @@ function renderActiveAlbum(albumId) {
             width: "2560",
             height: "3840",
             size: "2560-3840",
-            subHtml: `<div class='lg-caption-wrap'><h4>${album.title}</h4><p>${imageTitle}</p></div>`
+            subHtml: `<div class='lg-caption-wrap'><p>${imageTitle}</p></div>`
         };
     });
 
@@ -546,14 +546,14 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             enableZoomAfter: 0,
             actualSize: false,        // TẮT nút phóng to 1 mạch 100% gây nhảy vọt sát rạt
             showZoomInOutIcons: true, // HIỆN 2 nút [+] và [-] trên thanh công cụ để zoom từng nấc từ từ
-            controls: true,           // Mũi tên < và > chuyển ảnh
-            keyPress: true,           // Mũi tên bàn phím
+            controls: false,          // Ẩn 2 nút mũi tên < và > để không che màn hình (người dùng tự vuốt trái/phải)
+            keyPress: true,           // Mũi tên bàn phím vẫn hoạt động
             loop: true,               // Xoay vòng ảnh khi đến cuối
             hideControlOnEnd: false,
             enableDrag: false,        // Tắt kéo trượt đổi ảnh bằng chuột trên máy tính (chặn trôi ảnh do quán tính chuột)
             enableSwipe: true,        // Giữ vuốt chuyển ảnh trên màn hình cảm ứng điện thoại
             mobileSettings: {
-                controls: true,
+                controls: false,      // Ẩn 2 nút mũi tên < và > trên điện thoại
                 showCloseIcon: true,
                 download: false,
                 thumbnail: true,
