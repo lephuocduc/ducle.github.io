@@ -4503,25 +4503,6 @@ html.lg-body-no-scroll {
     transform: scale(1.15) !important;
 }
 
-/* Nút công cụ đổi chế độ Tràn màn hình / Toàn cảnh */
-.lg-toolbar .lg-fit-toggle {
-    color: var(--color-gold-light, #fbf2c4) !important;
-    font-size: 18px !important;
-    background: transparent !important;
-    border: none !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 8px !important;
-    transition: all 0.2s ease !important;
-    text-decoration: none !important;
-}
-
-.lg-toolbar .lg-fit-toggle:hover {
-    color: #fff !important;
-    transform: scale(1.15) !important;
-}
 
 /* Nút tải ảnh nổi bật, sang trọng màu vàng hoàng gia */
 .lg-toolbar .lg-icon.lg-download,
@@ -4646,40 +4627,38 @@ html.lg-body-no-scroll {
 
 /* Tinh chỉnh riêng thanh thumbnail và khung ảnh cho màn hình điện thoại di động */
 @media (max-width: 768px) {
-    /* Cho khung hiển thị ảnh chiếm trọn 100% màn hình, không bị trừ viền đen trên dưới */
+    /* Khung ảnh cách thanh toolbar trên và thumbnails dưới vừa khít, không bị che khuất */
     .lg-outer .lg-inner,
     .lg-outer.lg-has-thumb .lg-inner {
-        top: 0 !important;
-        bottom: 0 !important;
+        top: 48px !important;
+        bottom: 58px !important;
     }
 
     /* Thanh toolbar nổi phía trên ảnh với nền gradient mờ */
     .lg-toolbar {
-        background: linear-gradient(180deg, rgba(15, 0, 0, 0.75) 0%, rgba(15, 0, 0, 0.25) 70%, transparent 100%) !important;
+        background: linear-gradient(180deg, rgba(15, 0, 0, 0.85) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
         z-index: 1083 !important;
-        padding-top: max(8px, env(safe-area-inset-top, 8px)) !important;
+        padding-top: max(4px, env(safe-area-inset-top, 4px)) !important;
     }
 
     /* Thanh thumbnail nổi phía dưới ảnh với nền gradient mờ */
     .lg-outer .lg-thumb-outer {
-        height: 56px !important;
+        height: 54px !important;
         padding: 4px 6px !important;
-        background: linear-gradient(0deg, rgba(15, 0, 0, 0.88) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
+        background: linear-gradient(0deg, rgba(15, 0, 0, 0.9) 0%, rgba(15, 0, 0, 0.4) 70%, transparent 100%) !important;
         border-top: none !important;
         z-index: 1082 !important;
     }
 
-    /* Mặc định trên điện thoại: Ảnh dọc lấp kín 100% toàn màn hình (Fit Screen) không còn bất kỳ khoảng đen nào */
-    .lg-outer:not(.lg-contain-mode) .lg-item.is-portrait .lg-image,
-    .lg-outer:not(.lg-contain-mode) .lg-item:not(.lg-landscape) .lg-image {
-        width: 100% !important;
-        height: 100% !important;
-        max-width: none !important;
-        max-height: none !important;
-        object-fit: cover !important;
+    /* TẤT CẢ ẢNH (NGANG & DỌC) ĐỀU FIT 100% TRỌN VẸN - TUYỆT ĐỐI KHÔNG CẮT CROP (CONTAIN) */
+    .lg-outer .lg-item .lg-image {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
     }
 
-    /* Khi đang zoom thì chuyển về contain / 2D transform scale tự nhiên */
     .lg-outer.lg-zoomed .lg-item .lg-image {
         object-fit: contain !important;
     }
