@@ -617,20 +617,23 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             // 4. Nhấp đúp chuột (Double-Click) & Chạm đúp (Double-Tap) Toggle Zoom 2 chiều chuẩn xác:
             // - Nếu ĐANG PHÓNG TO (scale > 1.05 hoặc có class lg-zoomed): Luôn luôn THU NHỎ (Zoom Out) về 1.0x ban đầu và căn giữa hoàn toàn.
             // - Nếu ĐANG BÌNH THƯỜNG (scale = 1.0x): Phóng to 2.5x ngay tại tâm điểm con trỏ chuột/chạm.
+            let lastToggleActionTime = 0;
             zp.setActualSize = function (index, event) {
-                if (this.zoomInProgress) return;
-                this.zoomInProgress = true;
+                const now = Date.now();
+                if (now - lastToggleActionTime < 300) return;
+                lastToggleActionTime = now;
 
                 const isCurrentlyZoomed = this.scale > 1.05 || this.core.outer.hasClass("lg-zoomed");
 
                 if (isCurrentlyZoomed) {
-                    // Thu nhỏ 100% về 1.0x ban đầu
+                    // Thu nhỏ 100% ngay lập tức về 1.0x ban đầu (không bị bất kỳ cờ nào chặn đứng)
                     this.resetZoom();
                     this.core.outer.removeClass("lg-zoomed lg-actual-size");
-                    setTimeout(() => {
-                        this.zoomInProgress = false;
-                    }, 220);
+                    this.zoomInProgress = false;
                 } else {
+                    if (this.zoomInProgress) return;
+                    this.zoomInProgress = true;
+
                     // Phóng to 2.5x tại vị trí click/tap
                     const targetScale = 2.5;
                     this.setPageCords(event);
@@ -812,6 +815,48 @@ function setupGalleryInteractions(gridContainer) {
         // Lăn chuột Zoom ảnh trên máy tính (chặn đứng cuộn đổi ảnh hoặc cuộn trang)
         window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
 
+        // Bắt nhấp đúp (Double-Click / Double-Tap) toàn cục siêu nhạy trên toàn bộ khung ảnh
+        let lastGlobalTapTime = 0;
+        let lastGlobalTapX = 0;
+        let lastGlobalTapY = 0;
+
+        const onGlobalSmartTap = (e) => {
+            const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
+            if (!isOpen || !lightGalleryInstance) return;
+
+            // Bỏ qua nếu chạm vào thanh công cụ, nút chuyển ảnh, thumbnails
+            if (e.target.closest && e.target.closest(".lg-toolbar, .lg-actions, .lg-thumb-outer, .lg-icon, .lg-prev, .lg-next, .lg-close")) return;
+
+            // Bỏ qua nếu không nằm trong vùng trình chiếu slide
+            const currentSlide = document.querySelector(".lg-current");
+            if (!currentSlide || (!currentSlide.contains(e.target) && !e.target.classList.contains("lg-item"))) return;
+
+            const zp = lightGalleryInstance.zoomPlugin || lightGalleryInstance.plugins?.find(p => typeof p.zoomIn === "function");
+            if (!zp) return;
+
+            const now = Date.now();
+            const clientX = e.clientX ?? (e.touches?.[0]?.clientX || e.changedTouches?.[0]?.clientX || 0);
+            const clientY = e.clientY ?? (e.touches?.[0]?.clientY || e.changedTouches?.[0]?.clientY || 0);
+
+            const timeDiff = now - lastGlobalTapTime;
+            const dist = Math.hypot(clientX - lastGlobalTapX, clientY - lastGlobalTapY);
+
+            // Nhấp 2 cái trong khoảng 50ms - 450ms với sai lệch vị trí < 40px
+            if (timeDiff > 50 && timeDiff < 450 && dist < 40) {
+                lastGlobalTapTime = 0;
+                e.preventDefault();
+                e.stopPropagation();
+                zp.setActualSize(zp.core.index, e);
+            } else {
+                lastGlobalTapTime = now;
+                lastGlobalTapX = clientX;
+                lastGlobalTapY = clientY;
+            }
+        };
+
+        document.addEventListener("click", onGlobalSmartTap, true);
+        document.addEventListener("touchend", onGlobalSmartTap, { passive: false });
+
         window.addEventListener("keydown", (e) => {
             const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
             if (!isOpen || !lightGalleryInstance) return;
@@ -873,7 +918,8 @@ function onLgWheelZoom(e) {
 /**
  * Nâng cấp trải nghiệm rê kéo & nhấp đúp phóng to/thu nhỏ:
  * - Thiết lập ngưỡng rê chuột (DRAG_THRESHOLD = 5px) để chặn hoàn toàn hiện tượng rung lắc tay click chuột làm ảnh xê dịch
- * - Bắt sự kiện dblclick trên ảnh và khung ảnh: Đảm bảo nhấp đúp luôn nhận diện và thu nhỏ (zoom out) 100% tin cậy
+ * - Bộ nhận diện Smart Double-Tap & Double-Click thông minh: Tự động bắt nhấp 2 cái với độ trễ linh hoạt (lên đến 450ms)
+ *   giúp thao tác thu nhỏ (zoom out) thành công 100%, không bị phụ thuộc vào native dblclick khắt khe của hệ điều hành.
  */
 function setupSmoothZoomDrag(zp) {
     if (!zp) return;
@@ -884,7 +930,7 @@ function setupSmoothZoomDrag(zp) {
     zp.$LG(window).off("mouseup.lg.zoom.global" + zp.core.lgId);
     zp.core.outer.off("dblclick.lg");
 
-    // Đảm bảo dblclick trên ảnh và khung ảnh luôn kích hoạt setActualSize để zoom out/in
+    // 1. Bắt sự kiện dblclick gốc làm dự phòng
     zp.core.outer.on("dblclick.lg", function (e) {
         if (!zp.isImageSlide(zp.core.index)) return;
         const $slide = zp.core.getSlideItem(zp.core.index);
@@ -896,6 +942,43 @@ function setupSmoothZoomDrag(zp) {
         }
     });
 
+    // 2. Bộ nhận diện Smart Double-Click & Double-Tap (Tự động tính khoảng cách thời gian giữa 2 cú nhấp)
+    let lastClickTime = 0;
+    let lastClickX = 0;
+    let lastClickY = 0;
+
+    const onSmartClick = function (e) {
+        // Không xử lý nếu click vào thanh công cụ, nút bấm hoặc filmstrip thumbnails
+        if (e.target.closest && e.target.closest(".lg-toolbar, .lg-actions, .lg-thumb-outer, .lg-icon")) return;
+
+        const now = Date.now();
+        const clientX = e.clientX ?? (e.touches?.[0]?.clientX || e.changedTouches?.[0]?.clientX || 0);
+        const clientY = e.clientY ?? (e.touches?.[0]?.clientY || e.changedTouches?.[0]?.clientY || 0);
+
+        const timeDiff = now - lastClickTime;
+        const dist = Math.hypot(clientX - lastClickX, clientY - lastClickY);
+
+        // Nếu người dùng nhấp 2 cái liên tiếp trong vòng 450ms và không di chuyển xa (> 35px)
+        if (timeDiff > 60 && timeDiff < 450 && dist < 35) {
+            lastClickTime = 0; // Reset để cú click thứ 3 không kích hoạt lại
+            e.preventDefault();
+            e.stopPropagation();
+            zp.setActualSize(zp.core.index, e);
+        } else {
+            lastClickTime = now;
+            lastClickX = clientX;
+            lastClickY = clientY;
+        }
+    };
+
+    // Gắn listener trực tiếp lên DOM outer của LightGallery
+    const outerEl = zp.core.outer.get ? zp.core.outer.get() : document.querySelector(".lg-outer");
+    if (outerEl) {
+        outerEl.removeEventListener("click", onSmartClick, true);
+        outerEl.addEventListener("click", onSmartClick, true);
+    }
+
+    // 3. Quản lý Rê Kéo (Zoom Drag & Pan)
     let startTime = 0;
     let startCords = {};
     let endCords = {};
@@ -920,7 +1003,7 @@ function setupSmoothZoomDrag(zp) {
 
             const isZoomed = zp.core.outer.hasClass("lg-zoomed") || zp.scale > 1.05;
             if (isZoomed && $target.hasClass("lg-object") && (allowX || allowY)) {
-                e.preventDefault();
+                // Không gọi e.preventDefault() ở đây để tránh trình duyệt nuốt mất sự kiện click/dblclick
                 startTime = Date.now();
                 startCords = zp.getDragCords(e);
                 endCords = { ...startCords };
@@ -943,11 +1026,13 @@ function setupSmoothZoomDrag(zp) {
             if (distance > DRAG_THRESHOLD) {
                 isDragging = true;
                 zp.core.outer.removeClass("lg-grab").addClass("lg-grabbing lg-zoom-dragging");
+                e.preventDefault();
             } else {
                 return;
             }
         }
 
+        e.preventDefault();
         endCords = currentCords;
         const swipeCords = zp.getZoomSwipeCords(startCords, endCords, allowX, allowY, possibleCords);
         zp.setZoomSwipeStyles($imgWrap, swipeCords);
@@ -960,6 +1045,8 @@ function setupSmoothZoomDrag(zp) {
 
             if (isDragging) {
                 isDragging = false;
+                // Nếu vừa rê kéo xong thì reset lastClickTime để cú nhấp thả kéo không tính là click 1
+                lastClickTime = 0;
                 endCords = zp.getDragCords(e);
                 const duration = Date.now() - startTime;
                 zp.touchendZoom(startCords, endCords, allowX, allowY, duration);
@@ -967,5 +1054,6 @@ function setupSmoothZoomDrag(zp) {
         }
     });
 }
+
 
 
