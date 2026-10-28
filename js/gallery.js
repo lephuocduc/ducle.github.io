@@ -839,6 +839,41 @@ function setupGalleryInteractions(gridContainer) {
     const cleanDummyImages = () => {
         document.querySelectorAll(".lg-dummy-img").forEach(el => el.remove());
     };
+    // Bộ nhớ đệm file cho iOS Share Sheet (để kích hoạt tức thì khi chạm nút mà không mất User Activation)
+    let iosShareFilePromise = null;
+    let iosShareUrl = null;
+
+    const isIOSDevice = () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    };
+
+    const prepareIosShareFile = () => {
+        if (!isIOSDevice()) return;
+        const dlBtn = document.querySelector("#lg-download, .lg-download, [id^='lg-download']");
+        if (!dlBtn) return;
+        const url = dlBtn.getAttribute("href");
+        if (!url || url === iosShareUrl) return;
+
+        const downloadAttr = dlBtn.getAttribute("download");
+        const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.jpg";
+        iosShareUrl = url;
+
+        iosShareFilePromise = (async () => {
+            try {
+                const response = await fetch(url, { cache: "force-cache" });
+                if (!response.ok) return null;
+                const blob = await response.blob();
+                const lower = filename.toLowerCase();
+                let mimeType = "image/jpeg";
+                if (lower.endsWith(".png")) mimeType = "image/png";
+                else if (lower.endsWith(".webp")) mimeType = "image/webp";
+                return new File([blob], filename, { type: mimeType, lastModified: Date.now() });
+            } catch {
+                return null;
+            }
+        })();
+    };
 
     const updateDownloadButton = () => {
         const dlBtns = document.querySelectorAll("#lg-download, .lg-download, [id^='lg-download']");
@@ -849,6 +884,7 @@ function setupGalleryInteractions(gridContainer) {
                 dlBtn.setAttribute("title", "Tải ảnh gốc về máy");
             }
         });
+        prepareIosShareFile();
     };
 
     gridContainer.addEventListener("lgAfterOpen", () => {
@@ -933,37 +969,67 @@ function setupGalleryInteractions(gridContainer) {
             dlBtn.classList.add("is-downloading");
             dlBtn.setAttribute("aria-busy", "true");
 
-            // Kiểm tra thiết bị iOS / iPadOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isIOS = isIOSDevice();
 
+            // 1. TRÊN IPHONE / IPAD: Kích hoạt Share Sheet iOS để người dùng chọn "Lưu hình ảnh" (Save Image) vào Photos
+            if (isIOS && typeof navigator.share === "function") {
+                let shareFile = null;
+                if (iosShareFilePromise && iosShareUrl === url) {
+                    shareFile = await iosShareFilePromise;
+                }
+
+                if (!shareFile) {
+                    try {
+                        const response = await fetch(url, { cache: "force-cache" });
+                        if (response.ok) {
+                            const originalBlob = await response.blob();
+                            const lower = filename.toLowerCase();
+                            let mimeType = "image/jpeg";
+                            if (lower.endsWith(".png")) mimeType = "image/png";
+                            else if (lower.endsWith(".webp")) mimeType = "image/webp";
+                            shareFile = new File([originalBlob], filename, { type: mimeType, lastModified: Date.now() });
+                        }
+                    } catch (fetchErr) {
+                        console.warn("[iOS Share File Fetch Failed]", fetchErr);
+                    }
+                }
+
+                if (shareFile && (!navigator.canShare || navigator.canShare({ files: [shareFile] }))) {
+                    try {
+                        // QUAN TRỌNG NHẤT: CHỈ TRUYỀN files, TUYỆT ĐỐI KHÔNG TRUYỀN title HAY text!
+                        // Trên iOS Safari, khi truyền title/text, hệ thống sẽ coi là file dữ liệu và ẩn "Lưu hình ảnh" (chỉ hiện "Lưu vào Tệp").
+                        // Chỉ khi truyền duy nhất mảng [shareFile] kiểu image/jpeg, iOS mới hiện nút "Lưu hình ảnh" (Save Image vào Photos).
+                        await navigator.share({
+                            files: [shareFile]
+                        });
+                        dlBtn.classList.remove("is-downloading");
+                        dlBtn.removeAttribute("aria-busy");
+                        return; // Đã kích hoạt thành công bảng Share Sheet của iOS
+                    } catch (shareErr) {
+                        dlBtn.classList.remove("is-downloading");
+                        dlBtn.removeAttribute("aria-busy");
+                        if (shareErr.name === "AbortError") return; // Người dùng chủ động bấm Hủy
+                        console.warn("[iOS Share Sheet Error]:", shareErr);
+                    }
+                }
+            }
+
+            // Đối với iOS: nếu vì lý do nào đó Web Share không khả dụng, không ép octet-stream để tránh đẩy vào Files app
+            if (isIOS) {
+                dlBtn.classList.remove("is-downloading");
+                dlBtn.removeAttribute("aria-busy");
+                // Mở ảnh trực tiếp để người dùng nhấn giữ chọn "Lưu vào Ảnh"
+                window.location.href = url;
+                return;
+            }
+
+            // 2. TRÊN ANDROID & MÁY TÍNH: TẢI TRỰC TIẾP FILE VỀ MÁY (DOWNLOADS) - TUYỆT ĐỐI KHÔNG MỞ TAB MỚI
+            // Ép kiểu Blob sang "application/octet-stream" để Chrome trên Android không xem là ảnh hiển thị trên tab mới
             try {
-                // Tải trực tiếp từ browser cache (force-cache) vì ảnh đã được load trên màn hình
                 const response = await fetch(url, { cache: "force-cache" });
                 if (!response.ok) throw new Error("HTTP error " + response.status);
                 const originalBlob = await response.blob();
 
-                // 1. TRÊN IPHONE / IPAD: Kích hoạt Share Sheet iOS để người dùng chọn "Lưu hình ảnh" vào Photos
-                if (isIOS && typeof navigator.share === "function") {
-                    const mimeType = originalBlob.type || "image/jpeg";
-                    const shareFile = new File([originalBlob], filename, { type: mimeType });
-
-                    if (!navigator.canShare || navigator.canShare({ files: [shareFile] })) {
-                        try {
-                            await navigator.share({
-                                files: [shareFile],
-                                title: filename
-                            });
-                            return; // Mở thành công Share Sheet iOS
-                        } catch (shareErr) {
-                            if (shareErr.name === "AbortError") return; // Người dùng chủ động bấm Hủy
-                            console.warn("[iOS Share Sheet] Web Share fallback:", shareErr);
-                        }
-                    }
-                }
-
-                // 2. TRÊN ANDROID & MÁY TÍNH: TẢI TRỰC TIẾP FILE VỀ MÁY (DOWNLOADS) - TUYỆT ĐỐI KHÔNG MỞ TAB MỚI
-                // Ép kiểu Blob sang "application/octet-stream" để Chrome trên Android không xem là ảnh hiển thị trên tab mới
                 const octetBlob = new Blob([originalBlob], { type: "application/octet-stream" });
                 const blobUrl = URL.createObjectURL(octetBlob);
                 const tempLink = document.createElement("a");
