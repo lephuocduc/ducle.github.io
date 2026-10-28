@@ -14,7 +14,7 @@ export const weddingConfig = {
     // Thông tin SEO & Meta
     seo: {
         title: "Duc & Suong’s Wedding - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
-        ogImage: `${R2_HOST}/og-image.webp`,
+        ogImage: "assets/img/cover.webp",
         favicon: "assets/icons/favicon.svg"
     },
 
@@ -25,7 +25,7 @@ export const weddingConfig = {
         title: "Chú Rể",
         father: "Lê Phước Thành",
         mother: "Lê Thị Kim Tâm",
-        avatar: `${R2_HOST}/groom.jpg`,
+        avatar: "assets/img/groom.jpg",
         story: "Một người đàn ông điềm tĩnh, luôn quan tâm và hết lòng vì gia đình.",
         bank: {
             bankName: "TPBank (Ngân hàng Tiên Phong)",
@@ -42,7 +42,7 @@ export const weddingConfig = {
         title: "Cô Dâu",
         father: "Trần Văn Tèo",
         mother: "Bùi Thị Hiền",
-        avatar: `${R2_HOST}/bride.jpg`,
+        avatar: "assets/img/bride.jpg",
         story: "Một cô gái dịu dàng, yêu đời và luôn mang đến nụ cười ấm áp.",
         bank: {
             bankName: "VPBank (Ngân hàng Việt Nam Thịnh Vượng)",
@@ -62,53 +62,53 @@ export const weddingConfig = {
     hero: {
         subtitle: "SAVE THE DATE",
         title: "Lễ Thành Hôn & Tiệc Cưới",
-        backgroundImage: `${R2_HOST}/cover.webp`,
+        backgroundImage: "assets/img/cover.webp",
         quote: "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."
     },
 
-    // Hành trình yêu thương (Timeline) - Tải trực tiếp từ Cloudflare R2
+    // Hành trình yêu thương (Timeline) - Tải trực tiếp từ thư mục assets nội bộ cực nhanh
     story: [
         {
             year: "2016",
             date: "",
             title: "Lần Đầu Gặp Gỡ",
             content: "Giữa dòng đời tấp nập, thật may mắn khi anh gặp em. Từ khoảnh khắc ấy, hai trái tim dần đồng điệu và cùng nhau viết nên câu chuyện tình yêu của riêng mình.",
-            image: `${R2_HOST}/IMG_1781.webp`
+            image: "assets/img/IMG_1781.webp"
         },
         {
             year: "2016",
             date: "12/12/2016",
             title: "Lời Tỏ Tình Ngọt Ngào",
             content: "Dưới ánh đèn lung linh, câu nói 'Anh yêu em' đã chính thức gắn kết hai trái tim làm một.",
-            image: `${R2_HOST}/LoiToTinhNgotNgao.webp`
+            image: "assets/img/LoiToTinhNgotNgao.webp"
         },
         {
             year: "2016-2026",
             date: "",
             title: "Cùng Nhau Vượt Qua Thử Thách",
             content: "Không phải lúc nào con đường tình yêu cũng trải đầy hoa hồng. Có những ngày xa cách vì công việc, những lần giận hờn vu vơ, những khó khăn tưởng chừng như thử thách cả hai. Nhưng chính trong những năm tháng ấy, hai đứa đã học cách lắng nghe, thấu hiểu và luôn chọn ở lại bên nhau. Mỗi khó khăn đi qua lại càng làm cho tình yêu thêm vững chắc, để rồi cả hai tin chắc rằng đây chính là người mình muốn đi cùng đến hết cuộc đời.",
-            image: `${R2_HOST}/mosaic.webp`
+            image: "assets/img/mosaic.webp"
         },
         {
             year: "2026",
             date: "13/05/2026",
             title: "Màn Cầu Hôn Bất Ngờ",
             content: "Dưới ánh hoàng hôn dịu dàng, chiếc nhẫn được trao cùng câu trả lời “Em đồng ý!” đã viết tiếp một chương mới cho chuyện tình của chúng mình.",
-            image: `${R2_HOST}/NAM_3230.webp`
+            image: "assets/img/NAM_3230.webp"
         },
         {
             year: "2026",
             date: "04/06/2026",
             title: "Lễ Dạm Ngõ",
             content: "Hai bên gia đình gặp gỡ, chính thức mở lời cho hành trình về chung một nhà.",
-            image: `${R2_HOST}/DSCF5639-1.webp`
+            image: "assets/img/DSCF5639-1.webp"
         },
         {
             year: "2026",
             date: "25/10/2026",
             title: "Ngày Về Chung Một Nhà",
             content: "Được sự chúc phúc của gia đình hai bên và bạn bè, chúng mình chính thức trở thành vợ chồng!",
-            image: `${R2_HOST}/NAM_3641.webp`
+            image: "assets/img/NAM_3641.webp"
         }
     ],
 

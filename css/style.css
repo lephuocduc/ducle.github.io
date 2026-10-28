@@ -4602,6 +4602,11 @@ html.lg-body-no-scroll {
     margin: 0 !important;
 }
 
+/* Xóa ảnh nền thumbnail tức thì khi ảnh gốc độ phân giải cao đã tải xong */
+.lg-outer .lg-item.lg-complete .lg-img-wrap {
+    background-image: none !important;
+}
+
 /* Ảnh luôn phóng to tối đa theo chiều rộng hoặc chiều dài tùy cái nào tới trước, tuyệt đối không crop */
 .lg-outer .lg-item .lg-image {
     display: inline-block !important;

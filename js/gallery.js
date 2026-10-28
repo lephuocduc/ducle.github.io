@@ -259,13 +259,19 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     }
 
     // Nếu tìm thấy danh sách ảnh mới từ R2, kiểm tra xem có thay đổi không
-    // Chú ý: Chỉ ghi đè nếu R2 thực sự có ảnh (> 0) hoặc album ban đầu chưa có ảnh, tránh làm mất 40 ảnh mặc định
-    if (newImages && Array.isArray(newImages) && (newImages.length > 0 || (album.images || []).length === 0)) {
-        const currentImagesStr = JSON.stringify(album.images || []);
-        const newImagesStr = JSON.stringify(newImages);
+    // Chú ý: Chỉ ghi đè nếu R2 thực sự có ảnh mới hoặc album ban đầu chưa có ảnh
+    if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+        const currentList = album.images || [];
+        const currentSet = new Set(currentList.map(item => typeof item === "string" ? item : (item.file || item.src || "")));
 
-        if (currentImagesStr !== newImagesStr) {
-            console.log(`[R2 Auto-Sync] Cập nhật ảnh cho album ${album.title}: ${newImages.length} ảnh`);
+        // Chỉ cập nhật và re-render khi số lượng thay đổi hoặc có ảnh hoàn toàn mới
+        const hasNewItems = newImages.some(img => {
+            const name = typeof img === "string" ? img : (img.file || img.src || "");
+            return !currentSet.has(name);
+        });
+
+        if (currentList.length === 0 || hasNewItems || currentList.length !== newImages.length) {
+            console.log(`[R2 Auto-Sync] Cập nhật ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
             album.images = newImages;
             updateTabBadge(album.id, newImages.length);
 
@@ -499,16 +505,22 @@ function initLazyImages(container) {
                     if (src) {
                         img.src = src;
                         img.removeAttribute("data-src");
-                        img.addEventListener("load", () => {
+                        if (img.complete) {
                             img.classList.add("loaded");
                             const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
                             if (skeleton) skeleton.style.display = "none";
-                        }, { once: true });
+                        } else {
+                            img.addEventListener("load", () => {
+                                img.classList.add("loaded");
+                                const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
+                                if (skeleton) skeleton.style.display = "none";
+                            }, { once: true });
+                        }
                     }
                     observer.unobserve(img);
                 }
             });
-        }, { rootMargin: "250px 0px" });
+        }, { rootMargin: "400px 0px" });
     }
 
     container.querySelectorAll("img[data-src]").forEach(img => {
@@ -534,8 +546,11 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             preload: 1,
             download: true,
             allowMediaOverlap: true,
+            zoomFromOrigin: false,
             strings: {
-                download: "Tải ảnh gốc"
+                closeGallery: "Đóng",
+                download: "Tải ảnh gốc",
+                mediaLoadingFailed: "Đang tải ảnh..."
             },
             thumbnail: true,
             animateThumb: true,
@@ -850,9 +865,43 @@ function setupGalleryInteractions(gridContainer) {
         cleanDummyImages();
     });
 
+    gridContainer.addEventListener("lgBeforeSlide", (event) => {
+        // Hiển thị ngay thumbnail (đã có sẵn trong RAM/cache) làm nền tức thì
+        const detail = event.detail || {};
+        const index = detail.index !== undefined ? detail.index : 0;
+        const currentAlbum = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
+        if (currentAlbum?.images?.[index]) {
+            const item = currentAlbum.images[index];
+            const filename = typeof item === "string" ? item : (item.file || item.src || "");
+            const thumbUrl = getThumbUrl(currentAlbum, filename, Boolean(currentAlbum.hasThumbs));
+            setTimeout(() => {
+                const slides = document.querySelectorAll(".lg-item");
+                const currentSlide = document.querySelector(".lg-current") || slides[index];
+                if (currentSlide && !currentSlide.classList.contains("lg-complete")) {
+                    const wrap = currentSlide.querySelector(".lg-img-wrap");
+                    if (wrap) {
+                        wrap.style.backgroundImage = `url('${thumbUrl}')`;
+                        wrap.style.backgroundRepeat = "no-repeat";
+                        wrap.style.backgroundPosition = "center";
+                        wrap.style.backgroundSize = "contain";
+                    }
+                }
+            }, 10);
+        }
+    });
+
     gridContainer.addEventListener("lgAfterSlide", () => {
         updateDownloadButton();
         cleanDummyImages();
+    });
+
+    gridContainer.addEventListener("lgSlideItemLoad", (event) => {
+        // Ảnh gốc đã tải xong, dọn sạch ảnh nền thumbnail
+        const currentSlide = document.querySelector(".lg-current");
+        if (currentSlide) {
+            const wrap = currentSlide.querySelector(".lg-img-wrap");
+            if (wrap) wrap.style.backgroundImage = "none";
+        }
     });
 
     gridContainer.addEventListener("lgBeforeClose", () => {
