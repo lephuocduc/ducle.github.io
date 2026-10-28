@@ -147,10 +147,11 @@ export default {
         headers.set("Content-Type", "image/png");
       }
 
-      // Nếu có query download, ép trình duyệt lưu trực tiếp file về máy
+      // Nếu có query download, ép trình duyệt lưu trực tiếp file về máy dạng binary để không bao giờ mở tab mới
       if (url.searchParams.has("download")) {
         const dlName = url.searchParams.get("download") || key.split("/").pop() || "wedding-photo.jpg";
         headers.set("Content-Disposition", `attachment; filename="${dlName}"`);
+        headers.set("Content-Type", "application/octet-stream");
       }
 
       return new Response(object.body, { headers });

@@ -826,13 +826,14 @@ function setupGalleryInteractions(gridContainer) {
     };
 
     const updateDownloadButton = () => {
-        const dlBtn = document.querySelector("#lg-download, .lg-toolbar .lg-download");
-        if (dlBtn) {
-            dlBtn.removeAttribute("target"); // Gỡ bỏ target="_blank" để tuyệt đối không mở tab mới
+        const dlBtns = document.querySelectorAll("#lg-download, .lg-download, [id^='lg-download']");
+        dlBtns.forEach(dlBtn => {
+            dlBtn.removeAttribute("target"); // Gỡ bỏ triệt để target="_blank" trên mọi thiết bị để không mở tab mới
+            dlBtn.setAttribute("rel", "noopener");
             if (!dlBtn.getAttribute("title")) {
                 dlBtn.setAttribute("title", "Tải ảnh gốc về máy");
             }
-        }
+        });
     };
 
     gridContainer.addEventListener("lgAfterOpen", () => {
@@ -867,11 +868,12 @@ function setupGalleryInteractions(gridContainer) {
 
         // Bắt sự kiện tải ảnh gốc (Download)
         document.addEventListener("click", async (e) => {
-            const dlBtn = e.target.closest("#lg-download, .lg-download");
+            const dlBtn = e.target.closest("#lg-download, .lg-download, [id^='lg-download']");
             if (!dlBtn) return;
 
             e.preventDefault();
             e.stopPropagation();
+            dlBtn.removeAttribute("target");
 
             let url = dlBtn.getAttribute("href");
             if (!url) return;
@@ -882,19 +884,20 @@ function setupGalleryInteractions(gridContainer) {
             dlBtn.classList.add("is-downloading");
             dlBtn.setAttribute("aria-busy", "true");
 
+            // Kiểm tra thiết bị iOS / iPadOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
             try {
                 // Tải trực tiếp từ browser cache (force-cache) vì ảnh đã được load trên màn hình
                 const response = await fetch(url, { cache: "force-cache" });
                 if (!response.ok) throw new Error("HTTP error " + response.status);
-                const blob = await response.blob();
+                const originalBlob = await response.blob();
 
-                // Kiểm tra thiết bị iOS / iPadOS
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
+                // 1. TRÊN IPHONE / IPAD: Kích hoạt Share Sheet iOS để người dùng chọn "Lưu hình ảnh" vào Photos
                 if (isIOS && typeof navigator.share === "function") {
-                    const mimeType = blob.type || "image/jpeg";
-                    const shareFile = new File([blob], filename, { type: mimeType });
+                    const mimeType = originalBlob.type || "image/jpeg";
+                    const shareFile = new File([originalBlob], filename, { type: mimeType });
 
                     if (!navigator.canShare || navigator.canShare({ files: [shareFile] })) {
                         try {
@@ -902,7 +905,7 @@ function setupGalleryInteractions(gridContainer) {
                                 files: [shareFile],
                                 title: filename
                             });
-                            return; // Mở thành công Share Sheet iOS (người dùng chọn "Lưu hình ảnh" để lưu vào Photos)
+                            return; // Mở thành công Share Sheet iOS
                         } catch (shareErr) {
                             if (shareErr.name === "AbortError") return; // Người dùng chủ động bấm Hủy
                             console.warn("[iOS Share Sheet] Web Share fallback:", shareErr);
@@ -910,25 +913,41 @@ function setupGalleryInteractions(gridContainer) {
                     }
                 }
 
-                // Fallback tải file về máy cho Desktop / Android
-                const blobUrl = URL.createObjectURL(blob);
+                // 2. TRÊN ANDROID & MÁY TÍNH: TẢI TRỰC TIẾP FILE VỀ MÁY (DOWNLOADS) - TUYỆT ĐỐI KHÔNG MỞ TAB MỚI
+                // Ép kiểu Blob sang "application/octet-stream" để Chrome trên Android không xem là ảnh hiển thị trên tab mới
+                const octetBlob = new Blob([originalBlob], { type: "application/octet-stream" });
+                const blobUrl = URL.createObjectURL(octetBlob);
                 const tempLink = document.createElement("a");
                 tempLink.style.display = "none";
                 tempLink.href = blobUrl;
+                tempLink.setAttribute("download", filename);
                 tempLink.download = filename;
+                tempLink.removeAttribute("target");
                 document.body.appendChild(tempLink);
                 tempLink.click();
-                document.body.removeChild(tempLink);
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                setTimeout(() => {
+                    if (tempLink.parentNode) tempLink.parentNode.removeChild(tempLink);
+                    URL.revokeObjectURL(blobUrl);
+                }, 2000);
             } catch (err) {
-                console.error("[LightGallery Download] Lỗi tải blob trực tiếp:", err);
+                console.error("[LightGallery Download] Lỗi tải blob trực tiếp, dùng Worker attachment fallback:", err);
+                // Fallback an toàn qua Cloudflare Worker với header Content-Disposition: attachment & application/octet-stream
+                const album = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
+                const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
+                const fullDir = album?.fullDir || "full";
+                const workerDownloadUrl = `https://ducle-github-io.duc-todo-api.workers.dev/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
+
                 const fallbackLink = document.createElement("a");
                 fallbackLink.style.display = "none";
-                fallbackLink.href = url + (url.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(filename);
+                fallbackLink.href = workerDownloadUrl;
                 fallbackLink.setAttribute("download", filename);
+                fallbackLink.download = filename;
+                fallbackLink.removeAttribute("target");
                 document.body.appendChild(fallbackLink);
                 fallbackLink.click();
-                document.body.removeChild(fallbackLink);
+                setTimeout(() => {
+                    if (fallbackLink.parentNode) fallbackLink.parentNode.removeChild(fallbackLink);
+                }, 2000);
             } finally {
                 dlBtn.classList.remove("is-downloading");
                 dlBtn.removeAttribute("aria-busy");
