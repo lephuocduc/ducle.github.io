@@ -4600,24 +4600,17 @@ html.lg-body-no-scroll {
 .lg-outer .lg-img-wrap {
     padding: 0 !important;
     margin: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
 }
 
 /* Ảnh luôn phóng to tối đa theo chiều rộng hoặc chiều dài tùy cái nào tới trước, tuyệt đối không crop */
 .lg-outer .lg-item .lg-image {
+    display: inline-block !important;
+    vertical-align: middle !important;
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
     height: auto !important;
     object-fit: contain !important;
-    display: block !important;
-    margin: auto !important;
 }
 
 /* Tiêu đề ảnh (Pre-wedding - Ảnh ...) nổi thanh lịch trên ảnh ngay trên thanh thumbnails, không đẩy/co kéo ảnh */
