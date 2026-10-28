@@ -22,8 +22,67 @@ let isSyncing = false;
 let isGalleryOpen = false;
 let isGalleryInteractionsSetup = false;
 let imageObserver = null;
+let gallerySortOrder = "asc"; // "asc": cũ -> mới (mặc định), "desc": mới -> cũ
 const PAGE_SIZE = 16;
 const currentVisibleCounts = {};
+
+/**
+ * Sắp xếp danh sách ảnh theo thứ tự tự nhiên của tên file / số thứ tự (Cũ -> Mới)
+ */
+function sortImagesOldToNew(images) {
+    if (!Array.isArray(images)) return [];
+    return [...images].sort((a, b) => {
+        const nameA = typeof a === "string" ? a : (a.file || a.src || "");
+        const nameB = typeof b === "string" ? b : (b.file || b.src || "");
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+    });
+}
+
+/**
+ * Lấy danh sách ảnh hiển thị theo chiều sắp xếp đã chọn (cũ -> mới hoặc mới -> cũ)
+ */
+function getDisplayImages(album) {
+    const raw = Array.isArray(album?.images) ? album.images : [];
+    const sorted = sortImagesOldToNew(raw);
+    return gallerySortOrder === "desc" ? sorted.reverse() : sorted;
+}
+
+/**
+ * Render thanh điều khiển sắp xếp ảnh (Cũ -> Mới / Mới -> Cũ)
+ */
+function renderSortBar(hasImages) {
+    const sortBar = document.getElementById("gallery-sort-bar");
+    if (!sortBar) return;
+
+    if (!hasImages) {
+        sortBar.style.display = "none";
+        sortBar.innerHTML = "";
+        return;
+    }
+
+    sortBar.style.display = "flex";
+    sortBar.innerHTML = `
+        <span class="gallery-sort-label"><i class="fas fa-arrow-down-short-wide"></i> Thứ tự:</span>
+        <button type="button" class="gallery-sort-btn ${gallerySortOrder === "asc" ? "active" : ""}" data-sort="asc" aria-label="Sắp xếp theo thứ tự cũ đến mới">
+            <i class="fas fa-arrow-down-1-9"></i> Cũ → Mới
+        </button>
+        <button type="button" class="gallery-sort-btn ${gallerySortOrder === "desc" ? "active" : ""}" data-sort="desc" aria-label="Sắp xếp theo thứ tự mới đến cũ">
+            <i class="fas fa-arrow-down-9-1"></i> Mới → Cũ
+        </button>
+    `;
+
+    sortBar.querySelectorAll(".gallery-sort-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const chosen = btn.getAttribute("data-sort");
+            if (chosen === gallerySortOrder) return;
+            gallerySortOrder = chosen;
+            if (activeAlbumId) {
+                currentVisibleCounts[activeAlbumId] = PAGE_SIZE;
+                renderActiveAlbum(activeAlbumId);
+            }
+        });
+    });
+}
 
 /**
  * Khởi tạo module Gallery
@@ -32,6 +91,15 @@ const currentVisibleCounts = {};
  */
 export function initGalleryModule(containerId, config) {
     currentR2Config = config?.r2Gallery || getDefaultR2Config();
+
+    // Tự động sắp xếp các album có sẵn theo thứ tự Cũ -> Mới
+    if (currentR2Config?.albums) {
+        currentR2Config.albums.forEach(album => {
+            if (Array.isArray(album.images)) {
+                album.images = sortImagesOldToNew(album.images);
+            }
+        });
+    }
 
     // Nếu container có cấu trúc mới (id gallery-tabs & gallery-grid)
     const tabsContainer = document.getElementById("gallery-tabs");
@@ -46,6 +114,7 @@ export function initGalleryModule(containerId, config) {
                     <div class="gallery-tabs" id="gallery-tabs" role="tablist"></div>
                 </div>
                 <div class="gallery-content-wrap">
+                    <div id="gallery-sort-bar" class="gallery-sort-bar" style="display:none;"></div>
                     <div id="gallery-grid" class="r2-gallery-grid" aria-live="polite"></div>
                 </div>
             `;
@@ -83,7 +152,7 @@ export function renderGallery(containerId, galleryData) {
 function getDefaultR2Config() {
     return {
         host: "https://media.phuocducthusuong.com",
-        apiUrl: "https://media.phuocducthusuong.com/api/photos",
+        apiUrl: "https://wedding.phuocducthusuong.com/api/photos",
         manifestUrl: "https://media.phuocducthusuong.com/photos.json",
         autoSync: true,
         albums: [
@@ -217,7 +286,7 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.images)) {
-                newImages = data.images;
+                newImages = sortImagesOldToNew(data.images);
                 if (data.hasThumbs !== undefined) {
                     album.hasThumbs = data.hasThumbs;
                 }
@@ -248,9 +317,9 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
             if (res.ok) {
                 const manifest = await res.json();
                 if (manifest && Array.isArray(manifest[album.id])) {
-                    newImages = manifest[album.id];
+                    newImages = sortImagesOldToNew(manifest[album.id]);
                 } else if (manifest && Array.isArray(manifest[album.folder])) {
-                    newImages = manifest[album.folder];
+                    newImages = sortImagesOldToNew(manifest[album.folder]);
                 }
             }
         } catch (e) {
@@ -272,7 +341,7 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
 
         if (currentList.length === 0 || hasNewItems || currentList.length !== newImages.length) {
             console.log(`[R2 Auto-Sync] Cập nhật ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
-            album.images = newImages;
+            album.images = sortImagesOldToNew(newImages);
             updateTabBadge(album.id, newImages.length);
 
             if (rerenderIfChanged && album.id === activeAlbumId) {
@@ -324,16 +393,18 @@ function renderActiveAlbum(albumId) {
     const loadMoreWrap = document.getElementById("gallery-load-more-wrap");
 
     if (!album) {
+        renderSortBar(false);
         gridContainer.innerHTML = `<div class="r2-empty-state"><p>Không tìm thấy album.</p></div>`;
         if (loadMoreWrap) loadMoreWrap.style.display = "none";
         return;
     }
 
     const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
-    const images = Array.isArray(album.images) ? album.images : [];
+    const rawImages = Array.isArray(album.images) ? album.images : [];
 
     // Trường hợp album chưa có ảnh
-    if (images.length === 0) {
+    if (rawImages.length === 0) {
+        renderSortBar(false);
         gridContainer.innerHTML = `
             <div class="r2-empty-state">
                 <i class="fas fa-camera-retro empty-icon"></i>
@@ -345,6 +416,8 @@ function renderActiveAlbum(albumId) {
         return;
     }
 
+    renderSortBar(true);
+    const images = getDisplayImages(album);
     const hasThumbs = Boolean(album.hasThumbs);
     const visibleCount = currentVisibleCounts[albumId] || PAGE_SIZE;
 
@@ -819,7 +892,7 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
 
         const album = currentR2Config.albums.find(a => a.id === albumId);
         const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
-        const images = Array.isArray(album?.images) ? album.images : [];
+        const images = getDisplayImages(album);
         const hasThumbs = Boolean(album?.hasThumbs);
         const gridContainer = document.getElementById("gallery-grid");
 

@@ -183,18 +183,18 @@ export const weddingConfig = {
                 title: "Pre-Wedding",
                 tag: "ALBUM CƯỚI",
                 icon: "fa-heart",
-                // Danh sách tên file ảnh (thêm bớt tên file vào mảng này rất dễ dàng)
+                // Danh sách tên file ảnh (sắp xếp theo trình tự chụp cũ -> mới: NAM_2837 -> NAM_4087)
                 images: [
-                    "NAM_3641.jpg", "NAM_3511.jpg", "NAM_3814.jpg", "NAM_3256.jpg",
-                    "NAM_4087.jpg", "NAM_2843.jpg", "NAM_3894.jpg", "NAM_4041.jpg",
-                    "NAM_3688.jpg", "NAM_3259.jpg", "NAM_2918.jpg", "NAM_3068.jpg",
-                    "NAM_3016.jpg", "NAM_2893.jpg", "NAM_2900.jpg", "NAM_2837.jpg",
-                    "NAM_3230.jpg", "NAM_3648.jpg", "NAM_3954.jpg", "NAM_3540.jpg",
-                    "NAM_3632.jpg", "NAM_3502.jpg", "NAM_3466.jpg", "NAM_3281.jpg",
-                    "NAM_3293.jpg", "NAM_3318.jpg", "NAM_3415.jpg", "NAM_3863.jpg",
-                    "NAM_4045.jpg", "NAM_2906.jpg", "NAM_2981.jpg", "NAM_3157.jpg",
-                    "NAM_3186.jpg", "NAM_2934.jpg", "NAM_3369.jpg", "NAM_3833.jpg",
-                    "NAM_3988.jpg", "NAM_3665.jpg", "NAM_3407.jpg", "NAM_3103.jpg"
+                    "NAM_2837.jpg", "NAM_2843.jpg", "NAM_2893.jpg", "NAM_2900.jpg",
+                    "NAM_2906.jpg", "NAM_2918.jpg", "NAM_2934.jpg", "NAM_2981.jpg",
+                    "NAM_3016.jpg", "NAM_3068.jpg", "NAM_3103.jpg", "NAM_3157.jpg",
+                    "NAM_3186.jpg", "NAM_3230.jpg", "NAM_3256.jpg", "NAM_3259.jpg",
+                    "NAM_3281.jpg", "NAM_3293.jpg", "NAM_3318.jpg", "NAM_3369.jpg",
+                    "NAM_3407.jpg", "NAM_3415.jpg", "NAM_3466.jpg", "NAM_3502.jpg",
+                    "NAM_3511.jpg", "NAM_3540.jpg", "NAM_3632.jpg", "NAM_3641.jpg",
+                    "NAM_3648.jpg", "NAM_3665.jpg", "NAM_3688.jpg", "NAM_3814.jpg",
+                    "NAM_3833.jpg", "NAM_3863.jpg", "NAM_3894.jpg", "NAM_3954.jpg",
+                    "NAM_3988.jpg", "NAM_4041.jpg", "NAM_4045.jpg", "NAM_4087.jpg"
                 ]
             },
             {
