@@ -171,7 +171,7 @@ export const weddingConfig = {
     r2Gallery: {
         host: R2_HOST,
         // API Cloudflare Worker để tự động đồng bộ danh sách ảnh khi upload lên R2
-        apiUrl: "https://ducle-github-io.duc-todo-api.workers.dev/api/photos",
+        apiUrl: "https://wedding.phuocducthusuong.com/api/photos",
         // File manifest danh mục ảnh dự phòng trên R2
         manifestUrl: `${R2_HOST}/photos.json`,
         // Bật chế độ tự động đồng bộ ảnh mới nhất từ R2

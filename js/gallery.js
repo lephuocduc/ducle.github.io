@@ -355,7 +355,12 @@ function renderActiveAlbum(albumId) {
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
 
-        const downloadUrl = fullUrl;
+        const downloadDomain = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) 
+            ? window.location.origin 
+            : "https://wedding.phuocducthusuong.com";
+        const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
+        const fullDir = album?.fullDir || "full";
+        const downloadUrl = `${downloadDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
 
         return {
             src: fullUrl,
@@ -1087,7 +1092,10 @@ function setupGalleryInteractions(gridContainer) {
                 const album = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
                 const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
                 const fullDir = album?.fullDir || "full";
-                const workerDownloadUrl = `https://ducle-github-io.duc-todo-api.workers.dev/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
+                const fallbackDomain = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) 
+                    ? window.location.origin 
+                    : "https://wedding.phuocducthusuong.com";
+                const workerDownloadUrl = `${fallbackDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
 
                 const fallbackLink = document.createElement("a");
                 fallbackLink.style.display = "none";
