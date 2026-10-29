@@ -25,6 +25,12 @@ let imageObserver = null;
 const PAGE_SIZE = 16;
 const currentVisibleCounts = {};
 
+// Quản lý trạng thái nhấp chuột & rê kéo mượt mà trên máy tính
+let lastMouseClickTime = 0;
+let lastMouseClickX = 0;
+let lastMouseClickY = 0;
+let wasJustDragging = false;
+
 /**
  * Khởi tạo module Gallery
  * @param {string} containerId ID vùng chứa gallery (tương thích)
@@ -575,8 +581,10 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             keyPress: true,           // Mũi tên bàn phím vẫn hoạt động
             loop: true,               // Xoay vòng ảnh khi đến cuối
             hideControlOnEnd: false,
-            enableDrag: false,        // Tắt kéo trượt đổi ảnh bằng chuột trên máy tính (chặn trôi ảnh do quán tính chuột)
+            enableDrag: true,         // Bật kéo chuột chuyển ảnh trên máy tính
             enableSwipe: true,        // Giữ vuốt chuyển ảnh trên màn hình cảm ứng điện thoại
+            swipeThreshold: 40,       // Ngưỡng kéo chuột 40px để chuyển ảnh (tránh nhầm với nhấp chuột)
+            swipeToClose: false,      // Tắt vuốt dọc đóng lightbox để không bị tắt nhầm khi rê ảnh
             mobileSettings: {
                 controls: false,      // Ẩn 2 nút mũi tên < và > trên điện thoại
                 showCloseIcon: true,
@@ -1259,13 +1267,16 @@ function setupGalleryInteractions(gridContainer) {
         window.addEventListener("touchstart", onGlobalSmartTouch, { capture: true, passive: false });
 
         // 2. Bắt nhấp đúp (Double-Click) bằng chuột / trackpad trên máy tính
-        let lastMouseClickTime = 0;
-        let lastMouseClickX = 0;
-        let lastMouseClickY = 0;
-
         const onGlobalSmartClick = (e) => {
             const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
             if (!isOpen || !lightGalleryInstance) return;
+
+            // Nếu người dùng vừa thả tay sau khi rê kéo ảnh thì bỏ qua click này, không toggle zoom nhầm
+            if (wasJustDragging) {
+                wasJustDragging = false;
+                lastMouseClickTime = 0;
+                return;
+            }
 
             // Bỏ qua nếu click vào thanh công cụ, nút chuyển ảnh, thumbnails
             if (e.target.closest && e.target.closest(".lg-toolbar, .lg-actions, .lg-thumb-outer, .lg-icon, .lg-prev, .lg-next, .lg-close")) return;
@@ -1294,6 +1305,13 @@ function setupGalleryInteractions(gridContainer) {
         };
 
         document.addEventListener("click", onGlobalSmartClick, true);
+
+        // Chặn triệt để hiện tượng trình duyệt kéo bóng mờ ảnh (HTML5 native drag) gây lỗi rê chuột
+        document.addEventListener("dragstart", (e) => {
+            if (e.target && (e.target.closest?.(".lg-outer") || e.target.closest?.(".r2-gallery-grid") || e.target.closest?.("#gallery-grid"))) {
+                e.preventDefault();
+            }
+        }, false);
 
         window.addEventListener("keydown", (e) => {
             const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
@@ -1405,7 +1423,8 @@ function setupSmoothZoomDrag(zp) {
 
             const isZoomed = zp.core.outer.hasClass("lg-zoomed") || zp.scale > 1.05;
             if (isZoomed && $target.hasClass("lg-object") && (allowX || allowY)) {
-                // Không gọi e.preventDefault() ở đây để tránh trình duyệt nuốt mất sự kiện click/dblclick
+                // Ngăn chặn LightGallery core chuyển slide khi đang rê kéo xem chi tiết ảnh phóng to
+                e.stopPropagation();
                 startTime = Date.now();
                 startCords = zp.getDragCords(e);
                 endCords = { ...startCords };
@@ -1447,11 +1466,15 @@ function setupSmoothZoomDrag(zp) {
 
             if (isDragging) {
                 isDragging = false;
-                // Nếu vừa rê kéo xong thì reset lastClickTime để cú nhấp thả kéo không tính là click 1
-                lastClickTime = 0;
+                wasJustDragging = true;
+                // Nếu vừa rê kéo xong thì reset lastMouseClickTime để cú nhấp thả kéo không tính là click 1
+                lastMouseClickTime = 0;
                 endCords = zp.getDragCords(e);
                 const duration = Date.now() - startTime;
                 zp.touchendZoom(startCords, endCords, allowX, allowY, duration);
+                setTimeout(() => {
+                    wasJustDragging = false;
+                }, 200);
             }
         }
     });

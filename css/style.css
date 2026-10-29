@@ -4470,6 +4470,32 @@ html.lg-body-no-scroll {
     -webkit-touch-callout: default !important;
 }
 
+/* Ngăn chặn trình duyệt kéo bóng mờ (HTML5 ghost drag) khi rê ảnh bằng chuột trên máy tính */
+.lg-outer img,
+.lg-outer .lg-image,
+.lg-outer .lg-item,
+.lg-outer .lg-img-wrap,
+.r2-gallery-grid img {
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Con trỏ chuột khi rê kéo ảnh */
+.lg-outer .lg-item .lg-image,
+.lg-outer .lg-img-wrap {
+    cursor: grab !important;
+    cursor: -webkit-grab !important;
+}
+
+.lg-outer.lg-grabbing .lg-item .lg-image,
+.lg-outer.lg-grabbing .lg-img-wrap,
+.lg-outer.lg-zoom-dragging .lg-item .lg-image,
+.lg-outer.lg-zoom-dragging .lg-img-wrap {
+    cursor: grabbing !important;
+    cursor: -webkit-grabbing !important;
+}
+
 /* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
 .lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
