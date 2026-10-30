@@ -3,7 +3,7 @@
  * Đọc dữ liệu từ data/config.js và tự động nạp thông tin SEO Meta
  */
 
-import { weddingConfig } from '../data/config.js?v=20261030-14';
+import { weddingConfig } from '../data/config.js?v=20261030-15';
 
 export function loadConfig() {
     if (!weddingConfig) {

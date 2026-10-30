@@ -4411,14 +4411,89 @@ html.lg-body-no-scroll {
     overscroll-behavior: none !important;
 }
 
-/* Ẩn hoàn toàn 2 nút mũi tên chuyển ảnh Trái / Phải theo yêu cầu để không che màn hình */
-.lg-actions,
-.lg-actions .lg-next,
+/* 2 nút mũi tên chuyển ảnh Trái / Phải bán trong suốt (hơi mờ) để không che người trong ảnh */
+.lg-actions {
+    position: static !important;
+    pointer-events: auto !important;
+    transition: opacity 0.25s ease !important;
+}
+
+.lg-actions .lg-prev,
+.lg-actions .lg-next {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: rgba(15, 10, 10, 0.28) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    backdrop-filter: blur(6px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    color: rgba(251, 242, 196, 0.72) !important;
+    font-size: 18px !important;
+    opacity: 0.45 !important;
+    cursor: pointer !important;
+    z-index: 1084 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+    transition: opacity 0.25s ease, background-color 0.25s ease, transform 0.2s ease, border-color 0.25s ease !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    outline: none !important;
+}
+
 .lg-actions .lg-prev {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+    left: 14px !important;
+    right: auto !important;
+}
+
+.lg-actions .lg-next {
+    right: 14px !important;
+    left: auto !important;
+}
+
+/* Hiệu ứng khi rê chuột hoặc chạm nhẹ vào nút */
+.lg-actions .lg-prev:hover,
+.lg-actions .lg-prev:active,
+.lg-actions .lg-next:hover,
+.lg-actions .lg-next:active {
+    opacity: 0.9 !important;
+    background: rgba(15, 10, 10, 0.6) !important;
+    border-color: rgba(212, 175, 55, 0.5) !important;
+    color: #ffffff !important;
+    transform: translateY(-50%) scale(1.08) !important;
+}
+
+/* Khi đang phóng to ảnh (zoom in), ẩn tạm thời 2 nút chuyển để không cản trở soi chi tiết */
+.lg-outer.lg-zoomed .lg-actions {
     opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Tối ưu kích thước trên màn hình cảm ứng di động */
+@media (max-width: 600px) {
+    .lg-actions .lg-prev,
+    .lg-actions .lg-next {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 16px !important;
+        opacity: 0.4 !important;
+        background: rgba(10, 5, 5, 0.25) !important;
+    }
+
+    .lg-actions .lg-prev {
+        left: 8px !important;
+    }
+
+    .lg-actions .lg-next {
+        right: 8px !important;
+    }
 }
 
 /* Tinh chỉnh caption hiển thị tên ảnh rõ nét, gọn gàng và sang trọng */

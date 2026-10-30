@@ -597,7 +597,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             enableZoomAfter: 0,
             actualSize: false,        // TẮT nút phóng to 1 mạch 100% gây nhảy vọt sát rạt
             showZoomInOutIcons: true, // HIỆN 2 nút [+] và [-] trên thanh công cụ để zoom từng nấc từ từ
-            controls: false,          // Ẩn 2 nút mũi tên < và > để không che màn hình (người dùng tự vuốt trái/phải)
+            controls: true,           // Hiện 2 nút mũi tên < và > mờ tinh tế chuyển ảnh
             keyPress: true,           // Mũi tên bàn phím vẫn hoạt động
             loop: true,               // Xoay vòng ảnh khi đến cuối
             hideControlOnEnd: false,
@@ -606,7 +606,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             swipeThreshold: 40,       // Ngưỡng kéo chuột 40px để chuyển ảnh (tránh nhầm với nhấp chuột)
             swipeToClose: false,      // Tắt vuốt dọc đóng lightbox để không bị tắt nhầm khi rê ảnh
             mobileSettings: {
-                controls: false,      // Ẩn 2 nút mũi tên < và > trên điện thoại
+                controls: true,       // Hiện 2 nút mũi tên < và > mờ tinh tế trên điện thoại
                 showCloseIcon: true,
                 download: true,
                 thumbnail: true,

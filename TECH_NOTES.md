@@ -25,6 +25,7 @@ Tài liệu này ghi chú chi tiết toàn bộ kiến trúc, các lỗi đã t�
 | **4** | **Trôi ảnh do quán tính khi kéo thả (Pan/Drag inertia)** | LightGallery nhân thêm hệ số vận tốc kéo chuột/tay vào tọa độ dừng khiến ảnh tiếp tục trôi trượt sau khi thả tay. | Tùy biến `zp.touchendZoom`: loại bỏ hoàn toàn hệ số gia tốc quán tính, buông tay ở đâu ảnh đứng yên 100% cố định tại đúng vị trí đó. |
 | **5** | **Ảo giác ảnh mờ khi vừa mở ảnh** | Ảnh gốc 4K nặng 1.5–2 MB cần 1–2 giây tải từ mạng di động. Trong lúc tải, web hiển thị thumbnail 500px làm nền. `loading.gif` từ CDN bị lỗi 404 nên người dùng không biết ảnh gốc đang tải và tưởng ảnh bị mờ. | Thêm CSS gold spinner thanh lịch `.lg-item:not(.lg-complete)::after`. Khi ảnh gốc 4K tải xong, spinner lập tức biến mất và ảnh 4K sắc nét hiện ra. |
 | **6** | **Một vài ảnh bị màn hình đen "Đang tải ảnh..."** | Danh sách `images` trong file cấu hình chứa tên file chưa upload lên R2 (ví dụ `DSCF5639-1.webp`, `DSCF5692.webp`). | Rà soát sạch sẽ toàn bộ danh sách ảnh trong `config.js` và `photos.json`, chỉ giữ lại đúng các ảnh đã upload 100% lên R2. |
+| **7** | **Nút mũi tên chuyển ảnh che khuất người trong ảnh** | Nút mũi tên mặc định nền đen đục, nếu bật cố định sẽ che mất người trong các ảnh chụp đứng/toàn thân. | **Thiết kế nút bán trong suốt (Glassmorphism)**: nền `rgba(15, 10, 10, 0.28)` kết hợp `backdrop-filter: blur(6px)`, độ mờ `opacity: 0.45` (mobile `0.4`), icon vàng kim nhạt. Vừa dễ bấm chuyển ảnh, vừa nhìn xuyên thấu không che khuất chủ thể. Khi phóng to (zoom) tự động ẩn. |
 
 ---
 
@@ -55,3 +56,4 @@ Mỗi khi có cập nhật liên quan đến hình ảnh và gallery, luôn ki�
 3. **Chạm đúp (Double-tap)**: Phóng to 2.5x êm ái, chạm đúp lần 2 thu nhỏ về 1.0x căn giữa hoàn hảo, **0% giật, không bị dạt về góc**.
 4. **Pinch zoom 2 ngón tay**: Phóng to/thu nhỏ êm ru 60fps, thu nhỏ quá mức tự đàn hồi về giữa.
 5. **Rê kéo xem chi tiết (Pan/Drag)**: Thả tay ở đâu ảnh dừng cố định ở đó, không bị trôi hay giật về giữa.
+6. **Nút mũi tên Trái/Phải**: Hiện 2 bên mép ảnh kiểu bán trong suốt (mờ nhẹ), bấm chuyển ảnh mượt mà, không che khuất người trong ảnh. Tự động ẩn khi đang zoom.
