@@ -336,7 +336,12 @@ function renderActiveAlbum(albumId) {
     }
 
     const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
-    const images = Array.isArray(album.images) ? album.images : [];
+    const rawImages = Array.isArray(album.images) ? album.images : [];
+    const images = [...rawImages].sort((a, b) => {
+        const nameA = typeof a === "string" ? a : (a.file || a.src || "");
+        const nameB = typeof b === "string" ? b : (b.file || b.src || "");
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+    });
 
     // Trường hợp album chưa có ảnh
     if (images.length === 0) {
@@ -949,6 +954,7 @@ function setupGalleryInteractions(gridContainer) {
         }
         updateDownloadButton();
         cleanDummyImages();
+        window.dispatchEvent(new CustomEvent("wedding-gallery-state-changed", { detail: { isOpen: true } }));
     });
 
     gridContainer.addEventListener("lgBeforeSlide", (event) => {
@@ -994,6 +1000,8 @@ function setupGalleryInteractions(gridContainer) {
         isGalleryOpen = false;
         document.body.classList.remove("lg-body-no-scroll");
         document.documentElement.classList.remove("lg-body-no-scroll");
+        window.dispatchEvent(new CustomEvent("wedding-gallery-state-changed", { detail: { isOpen: false } }));
+        cleanupSwipeDismissStyles();
         cleanDummyImages();
     });
 
@@ -1328,6 +1336,9 @@ function setupGalleryInteractions(gridContainer) {
                 lightGalleryInstance.closeGallery();
             }
         });
+
+        // Kích hoạt tính năng Vuốt lên/xuống thoát ảnh (chuẩn iPhone) & bấm khoảng trống để đóng
+        setupSwipeToDismissAndBackdropClick();
     }
 }
 
@@ -1482,3 +1493,262 @@ function setupSmoothZoomDrag(zp) {
 
 
 
+
+/**
+ * TÍNH NĂNG VUỐT LÊN / VUỐT XUỐNG ĐỂ THOÁT LIGHTBOX (Chuẩn iOS Photos / Instagram)
+ * - Vuốt ngón tay lên hoặc xuống: ảnh dịch chuyển theo ngón tay, thu nhỏ nhẹ và mờ dần nền
+ * - Vuốt quá 70px hoặc hất nhanh (flick): ảnh trượt bay ra ngoài và đóng Lightbox
+ * - Vuốt nhẹ chưa tới ngưỡng: ảnh đàn hồi tự động quay về vị trí trung tâm ban đầu
+ * - Bấm vào khoảng trống màu đen xung quanh ảnh: đóng Lightbox ngay lập tức như bấm nút X
+ */
+const swipeDismissState = {
+    tracking: false,
+    isSwipingY: false,
+    startX: 0,
+    startY: 0,
+    currentY: 0,
+    startTime: 0,
+    outer: null,
+    currentWrap: null,
+    backdrop: null,
+    toolbar: null,
+    thumbOuter: null
+};
+
+function cleanupSwipeDismissStyles() {
+    if (swipeDismissState.outer) {
+        swipeDismissState.outer.classList.remove("lg-swipe-dismissing", "lg-swipe-dismiss-exit", "lg-swipe-dismiss-snap");
+    }
+    if (swipeDismissState.currentWrap) {
+        swipeDismissState.currentWrap.style.transform = "";
+        swipeDismissState.currentWrap.style.opacity = "";
+    }
+    if (swipeDismissState.backdrop) {
+        swipeDismissState.backdrop.style.opacity = "";
+    }
+    if (swipeDismissState.toolbar) {
+        swipeDismissState.toolbar.style.opacity = "";
+    }
+    if (swipeDismissState.thumbOuter) {
+        swipeDismissState.thumbOuter.style.opacity = "";
+    }
+    swipeDismissState.tracking = false;
+    swipeDismissState.isSwipingY = false;
+    swipeDismissState.outer = null;
+    swipeDismissState.currentWrap = null;
+    swipeDismissState.backdrop = null;
+    swipeDismissState.toolbar = null;
+    swipeDismissState.thumbOuter = null;
+}
+
+function setupSwipeToDismissAndBackdropClick() {
+    const isGalleryActive = () => isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
+
+    window.addEventListener("touchstart", (e) => {
+        if (!isGalleryActive() || !lightGalleryInstance) return;
+        if (!e.touches || e.touches.length !== 1) {
+            if (swipeDismissState.isSwipingY) {
+                snapBackDismiss();
+            }
+            swipeDismissState.tracking = false;
+            return;
+        }
+
+        // Nếu ảnh đang phóng to (scale > 1.05), ưu tiên cho thao tác rê kéo soi chi tiết ảnh
+        const zp = lightGalleryInstance.zoomPlugin || lightGalleryInstance.plugins?.find(p => typeof p.zoomIn === "function");
+        const currentScale = zp ? (zp.scale || 1) : 1;
+        if (currentScale > 1.05) {
+            swipeDismissState.tracking = false;
+            return;
+        }
+
+        // Không kích hoạt nếu chạm vào thanh công cụ, thumbnails hoặc các nút điều khiển
+        if (e.target && e.target.closest && e.target.closest(".lg-toolbar, .lg-thumb-outer, .lg-actions, .lg-icon, .lg-download, .lg-close")) {
+            swipeDismissState.tracking = false;
+            return;
+        }
+
+        const touch = e.touches[0];
+        swipeDismissState.tracking = true;
+        swipeDismissState.isSwipingY = false;
+        swipeDismissState.startX = touch.clientX;
+        swipeDismissState.startY = touch.clientY;
+        swipeDismissState.currentY = touch.clientY;
+        swipeDismissState.startTime = Date.now();
+
+        const outer = document.querySelector(".lg-outer");
+        const slide = document.querySelector(".lg-current");
+        swipeDismissState.outer = outer;
+        swipeDismissState.currentWrap = slide ? slide.querySelector(".lg-img-wrap") : null;
+        swipeDismissState.backdrop = document.querySelector(".lg-backdrop");
+        swipeDismissState.toolbar = document.querySelector(".lg-toolbar");
+        swipeDismissState.thumbOuter = document.querySelector(".lg-thumb-outer");
+    }, { capture: true, passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+        if (!swipeDismissState.tracking) return;
+        if (!e.touches || e.touches.length !== 1) {
+            snapBackDismiss();
+            swipeDismissState.tracking = false;
+            return;
+        }
+
+        const touch = e.touches[0];
+        const diffX = touch.clientX - swipeDismissState.startX;
+        const diffY = touch.clientY - swipeDismissState.startY;
+
+        // Xác định hướng vuốt ban đầu
+        if (!swipeDismissState.isSwipingY) {
+            // Vuốt ngang nhiều hơn -> để LightGallery chuyển ảnh trái/phải tự nhiên
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 8) {
+                swipeDismissState.tracking = false;
+                return;
+            }
+
+            // Vuốt dọc nhiều hơn và vượt ngưỡng 8px -> kích hoạt chế độ vuốt thoát
+            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
+                swipeDismissState.isSwipingY = true;
+                if (swipeDismissState.outer) {
+                    swipeDismissState.outer.classList.remove("lg-swipe-dismiss-exit", "lg-swipe-dismiss-snap");
+                    swipeDismissState.outer.classList.add("lg-swipe-dismissing");
+                }
+            } else {
+                return;
+            }
+        }
+
+        // Đang vuốt dọc: Ngăn chặn cuộn trang web
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        swipeDismissState.currentY = touch.clientY;
+        const absY = Math.abs(diffY);
+
+        // Hiệu ứng vật lý tương tác: ảnh thu nhỏ nhẹ (scale) và nền mờ dần
+        const scale = Math.max(0.75, 1 - (absY / 1200));
+        const opacity = Math.max(0.15, 1 - (absY / 450));
+        const chromeOpacity = Math.max(0, 1 - (absY / 150));
+
+        if (swipeDismissState.currentWrap) {
+            swipeDismissState.currentWrap.style.transform = `translate3d(0, ${diffY}px, 0) scale(${scale})`;
+        }
+        if (swipeDismissState.backdrop) {
+            swipeDismissState.backdrop.style.opacity = `${opacity}`;
+        }
+        if (swipeDismissState.toolbar) {
+            swipeDismissState.toolbar.style.opacity = `${chromeOpacity}`;
+        }
+        if (swipeDismissState.thumbOuter) {
+            swipeDismissState.thumbOuter.style.opacity = `${chromeOpacity}`;
+        }
+    }, { capture: true, passive: false });
+
+    const handleTouchEndDismiss = () => {
+        if (!swipeDismissState.tracking || !swipeDismissState.isSwipingY) {
+            swipeDismissState.tracking = false;
+            swipeDismissState.isSwipingY = false;
+            return;
+        }
+
+        const diffY = swipeDismissState.currentY - swipeDismissState.startY;
+        const absY = Math.abs(diffY);
+        const duration = Date.now() - swipeDismissState.startTime;
+        const velocity = absY / Math.max(duration, 1);
+
+        // Vuốt quá 70px hoặc hất nhanh (velocity > 0.45 px/ms) -> THOÁT RA NGOÀI
+        if (absY >= 70 || velocity > 0.45) {
+            wasJustDragging = true;
+            if (swipeDismissState.outer) {
+                swipeDismissState.outer.classList.remove("lg-swipe-dismissing", "lg-swipe-dismiss-snap");
+                swipeDismissState.outer.classList.add("lg-swipe-dismiss-exit");
+            }
+
+            const exitY = diffY > 0 ? (window.innerHeight * 0.9) : (-window.innerHeight * 0.9);
+
+            if (swipeDismissState.currentWrap) {
+                swipeDismissState.currentWrap.style.transform = `translate3d(0, ${exitY}px, 0) scale(0.65)`;
+                swipeDismissState.currentWrap.style.opacity = "0";
+            }
+            if (swipeDismissState.backdrop) {
+                swipeDismissState.backdrop.style.opacity = "0";
+            }
+            if (swipeDismissState.toolbar) {
+                swipeDismissState.toolbar.style.opacity = "0";
+            }
+            if (swipeDismissState.thumbOuter) {
+                swipeDismissState.thumbOuter.style.opacity = "0";
+            }
+
+            setTimeout(() => {
+                if (lightGalleryInstance) {
+                    try {
+                        lightGalleryInstance.closeGallery();
+                    } catch (err) {
+                        console.warn("[SwipeDismiss Close]", err);
+                    }
+                }
+                cleanupSwipeDismissStyles();
+                setTimeout(() => { wasJustDragging = false; }, 300);
+            }, 220);
+        } else {
+            // Vuốt chưa đủ ngưỡng -> Đàn hồi mượt mà về vị trí ban đầu
+            snapBackDismiss();
+        }
+
+        swipeDismissState.tracking = false;
+        swipeDismissState.isSwipingY = false;
+    };
+
+    window.addEventListener("touchend", handleTouchEndDismiss, { capture: true, passive: true });
+    window.addEventListener("touchcancel", handleTouchEndDismiss, { capture: true, passive: true });
+
+    function snapBackDismiss() {
+        if (swipeDismissState.outer) {
+            swipeDismissState.outer.classList.remove("lg-swipe-dismissing", "lg-swipe-dismiss-exit");
+            swipeDismissState.outer.classList.add("lg-swipe-dismiss-snap");
+        }
+
+        if (swipeDismissState.currentWrap) {
+            swipeDismissState.currentWrap.style.transform = "translate3d(0, 0, 0) scale(1)";
+        }
+        if (swipeDismissState.backdrop) {
+            swipeDismissState.backdrop.style.opacity = "";
+        }
+        if (swipeDismissState.toolbar) {
+            swipeDismissState.toolbar.style.opacity = "";
+        }
+        if (swipeDismissState.thumbOuter) {
+            swipeDismissState.thumbOuter.style.opacity = "";
+        }
+
+        setTimeout(() => {
+            cleanupSwipeDismissStyles();
+        }, 270);
+    }
+
+    // Bấm vào khoảng trống màu đen xung quanh ảnh để đóng Lightbox (như bấm nút X)
+    document.addEventListener("click", (e) => {
+        if (!isGalleryActive() || !lightGalleryInstance) return;
+
+        // Nếu ảnh đang phóng to thì không đóng
+        const zp = lightGalleryInstance.zoomPlugin || lightGalleryInstance.plugins?.find(p => typeof p.zoomIn === "function");
+        const currentScale = zp ? (zp.scale || 1) : 1;
+        if (currentScale > 1.05) return;
+
+        // Nếu vừa thao tác rê kéo ảnh thì bỏ qua
+        if (wasJustDragging || swipeDismissState.isSwipingY) return;
+
+        // Nếu nhấp vào các nút bấm, toolbar, thumbnail, caption hoặc trực tiếp vào bức ảnh -> Không đóng
+        if (e.target && e.target.closest && e.target.closest(".lg-toolbar, .lg-thumb-outer, .lg-actions, .lg-icon, .lg-download, .lg-close, .lg-sub-html, .lg-image")) {
+            return;
+        }
+
+        // Nếu nhấp vào vùng đen (backdrop, khoảng trống lề trên/dưới của slide) -> ĐÓNG NGAY
+        if (e.target && e.target.closest && e.target.closest(".lg-backdrop, .lg-item, .lg-inner, .lg-img-wrap")) {
+            e.preventDefault();
+            e.stopPropagation();
+            lightGalleryInstance.closeGallery();
+        }
+    }, true);
+}

@@ -117,6 +117,15 @@ export function initCanvasEffects(canvasId) {
         }
     });
 
+    // Tạm dừng Canvas khi mở xem ảnh lớn (Lightbox) để tiết kiệm pin tối đa và vuốt êm 60fps
+    window.addEventListener("wedding-gallery-state-changed", (e) => {
+        if (e.detail?.isOpen) {
+            stopLoop();
+        } else if (!document.hidden) {
+            startLoop();
+        }
+    });
+
     startLoop();
 }
 

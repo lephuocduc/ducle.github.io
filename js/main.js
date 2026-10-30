@@ -5,11 +5,11 @@
 
 import { loadConfig } from './config-loader.js?v=20261027-5';
 import { renderCountdown } from './countdown.js?v=20260729-2';
-import { initGalleryModule, renderGallery } from './gallery.js?v=20261029-22';
+import { initGalleryModule, renderGallery } from './gallery.js?v=20261030-01';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';
-import { initCanvasEffects, initParallax } from './effects.js?v=20260728-3';
+import { initCanvasEffects, initParallax } from './effects.js?v=20261030-01';
 import { initWishesModule } from './wishes.js?v=20260801-1';
 
 // Tải cấu hình và chỉ preload các ảnh cần cho phần mở đầu.

@@ -3,3 +3,5 @@ node_modules/
 optimized-photos/
 test-dir/
 .wrangler/
+tools/.upload-progress.json
+
