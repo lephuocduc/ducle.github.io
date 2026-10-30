@@ -4442,15 +4442,15 @@ html.lg-body-no-scroll {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
-/* Tối ưu độ sắc nét chuẩn ảnh chụp (Photographic Quality) cho LightGallery trên màn hình Retina / OLED */
+/* Tối ưu độ sắc nét cho ảnh LightGallery trên màn hình Retina / điện thoại */
 .lg-outer .lg-item .lg-image,
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
     image-rendering: auto !important;
-    image-rendering: smooth !important;
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-    -webkit-transform-style: preserve-3d !important;
-    transform-style: preserve-3d !important;
+    image-rendering: -webkit-optimize-contrast !important;
+    -webkit-backface-visibility: visible !important;
+    backface-visibility: visible !important;
+    -webkit-transform-style: flat !important;
+    transform-style: flat !important;
 }
 
 /* Loading indicator xoay tròn nhẹ nhàng khi ảnh gốc HD đang tải về */
@@ -4475,22 +4475,6 @@ html.lg-body-no-scroll {
 @keyframes lg-custom-spinner {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
-
-/* Tái tạo độ sắc nét tuyệt đối (Dynamic Re-rasterization) cho ảnh khi phóng to - Giữ nguyên tâm ảnh, 0% giật hình */
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.reset-transition {
-    max-width: none !important;
-    max-height: none !important;
-    transform: scale3d(1, 1, 1) !important;
-    image-rendering: auto !important;
-    image-rendering: smooth !important;
-    transition: none !important;
-    -webkit-transition: none !important;
-}
-
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.no-transition {
-    transition: none !important;
-    -webkit-transition: none !important;
 }
 
 /* Khử triệt để ảnh dummy trùng lặp gây lỗi nhấn giữ 2 lần trên iOS Safari */
@@ -4536,19 +4520,20 @@ html.lg-body-no-scroll {
     cursor: -webkit-grabbing !important;
 }
 
-/* Chuyển động zoom êm ái khi dùng nút bấm toolbar [+] [-] hoặc double click */
-.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap,
-.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-image {
+/* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
+.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
 }
 
-/* Khi dùng ngón tay pinch-zoom hoặc kéo rê ảnh: KHÔNG transition để ngón tay di chuyển đến đâu ảnh mượt 1:1 đến đó */
-.lg-outer:not(.lg-use-transition-for-zoom) .lg-item .lg-img-wrap,
-.lg-outer:not(.lg-use-transition-for-zoom) .lg-item .lg-image,
-.lg-outer.lg-zoom-dragging .lg-item .lg-img-wrap,
-.lg-outer.lg-zoom-dragging .lg-item .lg-image {
+/* Khi đang kéo rê ảnh (drag/pan), tắt ngay transition để ngón tay/chuột bám dính 1:1 siêu nhạy */
+.lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-img-wrap,
+.lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-image {
     transition: none !important;
     -webkit-transition: none !important;
+}
+
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
+    transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
 }
 
 /* Nút công cụ phóng to / thu nhỏ và đóng trên thanh toolbar */

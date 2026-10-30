@@ -631,6 +631,41 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 return Math.max(5.0, this.getActualSizeScale(naturalWidth, width));
             };
 
+            // 2. Tối ưu setZoomStyles dùng 2D scale & tự động căn giữa khi thu nhỏ:
+            zp.setZoomStyles = function (style) {
+                const $slide = this.core.getSlideItem(this.core.index);
+                const $wrap = $slide.find(".lg-img-wrap").first();
+                const $image = $slide.find(".lg-image").first();
+                const $dummy = this.core.outer.find(".lg-current .lg-dummy-img").first();
+
+                this.scale = style.scale;
+                const scale = style.scale;
+
+                let posX = style.x || 0;
+                let posY = style.y || 0;
+
+                // Khi scale <= 1.05x (thu nhỏ về kích thước ban đầu hoặc đang zoom out):
+                // BẮT BUỘC posX = 0 và posY = 0 để ảnh luôn luôn căn giữa tuyệt đối, không bao giờ bị lệch!
+                if (scale <= 1.05) {
+                    posX = 0;
+                    posY = 0;
+                    this.left = 0;
+                    this.top = 0;
+                } else if (scale < 1.25) {
+                    // Chuyển tiếp mượt mà kéo về tâm (0, 0) khi đang thu nhỏ dần từ 1.25x về 1.05x
+                    const factor = (scale - 1.05) / (1.25 - 1.05);
+                    posX = posX * factor;
+                    posY = posY * factor;
+                    this.left = posX;
+                    this.top = posY;
+                }
+
+                const scaleTransform = `scale(${scale})`;
+                $image.css("transform", scaleTransform);
+                $dummy.css("transform", scaleTransform);
+                $wrap.css("transform", `translate3d(${posX}px, ${posY}px, 0)`);
+            };
+
             // Hook resetZoom để đảm bảo dọn sạch mọi transform tồn đọng
             const originalResetZoom = zp.resetZoom.bind(zp);
             zp.resetZoom = function (index) {
@@ -639,113 +674,17 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 this.top = 0;
                 this.positionChanged = false;
                 this.zoomInProgress = false;
-                this.imageReset = false;
-                if (zoomRefreshTimer) {
-                    clearTimeout(zoomRefreshTimer);
-                    zoomRefreshTimer = null;
-                }
                 const idx = index !== undefined ? index : this.core.index;
                 const $slide = this.core.getSlideItem(idx);
-                const $image = $slide.find(".lg-image").first();
-                $image.removeClass("reset-transition reset-transition-y reset-transition-x no-transition");
-                $image.css("width", "auto").css("height", "auto");
                 $slide.find(".lg-img-wrap").first().removeAttr("style");
                 $slide.find(".lg-image").first().removeAttr("style");
                 this.core.outer.find(".lg-current .lg-dummy-img").first().removeAttr("style");
-                this.core.outer.removeClass("lg-zoomed lg-actual-size");
                 originalResetZoom(index);
             };
 
-            // Hàm tính toán kích thước ảnh hiển thị khi fit vừa vặn khung hình (scale = 1.0)
-            // Ưu tiên đọc trực tiếp kích thước unzoomed thực tế đã render trên DOM để sai số = 0px
-            function getBaseImageDimensions(img, containerRect) {
-                if (img._baseW && img._baseH && img._baseW > 0 && img._baseH > 0) {
-                    return { width: img._baseW, height: img._baseH };
-                }
-                const cw = containerRect?.width || window.innerWidth;
-                // Khung ảnh trừ đi 80px thanh thumbnails ở dưới
-                const ch = containerRect?.height || (window.innerHeight - 80);
-                const nw = img.naturalWidth || 3840;
-                const nh = img.naturalHeight || 2560;
-                let baseWidth, baseHeight;
-                if ((nw / nh) > (cw / ch)) {
-                    baseWidth = cw;
-                    baseHeight = cw * (nh / nw);
-                } else {
-                    baseHeight = ch;
-                    baseWidth = ch * (nw / nh);
-                }
-                img._baseW = Math.round(baseWidth);
-                img._baseH = Math.round(baseHeight);
-                return { width: img._baseW, height: img._baseH };
-            }
-
-            let zoomRefreshTimer = null;
-
-            // 3. Cơ chế tự động làm nét ảnh (Dynamic Re-rasterization):
-            // Sau khi zoom cận (pinch 2 ngón, nhấp đúp hoặc bấm nút [+] ), ảnh sẽ tự động
-            // refresh nạp lại trực tiếp từ file ảnh gốc 4K (3840x2560) ở kích thước pixel thật,
-            // giúp ảnh nét căng tuyệt đối từng chi tiết!
-            zp.setZoomImageSize = function (immediate = false) {
-                const _this = this;
-                if (zoomRefreshTimer) {
-                    clearTimeout(zoomRefreshTimer);
-                    zoomRefreshTimer = null;
-                }
-
-                const applySharpLayout = () => {
-                    const currentScale = _this.scale || 1.0;
-                    if (currentScale <= 1.05) {
-                        if (typeof _this.resetImageTranslate === "function") {
-                            _this.resetImageTranslate(_this.core.index);
-                        }
-                        return;
-                    }
-
-                    const $slide = _this.core.getSlideItem(_this.core.index);
-                    const $image = $slide?.find('.lg-image')?.first();
-                    const img = $image?.get();
-                    if (!img || !img.naturalWidth) return;
-
-                    const containerRect = _this.containerRect || _this.core.$content?.get()?.getBoundingClientRect() || {
-                        width: window.innerWidth,
-                        height: window.innerHeight
-                    };
-                    const base = getBaseImageDimensions(img, containerRect);
-
-                    const targetW = Math.round(base.width * currentScale);
-                    const targetH = Math.round(base.height * currentScale);
-
-                    // Tắt transition trong lúc swap layout width/height để tuyệt đối không bị giật/nháy
-                    $image.addClass('no-transition');
-                    $image.css('width', targetW + 'px');
-                    $image.css('height', targetH + 'px');
-                    $image.addClass('reset-transition');
-                    _this.imageReset = true;
-                    _this.core.outer.addClass('lg-zoomed lg-actual-size');
-
-                    requestAnimationFrame(() => {
-                        setTimeout(() => {
-                            $image.removeClass('no-transition');
-                        }, 30);
-                    });
-                };
-
-                if (immediate) {
-                    applySharpLayout();
-                } else {
-                    // Chờ animation zoom 0.22s kết thúc hoàn toàn (260ms) rồi mới swap layout làm nét để không bị giật
-                    zoomRefreshTimer = setTimeout(applySharpLayout, 260);
-                }
-            };
-
-            // Hook vào zoomIn để reset layout trước khi zoom tiếp
-            const origZoomIn = zp.zoomIn.bind(zp);
-            zp.zoomIn = function () {
-                if (this.imageReset) {
-                    this.resetImageTranslate(this.core.index);
-                }
-                origZoomIn();
+            // 3. Tối ưu zoom bằng GPU 2D transform scale mượt mà, không ép cứng width/height pixel gây hỏng resetZoom
+            zp.setZoomImageSize = function () {
+                // Để CSS 2D scale tự nhiên kết hợp image-rendering tối ưu đảm bảo sắc nét 4K mà không làm tràn layout DOM
             };
 
             // 4. Nhấp đúp chuột (Double-Click) & Chạm đúp (Double-Tap) Toggle Zoom 2 chiều chuẩn xác:
@@ -811,11 +750,11 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     if (this.zoomInProgress) return;
                     this.zoomInProgress = true;
 
-                    // Phóng to 3.0x tại vị trí click/tap (chuẩn 1:1 siêu nét Retina)
-                    const targetScale = 3.0;
+                    // Phóng to 2.5x tại vị trí click/tap
+                    const targetScale = 2.5;
                     this.setPageCords(event);
                     this.beginZoom(targetScale);
-                    this.zoomImage(targetScale, targetScale - this.scale, true, true);
+                    this.zoomImage(targetScale, targetScale - this.scale, true, false);
                     this.core.outer.addClass("lg-zoomed");
                     setTimeout(() => {
                         this.zoomInProgress = false;
@@ -1231,44 +1170,6 @@ function setupGalleryInteractions(gridContainer) {
                 dlBtn.removeAttribute("aria-busy");
             }
         }, true);
-
-        // Xử lý cử chỉ 2 ngón tay Zoom (Pinch-to-Zoom) trên điện thoại:
-        // Khi buông tay, ảnh tự động refresh làm nét căng 100% đúng tỷ lệ đã zoom
-        let isPinchGesture = false;
-
-        window.addEventListener("touchstart", (e) => {
-            const isOpen = isGalleryOpen || Boolean(document.querySelector(".lg-show, .lg-outer.lg-visible"));
-            if (!isOpen || !lightGalleryInstance) return;
-
-            const zp = lightGalleryInstance.zoomPlugin || lightGalleryInstance.plugins?.find(p => typeof p.zoomIn === "function");
-            if (!zp) return;
-
-            if (e.touches && e.touches.length === 2) {
-                isPinchGesture = true;
-                if (zp.imageReset) {
-                    zp.resetImageTranslate(zp.core.index);
-                }
-            }
-        }, { capture: true, passive: true });
-
-        window.addEventListener("touchend", (e) => {
-            if (!isPinchGesture) return;
-            if (!e.touches || e.touches.length < 2) {
-                isPinchGesture = false;
-                const zp = lightGalleryInstance?.zoomPlugin || lightGalleryInstance?.plugins?.find(p => typeof p.zoomIn === "function");
-                if (!zp) return;
-
-                setTimeout(() => {
-                    if (zp.scale > 1.05) {
-                        if (typeof zp.setZoomImageSize === "function") {
-                            zp.setZoomImageSize(false);
-                        }
-                    } else if (zp.scale <= 1.0) {
-                        zp.resetZoom();
-                    }
-                }, 80);
-            }
-        }, { capture: true, passive: true });
 
         // Lăn chuột Zoom ảnh trên máy tính (chặn đứng cuộn đổi ảnh hoặc cuộn trang)
         window.addEventListener("wheel", onLgWheelZoom, { passive: false, capture: true });
