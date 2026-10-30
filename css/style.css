@@ -4259,7 +4259,7 @@ body.no-scroll {
 
 .r2-gallery-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     transition: opacity 0.3s ease;
 }
@@ -4804,10 +4804,10 @@ html.lg-body-no-scroll {
 /* 3. Responsive: Tablet & Màn hình vừa (4 cột cân xứng với 16 ảnh) */
 @media (max-width: 992px) {
     .gallery-content-wrap {
-        max-width: 850px;
+        max-width: 950px;
     }
     .r2-gallery-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 10px;
     }
 }
@@ -4929,15 +4929,15 @@ html.lg-body-no-scroll {
     }
 }
 
-/* Điện thoại di động: Lưới 4 cột nhỏ gọn, thẩm mỹ cao (4 hàng × 4 cột = 16 ảnh) */
+/* Điện thoại di động: Lưới 5 cột cân đối hoàn hảo (5 hàng × 5 cột = 25 ảnh) */
 @media (max-width: 600px) {
     .gallery-content-wrap {
-        padding: 0 10px;
+        padding: 0 8px;
     }
 
     .r2-gallery-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 6px !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 4px !important;
     }
 
     .r2-gallery-item {
@@ -4959,12 +4959,12 @@ html.lg-body-no-scroll {
 
 @media (max-width: 380px) {
     .gallery-content-wrap {
-        padding: 0 8px;
+        padding: 0 6px;
     }
 
     .r2-gallery-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 4px !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 3px !important;
     }
 
     .r2-gallery-item {

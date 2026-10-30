@@ -17,12 +17,12 @@ if (typeof window !== "undefined" && window.lgZoom && window.lgZoom.prototype) {
 
 let lightGalleryInstance = null;
 let currentR2Config = null;
-let activeAlbumId = "01-pre-wedding";
+let activeAlbumId = "03-vu-quy-tan-hon";
 let isSyncing = false;
 let isGalleryOpen = false;
 let isGalleryInteractionsSetup = false;
 let imageObserver = null;
-const PAGE_SIZE = 16;
+const PAGE_SIZE = 25;
 const currentVisibleCounts = {};
 
 // Quản lý trạng thái nhấp chuột & rê kéo mượt mà trên máy tính
@@ -59,7 +59,9 @@ export function initGalleryModule(containerId, config) {
     }
 
     // Mặc định chọn album đầu tiên
-    const defaultAlbum = currentR2Config.albums?.[0];
+    const defaultAlbum = (currentR2Config.defaultAlbumId && currentR2Config.albums?.find(a => a.id === currentR2Config.defaultAlbumId))
+        || currentR2Config.albums?.find(a => a.id === "03-vu-quy-tan-hon")
+        || currentR2Config.albums?.[0];
     if (defaultAlbum) {
         activeAlbumId = defaultAlbum.id;
     }
@@ -206,7 +208,7 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     const album = currentR2Config.albums.find(a => a.id === albumId);
     if (!album) return;
 
-    const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const host = getR2Host(currentR2Config.host);
     let newImages = null;
 
     // CÁCH 1: Thử gọi Cloudflare Worker API (Tự động 100% khi bạn kéo thả ảnh lên R2)
@@ -577,7 +579,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             strings: {
                 closeGallery: "Đóng",
                 download: "Tải ảnh gốc",
-                mediaLoadingFailed: "Đang tải ảnh..."
+                mediaLoadingFailed: "Không thể tải ảnh. Vui lòng thử lại"
             },
             thumbnail: true,
             animateThumb: true,
@@ -972,11 +974,9 @@ function setupGalleryInteractions(gridContainer) {
         // Hiển thị ngay thumbnail (đã có sẵn trong RAM/cache) làm nền tức thì
         const detail = event.detail || {};
         const index = detail.index !== undefined ? detail.index : 0;
-        const currentAlbum = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
-        if (currentAlbum?.images?.[index]) {
-            const item = currentAlbum.images[index];
-            const filename = typeof item === "string" ? item : (item.file || item.src || "");
-            const thumbUrl = getThumbUrl(currentAlbum, filename, Boolean(currentAlbum.hasThumbs));
+        const galleryItem = lightGalleryInstance?.galleryItems?.[index];
+        const thumbUrl = galleryItem?.thumb;
+        if (thumbUrl) {
             setTimeout(() => {
                 const slides = document.querySelectorAll(".lg-item");
                 const currentSlide = document.querySelector(".lg-current") || slides[index];
@@ -990,6 +990,25 @@ function setupGalleryInteractions(gridContainer) {
                     }
                 }
             }, 10);
+        }
+    });
+
+    // Xử lý khi ảnh full tải lỗi -> Tự động thử lại hoặc fallback về thumbnail
+    gridContainer.addEventListener("lgSlideItemLoadError", (event) => {
+        const detail = event.detail || {};
+        const index = detail.index !== undefined ? detail.index : 0;
+        console.warn("[lgSlideItemLoadError] Slide load error at index:", index);
+        const galleryItem = lightGalleryInstance?.galleryItems?.[index];
+        if (galleryItem && galleryItem.thumb) {
+            const slides = document.querySelectorAll(".lg-item");
+            const currentSlide = slides[index];
+            if (currentSlide) {
+                const img = currentSlide.querySelector(".lg-image");
+                if (img && img.src !== galleryItem.thumb) {
+                    console.log("[lgSlideItemLoadError] Fallback to thumb:", galleryItem.thumb);
+                    img.src = galleryItem.thumb;
+                }
+            }
         }
     });
 
