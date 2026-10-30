@@ -4477,16 +4477,11 @@ html.lg-body-no-scroll {
     100% { transform: rotate(360deg); }
 }
 
-/* Tái tạo độ sắc nét tuyệt đối (Dynamic Re-rasterization) cho ảnh khi phóng to */
+/* Tái tạo độ sắc nét tuyệt đối (Dynamic Re-rasterization) cho ảnh khi phóng to - Giữ nguyên tâm ảnh, 0% giật hình */
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.reset-transition {
-    top: 50% !important;
-    left: 50% !important;
-    right: auto !important;
-    bottom: auto !important;
-    margin: 0 !important;
-    transform: scale3d(1, 1, 1) translate3d(-50%, -50%, 0) !important;
     max-width: none !important;
     max-height: none !important;
+    transform: scale3d(1, 1, 1) !important;
     image-rendering: auto !important;
     image-rendering: smooth !important;
     transition: none !important;

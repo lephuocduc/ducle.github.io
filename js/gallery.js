@@ -657,9 +657,14 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
             };
 
             // Hàm tính toán kích thước ảnh hiển thị khi fit vừa vặn khung hình (scale = 1.0)
+            // Ưu tiên đọc trực tiếp kích thước unzoomed thực tế đã render trên DOM để sai số = 0px
             function getBaseImageDimensions(img, containerRect) {
+                if (img._baseW && img._baseH && img._baseW > 0 && img._baseH > 0) {
+                    return { width: img._baseW, height: img._baseH };
+                }
                 const cw = containerRect?.width || window.innerWidth;
-                const ch = containerRect?.height || window.innerHeight;
+                // Khung ảnh trừ đi 80px thanh thumbnails ở dưới
+                const ch = containerRect?.height || (window.innerHeight - 80);
                 const nw = img.naturalWidth || 3840;
                 const nh = img.naturalHeight || 2560;
                 let baseWidth, baseHeight;
@@ -670,7 +675,9 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     baseHeight = ch;
                     baseWidth = ch * (nw / nh);
                 }
-                return { width: baseWidth, height: baseHeight };
+                img._baseW = Math.round(baseWidth);
+                img._baseH = Math.round(baseHeight);
+                return { width: img._baseW, height: img._baseH };
             }
 
             let zoomRefreshTimer = null;
@@ -727,8 +734,8 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 if (immediate) {
                     applySharpLayout();
                 } else {
-                    // Chờ transition zoom kết thúc (~200ms) rồi mới swap layout để chuyển động luôn mượt 60fps
-                    zoomRefreshTimer = setTimeout(applySharpLayout, 200);
+                    // Chờ animation zoom 0.22s kết thúc hoàn toàn (260ms) rồi mới swap layout làm nét để không bị giật
+                    zoomRefreshTimer = setTimeout(applySharpLayout, 260);
                 }
             };
 
@@ -1079,6 +1086,11 @@ function setupGalleryInteractions(gridContainer) {
         if (currentSlide) {
             const wrap = currentSlide.querySelector(".lg-img-wrap");
             if (wrap) wrap.style.backgroundImage = "none";
+            const img = currentSlide.querySelector(".lg-image");
+            if (img && img.offsetWidth > 0 && img.offsetHeight > 0) {
+                img._baseW = img.offsetWidth;
+                img._baseH = img.offsetHeight;
+            }
         }
     });
 
