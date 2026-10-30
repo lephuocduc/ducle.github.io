@@ -4477,6 +4477,27 @@ html.lg-body-no-scroll {
     100% { transform: rotate(360deg); }
 }
 
+/* Tái tạo độ sắc nét tuyệt đối (Dynamic Re-rasterization) cho ảnh khi phóng to */
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.reset-transition {
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    transform: scale3d(1, 1, 1) translate3d(-50%, -50%, 0) !important;
+    max-width: none !important;
+    max-height: none !important;
+    image-rendering: auto !important;
+    image-rendering: smooth !important;
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
+.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image.no-transition {
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
 /* Khử triệt để ảnh dummy trùng lặp gây lỗi nhấn giữ 2 lần trên iOS Safari */
 .lg-outer .lg-dummy-img {
     display: none !important;
