@@ -4424,7 +4424,7 @@ html.lg-body-no-scroll {
     align-items: center !important;
     justify-content: center !important;
     position: absolute !important;
-    top: 50% !important;
+    top: 56% !important;
     transform: translateY(-50%) !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -4480,6 +4480,7 @@ html.lg-body-no-scroll {
 @media (max-width: 600px) {
     .lg-actions .lg-prev,
     .lg-actions .lg-next {
+        top: 60% !important;
         width: 38px !important;
         height: 38px !important;
         font-size: 16px !important;
