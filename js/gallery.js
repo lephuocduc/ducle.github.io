@@ -715,8 +715,8 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                     if (this.zoomInProgress) return;
                     this.zoomInProgress = true;
 
-                    // Phóng to 2.5x tại vị trí click/tap
-                    const targetScale = 2.5;
+                    // Phóng to 3.0x tại vị trí click/tap (chuẩn 1:1 siêu nét Retina)
+                    const targetScale = 3.0;
                     this.setPageCords(event);
                     this.beginZoom(targetScale);
                     this.zoomImage(targetScale, targetScale - this.scale, true, false);

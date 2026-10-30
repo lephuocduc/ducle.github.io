@@ -4442,15 +4442,39 @@ html.lg-body-no-scroll {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
-/* Tối ưu độ sắc nét cho ảnh LightGallery trên màn hình Retina / điện thoại */
+/* Tối ưu độ sắc nét chuẩn ảnh chụp (Photographic Quality) cho LightGallery trên màn hình Retina / OLED */
 .lg-outer .lg-item .lg-image,
 .lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
     image-rendering: auto !important;
-    image-rendering: -webkit-optimize-contrast !important;
-    -webkit-backface-visibility: visible !important;
-    backface-visibility: visible !important;
-    -webkit-transform-style: flat !important;
-    transform-style: flat !important;
+    image-rendering: smooth !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    -webkit-transform-style: preserve-3d !important;
+    transform-style: preserve-3d !important;
+}
+
+/* Loading indicator xoay tròn nhẹ nhàng khi ảnh gốc HD đang tải về */
+.lg-outer .lg-item:not(.lg-complete) {
+    background: none !important;
+}
+.lg-outer .lg-item:not(.lg-complete)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #d4af37;
+    border-radius: 50%;
+    animation: lg-custom-spinner 0.8s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+}
+@keyframes lg-custom-spinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Khử triệt để ảnh dummy trùng lặp gây lỗi nhấn giữ 2 lần trên iOS Safari */
@@ -4632,7 +4656,7 @@ html.lg-body-no-scroll {
     background-image: none !important;
 }
 
-/* Ảnh luôn phóng to tối đa theo chiều rộng hoặc chiều dài tùy cái nào tới trước, tuyệt đối không crop */
+/* Ảnh luôn hiển thị trọn vẹn theo tỷ lệ gốc, tự nhiên, không crop */
 .lg-outer .lg-item .lg-image {
     display: inline-block !important;
     vertical-align: middle !important;
@@ -4640,7 +4664,6 @@ html.lg-body-no-scroll {
     max-height: 100% !important;
     width: auto !important;
     height: auto !important;
-    object-fit: contain !important;
 }
 
 /* Tiêu đề ảnh (Pre-wedding - Ảnh ...) nổi thanh lịch trên ảnh ngay trên thanh thumbnails, không đẩy/co kéo ảnh */
@@ -4739,12 +4762,10 @@ html.lg-body-no-scroll {
         max-height: 100% !important;
         width: auto !important;
         height: auto !important;
-        object-fit: contain !important;
+        
     }
 
-    .lg-outer.lg-zoomed .lg-item .lg-image {
-        object-fit: contain !important;
-    }
+
 
     .lg-outer .lg-thumb-item {
         width: 58px !important;
