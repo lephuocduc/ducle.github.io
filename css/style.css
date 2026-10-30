@@ -4988,14 +4988,18 @@ html.lg-body-no-scroll {
     will-change: transform, opacity;
 }
 
+.lg-outer.lg-swipe-dismiss-exit {
+    pointer-events: none !important;
+}
+
 .lg-outer.lg-swipe-dismiss-exit .lg-current .lg-img-wrap {
-    transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) !important, opacity 0.24s ease-out !important;
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) !important, opacity 0.22s ease-out !important;
 }
 
 .lg-outer.lg-swipe-dismiss-exit .lg-backdrop,
 .lg-outer.lg-swipe-dismiss-exit .lg-toolbar,
 .lg-outer.lg-swipe-dismiss-exit .lg-thumb-outer {
-    transition: opacity 0.24s ease-out !important;
+    transition: opacity 0.22s ease-out !important;
 }
 
 .lg-outer.lg-swipe-dismiss-snap .lg-current .lg-img-wrap {

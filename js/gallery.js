@@ -1227,6 +1227,9 @@ function setupGalleryInteractions(gridContainer) {
         document.body.classList.remove("lg-body-no-scroll");
         document.documentElement.classList.remove("lg-body-no-scroll");
         window.dispatchEvent(new CustomEvent("wedding-gallery-state-changed", { detail: { isOpen: false } }));
+    });
+
+    gridContainer.addEventListener("lgAfterClose", () => {
         cleanupSwipeDismissStyles();
         cleanDummyImages();
     });
@@ -1744,6 +1747,8 @@ const swipeDismissState = {
 function cleanupSwipeDismissStyles() {
     if (swipeDismissState.outer) {
         swipeDismissState.outer.classList.remove("lg-swipe-dismissing", "lg-swipe-dismiss-exit", "lg-swipe-dismiss-snap");
+        swipeDismissState.outer.style.opacity = "";
+        swipeDismissState.outer.style.pointerEvents = "";
     }
     if (swipeDismissState.currentWrap) {
         swipeDismissState.currentWrap.style.transform = "";
@@ -1915,7 +1920,13 @@ function setupSwipeToDismissAndBackdropClick() {
                 swipeDismissState.thumbOuter.style.opacity = "0";
             }
 
+            // Đợi animation trượt mờ êm ái kết thúc (220ms)
             setTimeout(() => {
+                // Khóa cứng container ở trạng thái vô hình (opacity = 0) để không bao giờ bị chớp lại
+                if (swipeDismissState.outer) {
+                    swipeDismissState.outer.style.opacity = "0";
+                    swipeDismissState.outer.style.pointerEvents = "none";
+                }
                 if (lightGalleryInstance) {
                     try {
                         lightGalleryInstance.closeGallery();
@@ -1923,8 +1934,11 @@ function setupSwipeToDismissAndBackdropClick() {
                         console.warn("[SwipeDismiss Close]", err);
                     }
                 }
-                cleanupSwipeDismissStyles();
-                setTimeout(() => { wasJustDragging = false; }, 300);
+                // Chỉ dọn dẹp biến sau khi lightbox đã hoàn tất việc đóng
+                setTimeout(() => {
+                    cleanupSwipeDismissStyles();
+                    wasJustDragging = false;
+                }, 350);
             }, 220);
         } else {
             // Vuốt chưa đủ ngưỡng -> Đàn hồi mượt mà về vị trí ban đầu
