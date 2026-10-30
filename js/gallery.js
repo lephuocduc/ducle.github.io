@@ -8,10 +8,214 @@
  * - Responsive 2 cột trên điện thoại, tự động co giãn trên máy tính
  */
 
-// Vô hiệu hóa triệt để lỗi ép cứng pixel của lgZoom khi phóng to tối đa:
+// Tối ưu hóa triệt để thuật toán Pinch-Zoom (phóng to bằng 2 ngón tay) chuẩn Apple Photos trên iPhone/iPad:
 if (typeof window !== "undefined" && window.lgZoom && window.lgZoom.prototype) {
     window.lgZoom.prototype.setZoomImageSize = function () {
         // Giữ nguyên GPU CSS transform scale, không cho phép gán width/height pixel gây hỏng layout và reset scale về 1
+    };
+
+    // Thay thế hàm pinchZoom mặc định bằng thuật toán mượt mà tỉ lệ thực (Multiplicative Scale Ratio), triệt tiêu rung giật 100%
+    window.lgZoom.prototype.pinchZoom = function () {
+        const zp = this;
+        let startDist = 0;
+        let startScale = 1;
+        let startMidX = 0;
+        let startMidY = 0;
+        let startPosX = 0;
+        let startPosY = 0;
+        let isPinching = false;
+        let animFrameId = null;
+
+        const getDistance = (touches) => {
+            return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+        };
+
+        const getMidpoint = (touches) => {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2
+            };
+        };
+
+        // Bắt đầu chạm 2 ngón tay vào màn hình
+        zp.core.outer.on("touchstart.lg.pinch", function (e) {
+            if (!zp.isImageSlide(zp.core.index)) return;
+            const touches = e.touches;
+            if (!touches || touches.length !== 2) return;
+
+            if (e.cancelable) e.preventDefault();
+
+            const $slide = zp.core.getSlideItem(zp.core.index);
+            const $wrap = $slide.find(".lg-img-wrap").first();
+            const $image = $slide.find(".lg-image").first();
+
+            isPinching = true;
+            zp.core.touchAction = "pinch";
+            zp.core.outer.addClass("lg-pinching");
+            zp.core.outer.removeClass("lg-zoom-drag-transition lg-zoom-dragging");
+
+            // Tắt transition tức thì để ngón tay rê tới đâu ảnh bám dính mượt 1:1 tới đó
+            $wrap.css({ "transition": "none" });
+            $image.css({ "transition": "none" });
+
+            startDist = getDistance(touches);
+            startScale = zp.scale || 1;
+            const mid = getMidpoint(touches);
+            startMidX = mid.x;
+            startMidY = mid.y;
+            startPosX = zp.left || 0;
+            startPosY = zp.top || 0;
+        });
+
+        // Di chuyển 2 ngón tay để phóng to hoặc thu nhỏ
+        zp.core.$inner.on("touchmove.lg.pinch", function (e) {
+            if (!isPinching) return;
+            const touches = e.touches;
+            if (!touches || touches.length !== 2) return;
+
+            if (e.cancelable) e.preventDefault();
+
+            const curDist = getDistance(touches);
+            if (!curDist || startDist === 0) return;
+
+            const ratio = curDist / startDist;
+            // Tỷ lệ zoom co giãn tự nhiên từ 0.7x đến 6.0x
+            let newScale = startScale * ratio;
+            newScale = Math.max(0.65, Math.min(newScale, 6.0));
+
+            const curMid = getMidpoint(touches);
+            const deltaMidX = curMid.x - startMidX;
+            const deltaMidY = curMid.y - startMidY;
+
+            // Tâm khung nhìn
+            const rect = zp.core.$content.get().getBoundingClientRect();
+            const centerX = rect.width / 2 + rect.left;
+            const centerY = rect.height / 2 + rect.top;
+
+            const originDiffX = startMidX - centerX;
+            const originDiffY = startMidY - centerY;
+            const scaleRatio = newScale / Math.max(startScale, 0.001);
+
+            let newPosX = startPosX + deltaMidX + originDiffX * (1 - scaleRatio);
+            let newPosY = startPosY + deltaMidY + originDiffY * (1 - scaleRatio);
+
+            // Khi thu nhỏ dưới 1.0x, hút nhẹ về tâm căn giữa
+            if (newScale < 1.0) {
+                const damping = Math.max(0, (newScale - 0.65) / 0.35);
+                newPosX *= damping;
+                newPosY *= damping;
+            }
+
+            zp.scale = newScale;
+            zp.left = newPosX;
+            zp.top = newPosY;
+
+            // Đồng bộ qua requestAnimationFrame với tần số quét 60Hz/120Hz của iPhone/iPad Pro
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            animFrameId = requestAnimationFrame(() => {
+                const $slide = zp.core.getSlideItem(zp.core.index);
+                const $wrap = $slide.find(".lg-img-wrap").first();
+                const $image = $slide.find(".lg-image").first();
+                const $dummy = zp.core.outer.find(".lg-current .lg-dummy-img").first();
+
+                $image.css("transform", `scale3d(${newScale}, ${newScale}, 1)`);
+                if ($dummy) $dummy.css("transform", `scale3d(${newScale}, ${newScale}, 1)`);
+                $wrap.css("transform", `translate3d(${newPosX}px, ${newPosY}px, 0)`);
+            });
+        });
+
+        // Nhấc ngón tay kết thúc pinch
+        const onPinchEnd = function () {
+            if (!isPinching) return;
+            isPinching = false;
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            zp.core.outer.removeClass("lg-pinching");
+
+            const finalScale = zp.scale || 1;
+            const $slide = zp.core.getSlideItem(zp.core.index);
+            const $wrap = $slide.find(".lg-img-wrap").first();
+            const $image = $slide.find(".lg-image").first();
+            const $dummy = zp.core.outer.find(".lg-current .lg-dummy-img").first();
+
+            // Nếu người dùng vừa thu nhỏ về gần 1x (hoặc < 1x): đàn hồi mượt mà về vị trí ban đầu
+            if (finalScale <= 1.08) {
+                zp.scale = 1;
+                zp.left = 0;
+                zp.top = 0;
+                zp.positionChanged = false;
+                zp.zoomInProgress = false;
+
+                $wrap.css({
+                    "transition": "transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)",
+                    "transform": "translate3d(0px, 0px, 0px)"
+                });
+                $image.css({
+                    "transition": "transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)",
+                    "transform": "scale3d(1, 1, 1)"
+                });
+                if ($dummy) {
+                    $dummy.css({
+                        "transition": "transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)",
+                        "transform": "scale3d(1, 1, 1)"
+                    });
+                }
+
+                setTimeout(() => {
+                    $wrap.removeAttr("style");
+                    $image.removeAttr("style");
+                    if ($dummy) $dummy.removeAttr("style");
+                    zp.resetZoom();
+                    zp.core.outer.removeClass("lg-zoomed lg-actual-size lg-zoom-drag-transition lg-zoom-dragging lg-grabbing");
+                    zp.core.outer.addClass("lg-grab");
+                    $slide.removeClass("lg-zoomed lg-actual-size");
+                    zp.core.touchAction = undefined;
+                }, 290);
+            } else {
+                // Đang phóng to > 1.08x: khóa biên an toàn không để ảnh lọt khung nhìn
+                const possibleCords = zp.getPossibleSwipeDragCords();
+                let posX = zp.left || 0;
+                let posY = zp.top || 0;
+                let changed = false;
+
+                if (zp.isBeyondPossibleLeft(posX, possibleCords.minX)) {
+                    posX = possibleCords.minX;
+                    changed = true;
+                } else if (zp.isBeyondPossibleRight(posX, possibleCords.maxX)) {
+                    posX = possibleCords.maxX;
+                    changed = true;
+                }
+
+                if (zp.isBeyondPossibleTop(posY, possibleCords.minY)) {
+                    posY = possibleCords.minY;
+                    changed = true;
+                } else if (zp.isBeyondPossibleBottom(posY, possibleCords.maxY)) {
+                    posY = possibleCords.maxY;
+                    changed = true;
+                }
+
+                if (changed) {
+                    zp.left = posX;
+                    zp.top = posY;
+                    $wrap.css({
+                        "transition": "transform 0.22s ease-out",
+                        "transform": `translate3d(${posX}px, ${posY}px, 0)`
+                    });
+                    setTimeout(() => {
+                        $wrap.css({ "transition": "" });
+                    }, 230);
+                }
+
+                zp.core.outer.addClass("lg-zoomed");
+                if (typeof zp.manageActualPixelClassNames === "function") {
+                    zp.manageActualPixelClassNames();
+                }
+                zp.core.touchAction = undefined;
+            }
+        };
+
+        zp.core.$inner.on("touchend.lg.pinch", onPinchEnd);
+        zp.core.$inner.on("touchcancel.lg.pinch", onPinchEnd);
     };
 }
 
@@ -629,7 +833,7 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 return Math.max(5.0, this.getActualSizeScale(naturalWidth, width));
             };
 
-            // 2. Tối ưu setZoomStyles dùng 2D scale & tự động căn giữa khi thu nhỏ:
+            // 2. Tối ưu setZoomStyles dùng scale3d & GPU acceleration chuẩn mực:
             zp.setZoomStyles = function (style) {
                 const $slide = this.core.getSlideItem(this.core.index);
                 const $wrap = $slide.find(".lg-img-wrap").first();
@@ -642,25 +846,17 @@ function initDynamicLightGallery(gridContainer, dynamicEl) {
                 let posX = style.x || 0;
                 let posY = style.y || 0;
 
-                // Khi scale <= 1.05x (thu nhỏ về kích thước ban đầu hoặc đang zoom out):
-                // BẮT BUỘC posX = 0 và posY = 0 để ảnh luôn luôn căn giữa tuyệt đối, không bao giờ bị lệch!
-                if (scale <= 1.05) {
+                // Khi scale <= 1.02x (kích thước ban đầu): căn giữa tuyệt đối
+                if (scale <= 1.02) {
                     posX = 0;
                     posY = 0;
                     this.left = 0;
                     this.top = 0;
-                } else if (scale < 1.25) {
-                    // Chuyển tiếp mượt mà kéo về tâm (0, 0) khi đang thu nhỏ dần từ 1.25x về 1.05x
-                    const factor = (scale - 1.05) / (1.25 - 1.05);
-                    posX = posX * factor;
-                    posY = posY * factor;
-                    this.left = posX;
-                    this.top = posY;
                 }
 
-                const scaleTransform = `scale(${scale})`;
+                const scaleTransform = `scale3d(${scale}, ${scale}, 1)`;
                 $image.css("transform", scaleTransform);
-                $dummy.css("transform", scaleTransform);
+                if ($dummy) $dummy.css("transform", scaleTransform);
                 $wrap.css("transform", `translate3d(${posX}px, ${posY}px, 0)`);
             };
 
@@ -1577,10 +1773,14 @@ function setupSwipeToDismissAndBackdropClick() {
     window.addEventListener("touchstart", (e) => {
         if (!isGalleryActive() || !lightGalleryInstance) return;
         if (!e.touches || e.touches.length !== 1) {
-            if (swipeDismissState.isSwipingY) {
-                snapBackDismiss();
-            }
-            swipeDismissState.tracking = false;
+            // Khi có từ 2 ngón tay trở lên (đang hoặc chuẩn bị pinch zoom), hủy ngay vuốt thoát mà không chạy animation snap cản trở
+            cleanupSwipeDismissStyles();
+            return;
+        }
+
+        // Bỏ qua nếu đang pinch zoom
+        if (document.querySelector(".lg-outer.lg-pinching") || lightGalleryInstance?.zoomPlugin?.core?.touchAction === "pinch") {
+            cleanupSwipeDismissStyles();
             return;
         }
 
@@ -1618,8 +1818,13 @@ function setupSwipeToDismissAndBackdropClick() {
     window.addEventListener("touchmove", (e) => {
         if (!swipeDismissState.tracking) return;
         if (!e.touches || e.touches.length !== 1) {
-            snapBackDismiss();
-            swipeDismissState.tracking = false;
+            cleanupSwipeDismissStyles();
+            return;
+        }
+
+        // Bỏ qua nếu đang pinch zoom
+        if (document.querySelector(".lg-outer.lg-pinching") || lightGalleryInstance?.zoomPlugin?.core?.touchAction === "pinch") {
+            cleanupSwipeDismissStyles();
             return;
         }
 
@@ -1630,13 +1835,13 @@ function setupSwipeToDismissAndBackdropClick() {
         // Xác định hướng vuốt ban đầu
         if (!swipeDismissState.isSwipingY) {
             // Vuốt ngang nhiều hơn -> để LightGallery chuyển ảnh trái/phải tự nhiên
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 8) {
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 12) {
                 swipeDismissState.tracking = false;
                 return;
             }
 
-            // Vuốt dọc nhiều hơn và vượt ngưỡng 8px -> kích hoạt chế độ vuốt thoát
-            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
+            // Vuốt dọc nhiều hơn và vượt ngưỡng 18px -> kích hoạt chế độ vuốt thoát (tránh nhầm với đặt 2 ngón zoom)
+            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 18) {
                 swipeDismissState.isSwipingY = true;
                 if (swipeDismissState.outer) {
                     swipeDismissState.outer.classList.remove("lg-swipe-dismiss-exit", "lg-swipe-dismiss-snap");

@@ -4496,19 +4496,23 @@ html.lg-body-no-scroll {
     cursor: -webkit-grabbing !important;
 }
 
-/* Chuyển động zoom êm ái, mượt mà khi không kéo rê ảnh */
-.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
+/* Chuyển động zoom êm ái khi dùng nút bấm toolbar [+] [-] hoặc double click */
+.lg-outer.lg-use-transition-for-zoom:not(.lg-zoom-dragging):not(.lg-pinching) .lg-item.lg-complete.lg-zoomable .lg-img-wrap {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s !important;
 }
 
-/* Khi đang kéo rê ảnh (drag/pan), tắt ngay transition để ngón tay/chuột bám dính 1:1 siêu nhạy */
+/* Khi đang kéo rê ảnh (drag/pan) hoặc dùng 2 ngón pinch-zoom, TẮT NGAY transition để bám dính 1:1 theo ngón tay, triệt tiêu rung giật */
+.lg-outer.lg-pinching .lg-item .lg-img-wrap,
+.lg-outer.lg-pinching .lg-item .lg-image,
+.lg-outer.lg-pinching .lg-item .lg-dummy-img,
 .lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-img-wrap,
 .lg-outer.lg-zoom-dragging .lg-item.lg-complete.lg-zoomable .lg-image {
     transition: none !important;
     -webkit-transition: none !important;
+    will-change: transform;
 }
 
-.lg-outer .lg-item.lg-complete.lg-zoomable .lg-image {
+.lg-outer:not(.lg-zoom-dragging):not(.lg-pinching) .lg-item.lg-complete.lg-zoomable .lg-image {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s, opacity 0.15s !important;
 }
 
