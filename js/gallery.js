@@ -1510,7 +1510,6 @@ function setupSwipeToDismissAndBackdropClick() {
     let touchStartTime = 0;
     let isTrackingSwipe = false;
     let isSwipingVertical = false;
-    let activeWrap = null;
 
     window.addEventListener("touchstart", (e) => {
         if (!isGalleryActive() || !lightGalleryInstance) return;
@@ -1519,10 +1518,6 @@ function setupSwipeToDismissAndBackdropClick() {
         if (!e.touches || e.touches.length !== 1) {
             isTrackingSwipe = false;
             isSwipingVertical = false;
-            if (activeWrap) {
-                activeWrap.style.transform = "";
-                activeWrap = null;
-            }
             return;
         }
 
@@ -1545,64 +1540,39 @@ function setupSwipeToDismissAndBackdropClick() {
         touchStartTime = Date.now();
         isTrackingSwipe = true;
         isSwipingVertical = false;
-
-        const currentSlide = document.querySelector(".lg-current");
-        activeWrap = currentSlide ? currentSlide.querySelector(".lg-img-wrap") : null;
     }, { capture: true, passive: true });
 
     window.addEventListener("touchmove", (e) => {
-        if (!isTrackingSwipe || !activeWrap) return;
+        if (!isTrackingSwipe) return;
 
         if (!e.touches || e.touches.length !== 1) {
             isTrackingSwipe = false;
             isSwipingVertical = false;
-            if (activeWrap) {
-                activeWrap.style.transform = "";
-                activeWrap = null;
-            }
             return;
         }
 
         const touch = e.touches[0];
-        const diffX = touch.clientX - touchStartX;
-        const diffY = touch.clientY - touchStartY;
+        const diffX = Math.abs(touch.clientX - touchStartX);
+        const diffY = Math.abs(touch.clientY - touchStartY);
 
         if (!isSwipingVertical) {
             // Vuốt ngang nhiều hơn -> để LightGallery chuyển ảnh bình thường
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 12) {
+            if (diffX > diffY && diffX > 12) {
                 isTrackingSwipe = false;
                 return;
             }
 
-            // Vuốt dọc nhiều hơn và vượt ngưỡng 14px -> kích hoạt cử chỉ vuốt thoát kiểu Facebook
-            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 14) {
+            // Vuốt dọc nhiều hơn và vượt ngưỡng 14px -> kích hoạt nhận diện vuốt thoát
+            if (diffY > diffX && diffY > 14) {
                 isSwipingVertical = true;
             } else {
                 return;
             }
         }
 
-        if (e.cancelable) e.preventDefault();
-
-        const absY = Math.abs(diffY);
-        // Hiệu ứng tương tác vật lý chuẩn Facebook / iOS Photos:
-        // 1. Ảnh dịch chuyển theo ngón tay & thu nhỏ nhẹ
-        const scale = Math.max(0.72, 1 - (absY / 1200));
-        activeWrap.style.transition = "none";
-        activeWrap.style.transform = `translate3d(0, ${diffY}px, 0) scale(${scale})`;
-
-        // 2. Nền mờ dần theo độ kéo để nhìn thấy trang web bên dưới
-        const backdrop = document.querySelector(".lg-backdrop");
-        if (backdrop) {
-            const bgOpacity = Math.max(0.15, 1 - (absY / 450));
-            backdrop.style.transition = "none";
-            backdrop.style.opacity = `${bgOpacity}`;
-        }
-        const toolbar = document.querySelector(".lg-toolbar");
-        if (toolbar) {
-            const chromeOpacity = Math.max(0, 1 - (absY / 150));
-            toolbar.style.transition = "none";
-            toolbar.style.opacity = `${chromeOpacity}`;
+        // Ngăn chặn trình duyệt cuộn trang phía dưới khi người dùng vuốt dọc
+        if (e.cancelable) {
+            e.preventDefault();
         }
     }, { capture: true, passive: false });
 
@@ -1610,120 +1580,37 @@ function setupSwipeToDismissAndBackdropClick() {
         if (!isTrackingSwipe) return;
         isTrackingSwipe = false;
 
-        if (!isSwipingVertical || !activeWrap) {
-            if (activeWrap) {
-                activeWrap.style.transform = "";
-                activeWrap = null;
-            }
-            isSwipingVertical = false;
+        if (!isSwipingVertical) {
             return;
         }
+        isSwipingVertical = false;
 
         const touch = e.changedTouches ? e.changedTouches[0] : null;
-        const currentY = touch ? touch.clientY : touchStartY;
+        if (!touch) return;
+
+        const currentY = touch.clientY;
+        const currentX = touch.clientX;
         const diffY = currentY - touchStartY;
         const absY = Math.abs(diffY);
+        const absX = Math.abs(currentX - touchStartX);
         const elapsed = Math.max(1, Date.now() - touchStartTime);
         const velocity = absY / elapsed;
 
-        // Nếu vuốt quá 50px hoặc hất nhanh (flick) -> ẢNH TRƯỢT BAY RA NGOÀI VÀ ĐÓNG (CHUẨN FACEBOOK, 0% CHỚP GIẬT)
-        if (absY >= 50 || velocity > 0.35) {
+        // Nếu vuốt dọc đủ xa (>= 45px) hoặc hất nhanh (velocity > 0.35) -> Thoát Lightbox như bấm nút [X]
+        // Tuyệt đối không can thiệp inline style.transform/opacity/display để không bao giờ bị chớp giật trên iOS
+        if ((absY >= 45 && absY > absX * 1.2) || (velocity > 0.35 && absY > 25 && absY > absX)) {
             wasJustDragging = true;
-            isSwipingVertical = false;
-
-            const wrapRef = activeWrap;
-            activeWrap = null;
-
-            // Ảnh tiếp tục trượt bay ra ngoài theo đúng hướng ngón tay vuốt (không giật về tâm)
-            const exitY = diffY > 0 ? (window.innerHeight * 0.9) : (-window.innerHeight * 0.9);
-            if (wrapRef) {
-                wrapRef.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease-out";
-                wrapRef.style.transform = `translate3d(0, ${exitY}px, 0) scale(0.65)`;
-                wrapRef.style.opacity = "0";
-            }
-
-            const backdrop = document.querySelector(".lg-backdrop");
-            if (backdrop) {
-                backdrop.style.transition = "opacity 0.22s ease-out";
-                backdrop.style.opacity = "0";
-            }
-            const toolbar = document.querySelector(".lg-toolbar");
-            if (toolbar) {
-                toolbar.style.transition = "opacity 0.18s ease-out";
-                toolbar.style.opacity = "0";
-            }
-            const thumbOuter = document.querySelector(".lg-thumb-outer");
-            if (thumbOuter) {
-                thumbOuter.style.transition = "opacity 0.18s ease-out";
-                thumbOuter.style.opacity = "0";
-            }
-
-            // Đợi 220ms khi ảnh đã bay khuất hoàn toàn khỏi màn hình và mờ hết
             setTimeout(() => {
-                // Khóa cứng container ở display: none để tuyệt đối không có frame nào chớp lại
-                const container = document.querySelector(".lg-container");
-                if (container) {
-                    container.style.display = "none";
-                }
+                wasJustDragging = false;
+            }, 300);
 
-                if (lightGalleryInstance) {
-                    try {
-                        lightGalleryInstance.closeGallery();
-                    } catch (err) {
-                        console.warn("[closeGallery]", err);
-                    }
+            if (lightGalleryInstance) {
+                try {
+                    lightGalleryInstance.closeGallery();
+                } catch (err) {
+                    console.warn("[closeGallery]", err);
                 }
-
-                // Dọn dẹp an toàn các inline styles sau khi đóng xong
-                setTimeout(() => {
-                    if (wrapRef) {
-                        wrapRef.style.transition = "";
-                        wrapRef.style.transform = "";
-                        wrapRef.style.opacity = "";
-                    }
-                    if (backdrop) {
-                        backdrop.style.transition = "";
-                        backdrop.style.opacity = "";
-                    }
-                    if (toolbar) {
-                        toolbar.style.transition = "";
-                        toolbar.style.opacity = "";
-                    }
-                    if (thumbOuter) {
-                        thumbOuter.style.transition = "";
-                        thumbOuter.style.opacity = "";
-                    }
-                    if (container) {
-                        container.style.display = "";
-                    }
-                    wasJustDragging = false;
-                }, 350);
-            }, 220);
-        } else {
-            // Vuốt chưa đủ ngưỡng -> Đàn hồi nhẹ nhàng về vị trí ban đầu
-            if (activeWrap) {
-                activeWrap.style.transition = "transform 0.22s cubic-bezier(0.25, 1, 0.5, 1)";
-                activeWrap.style.transform = "translate3d(0, 0, 0) scale(1)";
-                const wrapRef = activeWrap;
-                setTimeout(() => {
-                    wrapRef.style.transition = "";
-                    wrapRef.style.transform = "";
-                }, 230);
-                activeWrap = null;
             }
-            const backdrop = document.querySelector(".lg-backdrop");
-            if (backdrop) {
-                backdrop.style.transition = "opacity 0.22s ease-out";
-                backdrop.style.opacity = "";
-                setTimeout(() => { backdrop.style.transition = ""; }, 230);
-            }
-            const toolbar = document.querySelector(".lg-toolbar");
-            if (toolbar) {
-                toolbar.style.transition = "opacity 0.22s ease-out";
-                toolbar.style.opacity = "";
-                setTimeout(() => { toolbar.style.transition = ""; }, 230);
-            }
-            isSwipingVertical = false;
         }
     };
 
