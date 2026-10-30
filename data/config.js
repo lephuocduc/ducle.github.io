@@ -5,7 +5,9 @@
  */
 
 // Domain lưu trữ hình ảnh Cloudflare R2
-const R2_HOST = "https://media.phuocducthusuong.com";
+const R2_HOST = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com"))
+    ? window.location.origin
+    : "https://wedding.phuocducthusuong.com";
 
 export const weddingConfig = {
     // Nguồn ảnh Cloudflare R2 dùng chung toàn website

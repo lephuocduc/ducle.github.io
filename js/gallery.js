@@ -88,9 +88,9 @@ export function renderGallery(containerId, galleryData) {
  */
 function getDefaultR2Config() {
     return {
-        host: "https://media.phuocducthusuong.com",
+        host: "https://wedding.phuocducthusuong.com",
         apiUrl: "https://wedding.phuocducthusuong.com/api/photos",
-        manifestUrl: "https://media.phuocducthusuong.com/photos.json",
+        manifestUrl: "https://wedding.phuocducthusuong.com/photos.json",
         autoSync: true,
         albums: [
             {
@@ -438,13 +438,24 @@ function renderActiveAlbum(albumId) {
  * Lấy URL ảnh Thumbnail cho từng ảnh (ảnh nhỏ lấy từ folder thumb):
  * Format: {host}/{album.folder}/thumb/{filename}
  */
+function getR2Host(host) {
+    if (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) {
+        return window.location.origin;
+    }
+    const clean = (host || currentR2Config?.host || "https://wedding.phuocducthusuong.com").replace(/\/$/, "");
+    if (clean.includes("media.phuocducthusuong.com")) {
+        return "https://wedding.phuocducthusuong.com";
+    }
+    return clean;
+}
+
 function getThumbUrl(album, filename, hasThumbs, host) {
     if (!filename) return "";
     if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("/")) {
         return filename;
     }
 
-    const cleanHost = (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const cleanHost = getR2Host(host);
     const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
     const cleanFile = filename.trim();
 
@@ -463,7 +474,7 @@ function getFullUrl(album, filename, hasThumbs, host) {
         return filename;
     }
 
-    const cleanHost = (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
+    const cleanHost = getR2Host(host);
     const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
     const cleanFile = filename.trim();
 
