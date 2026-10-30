@@ -236,10 +236,7 @@ export const weddingConfig = {
                 title: "Tiệc Mừng Vu Quy",
                 tag: "NHÀ GÁI • 24/10/2026",
                 icon: "fa-champagne-glasses",
-                images: [
-                    "DSCF5639-1.webp",
-          "DSCF5692.webp"
-                ]
+                images: []
             },
             {
                 id: "03-vu-quy-tan-hon",
