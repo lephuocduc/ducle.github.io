@@ -5082,99 +5082,132 @@ html.lg-body-no-scroll {
         max-width: 560px;
     }
 
-    /* Trên điện thoại & Tablet: Hiển thị dạng lưới 2 cột × 2 hàng -> Thấy đủ 100% 4 Album, không bị cắt chữ hoặc thanh cuộn che */
-    .gallery-tabs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        padding: 0;
-        border-radius: 0;
+    .gallery-section {
+        padding-top: clamp(60px, 8vw, 80px);
+        padding-bottom: 50px;
+    }
+
+    .gallery-section .section-header {
+        margin-bottom: 16px;
+    }
+
+    .gallery-tabs-container {
+        padding: 0 12px;
+        margin: 6px auto 18px;
         width: 100%;
-        overflow: visible;
+        max-width: 100%;
+    }
+
+    /* Thanh chọn album cuộn ngang 1 hàng duy nhất (Horizontal Scroll Pills) - Giảm 80% chiều cao */
+    .gallery-tabs {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 4px 6px 8px !important;
+        border-radius: 50px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        margin: 0 auto;
+        margin: 0 auto !important;
     }
 
-    .gallery-tab-btn:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
+    .gallery-tabs::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     .gallery-tab-btn {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        gap: 3px;
-        padding: 10px 8px;
-        min-height: 66px;
-        background: #ffffff;
-        border: 1.5px solid rgba(212, 175, 55, 0.35);
-        border-radius: 14px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: max-content !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        padding: 7px 14px !important;
+        min-height: unset !important;
+        height: 38px !important;
+        background: #ffffff !important;
+        border: 1.2px solid rgba(212, 175, 55, 0.45) !important;
+        border-radius: 50px !important;
+        box-shadow: 0 2px 8px rgba(139, 0, 0, 0.06) !important;
         cursor: pointer;
-        transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+        scroll-snap-align: center;
+        white-space: nowrap !important;
         -webkit-tap-highlight-color: transparent;
+        transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
+    }
+
+    .gallery-tab-btn:last-child:nth-child(odd) {
+        grid-column: unset !important;
     }
 
     .gallery-tab-btn i {
-        font-size: 1.15rem;
-        color: #b38728;
-        margin-bottom: 2px;
-        flex-shrink: 0;
-        transition: transform 0.2s ease, color 0.2s ease;
+        font-size: 0.88rem !important;
+        color: #b38728 !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0 !important;
     }
 
     .gallery-tab-btn .tab-title {
-        font-family: var(--font-body);
-        font-size: 0.82rem;
-        font-weight: 700;
-        line-height: 1.25;
-        color: #3d1b1b;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-family: var(--font-body) !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: #3d1b1b !important;
+        white-space: nowrap !important;
+        display: inline-block !important;
+        overflow: visible !important;
+        line-height: normal !important;
     }
 
     .gallery-tab-btn .tab-count {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: #8c734b;
-        background: rgba(212, 175, 55, 0.12);
-        padding: 1px 7px;
-        border-radius: 10px;
-        display: inline-block;
-        margin-top: 2px;
+        font-size: 0.72rem !important;
+        font-weight: 600 !important;
+        color: #8c734b !important;
+        background: rgba(212, 175, 55, 0.14) !important;
+        padding: 1px 7px !important;
+        border-radius: 12px !important;
+        margin-top: 0 !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
     }
 
     .gallery-tab-btn.active {
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-        border-color: var(--color-gold);
-        box-shadow: 0 4px 16px rgba(139, 0, 0, 0.35), 0 0 10px rgba(212, 175, 55, 0.25);
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
+        border-color: rgba(212, 175, 55, 0.7) !important;
+        box-shadow: 0 4px 14px rgba(139, 0, 0, 0.3), 0 0 8px rgba(212, 175, 55, 0.25) !important;
+        transform: none !important;
     }
 
     .gallery-tab-btn.active i {
-        color: var(--color-gold-light);
-        transform: scale(1.1);
+        color: var(--color-gold-light) !important;
+        transform: none !important;
     }
 
     .gallery-tab-btn.active .tab-title {
-        color: #ffffff;
+        color: #ffffff !important;
     }
 
     .gallery-tab-btn.active .tab-count {
-        background: rgba(255, 255, 255, 0.22);
-        color: #ffffff;
+        background: rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
     }
 
     .gallery-tab-btn:active {
-        transform: scale(0.97);
+        transform: scale(0.96) !important;
     }
 
     .gallery-content-wrap {
@@ -5184,14 +5217,14 @@ html.lg-body-no-scroll {
 
 @media (max-width: 400px) {
     .gallery-tabs {
-        gap: 8px;
+        gap: 6px !important;
     }
     .gallery-tab-btn {
-        padding: 8px 6px;
-        min-height: 60px;
+        padding: 6px 11px !important;
+        height: 36px !important;
     }
     .gallery-tab-btn .tab-title {
-        font-size: 0.78rem;
+        font-size: 0.78rem !important;
     }
 }
 

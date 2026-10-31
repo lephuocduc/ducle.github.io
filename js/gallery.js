@@ -191,6 +191,14 @@ function renderTabs() {
 
         tabsContainer.appendChild(btn);
     });
+
+    // Tự động cuộn nhẹ tab active vào giữa vùng nhìn thấy trên mobile
+    setTimeout(() => {
+        const activeBtn = tabsContainer.querySelector(".gallery-tab-btn.active");
+        if (activeBtn && tabsContainer.scrollWidth > tabsContainer.clientWidth) {
+            activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+    }, 150);
 }
 
 /**
