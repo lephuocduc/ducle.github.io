@@ -976,6 +976,24 @@ export const weddingConfig = {
           "2026-10-25_21-12-39_3Z3A8964.jpg",
           "2026-10-25_21-12-47_3Z3A8967.jpg"
         ]
+            },
+            {
+                id: "05-video-cuoi",
+                type: "video",
+                folder: null,
+                title: "Video Cưới",
+                tag: "THƯỚC PHIM KỶ NIỆM",
+                icon: "fa-film",
+                // Danh sách video YouTube (dán link YouTube hoặc mã video vào mảng dưới đây)
+                // Hỗ trợ link thường (youtube.com/watch?v=...), rút gọn (youtu.be/...) hoặc chỉ cần mã video 11 ký tự
+                videos: [
+                    // Mẫu chèn video (bỏ comment và thay link/mã YouTube khi sẵn sàng):
+                    // {
+                    //     title: "Video Phóng Sự Cưới | Phước Đức & Thu Sương",
+                    //     url: "https://www.youtube.com/watch?v=MÃ_VIDEO_YOUTUBE",
+                    //     description: "Khoảnh khắc thiêng liêng và ngập tràn hạnh phúc trong ngày trọng đại"
+                    // }
+                ]
             }
         ]
     },

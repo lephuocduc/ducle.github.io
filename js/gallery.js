@@ -72,6 +72,7 @@ export function initGalleryModule(containerId, config) {
     // Phục hồi danh sách ảnh đã đồng bộ từ localStorage (nếu có) để không hiển thị lại ảnh đã xóa khi F5
     if (typeof localStorage !== "undefined" && currentR2Config?.albums) {
         currentR2Config.albums.forEach(album => {
+            if (album.type === "video") return;
             try {
                 const cached = localStorage.getItem(`r2_album_${album.id}`);
                 if (cached) {
@@ -144,6 +145,14 @@ function getDefaultR2Config() {
                 title: "Tiệc Cưới Asiana Plaza",
                 icon: "fa-cake-candles",
                 images: []
+            },
+            {
+                id: "05-video-cuoi",
+                type: "video",
+                folder: null,
+                title: "Video Cưới",
+                icon: "fa-film",
+                videos: []
             }
         ]
     };
@@ -159,7 +168,9 @@ function renderTabs() {
     tabsContainer.innerHTML = "";
 
     currentR2Config.albums.forEach((album) => {
-        const count = Array.isArray(album.images) ? album.images.length : 0;
+        const count = album.type === "video"
+            ? (Array.isArray(album.videos) ? album.videos.length : (Array.isArray(album.images) ? album.images.length : 0))
+            : (Array.isArray(album.images) ? album.images.length : 0);
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `gallery-tab-btn ${album.id === activeAlbumId ? "active" : ""}`;
@@ -229,6 +240,7 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     if (!currentR2Config?.albums) return;
     const album = currentR2Config.albums.find(a => a.id === albumId);
     if (!album) return;
+    if (album.type === "video" || !album.folder) return;
 
     const host = getR2Host(currentR2Config.host);
     let newImages = null;
@@ -332,9 +344,11 @@ async function syncAllAlbumsFromR2() {
     isSyncing = true;
 
     try {
-        const promises = currentR2Config.albums.map(album =>
-            syncAlbumFromR2(album.id, album.id === activeAlbumId)
-        );
+        const promises = currentR2Config.albums
+            .filter(album => album.type !== "video" && album.folder)
+            .map(album =>
+                syncAlbumFromR2(album.id, album.id === activeAlbumId)
+            );
         await Promise.allSettled(promises);
     } finally {
         isSyncing = false;
@@ -352,7 +366,7 @@ async function syncAllAlbumsFromR2() {
  * Tạo danh sách dynamic elements cho LightGallery từ dữ liệu album
  */
 function buildAlbumDynamicElements(album) {
-    if (!album) return [];
+    if (!album || album.type === "video") return [];
     const host = (currentR2Config?.host || "https://wedding.phuocducthusuong.com").replace(/\/$/, "");
     const rawImages = Array.isArray(album.images) ? album.images : [];
     const images = [...rawImages].sort((a, b) => {
@@ -402,6 +416,108 @@ function updateGridAfterDeletion(album) {
     renderLoadMoreButton(album.id, album.images.length, visibleCount);
 }
 
+
+/**
+ * Trích xuất YouTube Video ID từ link hoặc mã ID
+ */
+function extractYouTubeId(input) {
+    if (!input) return null;
+    const str = (typeof input === "string" ? input : (input.youtubeId || input.url || input.src || "")).trim();
+    if (!str) return null;
+    if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+    const match = str.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    return match ? match[1] : null;
+}
+
+/**
+ * Render nội dung cho Tab Video Cưới (YouTube hoặc video trực tiếp)
+ */
+function renderVideoAlbum(album, gridContainer, loadMoreWrap) {
+    if (loadMoreWrap) loadMoreWrap.style.display = "none";
+
+    const videos = Array.isArray(album.videos) ? album.videos : (Array.isArray(album.images) ? album.images : []);
+
+    if (videos.length === 0) {
+        gridContainer.innerHTML = `
+            <div class="r2-video-gallery">
+                <div class="r2-empty-state r2-video-empty">
+                    <div class="r2-video-empty-icon-wrap">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <h3 class="empty-title">${album.title || "Video Cưới"}</h3>
+                    <p class="empty-desc">
+                        Video phóng sự cưới và các thước phim kỷ niệm ngọt ngào đang được đội ngũ hoàn thiện và sẽ sớm được cập nhật tại đây.<br>
+                        Quý khách và bạn bè hãy cùng đón chờ nhé!
+                    </p>
+                    <div class="r2-video-hint">
+                        <i class="fas fa-lightbulb" style="color: #d4af37; margin-right: 4px;"></i>
+                        Mẹo: Để chèn video, bạn chỉ cần mở file <code>data/config.js</code> và dán link YouTube vào mảng <code>videos</code> của album <code>05-video-cuoi</code>.
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const isMultiple = videos.length > 1;
+    let cardsHtml = "";
+
+    videos.forEach((item, index) => {
+        const ytId = extractYouTubeId(item);
+        const title = typeof item === "object" && item.title ? item.title : (isMultiple ? `${album.title} - Video ${index + 1}` : album.title);
+        const desc = typeof item === "object" ? (item.description || item.desc || "") : "";
+        const rawUrl = typeof item === "string" ? item : (item.url || item.src || "");
+
+        let playerHtml = "";
+        if (ytId) {
+            playerHtml = `
+                <iframe 
+                    class="r2-video-iframe" 
+                    src="https://www.youtube-nocookie.com/embed/${ytId}?rel=0&modestbranding=1" 
+                    title="${title}" 
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+            `;
+        } else if (rawUrl && (rawUrl.endsWith(".mp4") || rawUrl.endsWith(".webm") || rawUrl.includes(".mp4?"))) {
+            playerHtml = `
+                <video class="r2-video-html5" controls playsinline preload="metadata">
+                    <source src="${rawUrl}" type="video/mp4">
+                    Trình duyệt của bạn không hỗ trợ phát video.
+                </video>
+            `;
+        } else {
+            playerHtml = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a0000;color:#d4af37;padding:20px;text-align:center;">
+                    <p><i class="fas fa-circle-exclamation" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i>Link video không hợp lệ hoặc chưa hỗ trợ.</p>
+                </div>
+            `;
+        }
+
+        cardsHtml += `
+            <div class="r2-video-card">
+                <div class="r2-video-player-wrap">
+                    ${playerHtml}
+                </div>
+                <div class="r2-video-info">
+                    <span class="r2-video-badge"><i class="fab fa-youtube"></i> ${album.tag || "THƯỚC PHIM CƯỚI"}</span>
+                    <h3 class="r2-video-title">${title}</h3>
+                    ${desc ? `<p class="r2-video-desc">${desc}</p>` : ""}
+                </div>
+            </div>
+        `;
+    });
+
+    gridContainer.innerHTML = `
+        <div class="r2-video-gallery">
+            <div class="r2-video-list ${isMultiple ? "multiple" : "single"}">
+                ${cardsHtml}
+            </div>
+        </div>
+    `;
+}
+
 function renderActiveAlbum(albumId) {
     const gridContainer = document.getElementById("gallery-grid");
     if (!gridContainer || !currentR2Config) return;
@@ -422,6 +538,12 @@ function renderActiveAlbum(albumId) {
     if (!album) {
         gridContainer.innerHTML = `<div class="r2-empty-state"><p>Không tìm thấy album.</p></div>`;
         if (loadMoreWrap) loadMoreWrap.style.display = "none";
+        return;
+    }
+
+    // Xử lý riêng cho Album dạng Video (YouTube Embed)
+    if (album.type === "video") {
+        renderVideoAlbum(album, gridContainer, loadMoreWrap);
         return;
     }
 
