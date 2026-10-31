@@ -118,6 +118,8 @@ export default {
           thumbDir: detectedThumbDir,
           fullDir: "full",
           count: files.length,
+          thumbCount: thumbFiles.length,
+          fullCount: fullFiles.length,
           images: files
         }), {
           headers: {

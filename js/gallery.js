@@ -317,6 +317,9 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
             if (rerenderIfChanged && album.id === activeAlbumId) {
                 renderActiveAlbum(activeAlbumId);
             }
+        } else {
+            // Luôn đảm bảo số lượng trên tab badge hiển thị chuẩn xác theo R2
+            updateTabBadge(album.id, newImages.length);
         }
     }
 }
