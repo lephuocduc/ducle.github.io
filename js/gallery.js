@@ -445,14 +445,7 @@ function renderVideoAlbum(album, gridContainer, loadMoreWrap) {
                         <i class="fas fa-film"></i>
                     </div>
                     <h3 class="empty-title">${album.title || "Video Cưới"}</h3>
-                    <p class="empty-desc">
-                        Video phóng sự cưới và các thước phim kỷ niệm ngọt ngào đang được đội ngũ hoàn thiện và sẽ sớm được cập nhật tại đây.<br>
-                        Quý khách và bạn bè hãy cùng đón chờ nhé!
-                    </p>
-                    <div class="r2-video-hint">
-                        <i class="fas fa-lightbulb" style="color: #d4af37; margin-right: 4px;"></i>
-                        Mẹo: Để chèn video, bạn chỉ cần mở file <code>data/config.js</code> và dán link YouTube vào mảng <code>videos</code> của album <code>05-video-cuoi</code>.
-                    </div>
+                    <p class="empty-desc">Video đang được chuẩn bị và sẽ sớm được cập nhật</p>
                 </div>
             </div>
         `;
