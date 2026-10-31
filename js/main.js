@@ -5,7 +5,7 @@
 
 import { loadConfig } from './config-loader.js?v=20261030-16';
 import { renderCountdown } from './countdown.js?v=20260729-2';
-import { initGalleryModule, renderGallery } from './gallery.js?v=20261031-04';
+import { initGalleryModule, renderGallery } from './gallery.js?v=20261031-05';
 import { initScrollAnimations } from './animation.js?v=20260728-3';
 import { renderTimeline } from './timeline.js?v=20260729-2';
 import { renderCeremonies } from './map.js?v=20260729-1';

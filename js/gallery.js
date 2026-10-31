@@ -68,6 +68,21 @@ export function initGalleryModule(containerId, config) {
         activeAlbumId = defaultAlbum.id;
     }
 
+    // Phục hồi danh sách ảnh đã đồng bộ từ localStorage (nếu có) để không hiển thị lại ảnh đã xóa khi F5
+    if (typeof localStorage !== "undefined" && currentR2Config?.albums) {
+        currentR2Config.albums.forEach(album => {
+            try {
+                const cached = localStorage.getItem(`r2_album_${album.id}`);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        album.images = parsed;
+                    }
+                }
+            } catch (_) {}
+        });
+    }
+
     // 1. Render giao diện ngay tức thì với dữ liệu sẵn có (không để người dùng chờ)
     ensureAdminModalsInDOM();
     initAdminTriggers();
@@ -222,8 +237,11 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch(`${apiUrl}?album=${encodeURIComponent(album.folder)}&t=${Date.now()}`, {
-            headers: { "Accept": "application/json" },
+        const res = await fetch(`${apiUrl}?album=${encodeURIComponent(album.folder)}&_t=${Date.now()}`, {
+            headers: { 
+                "Accept": "application/json",
+                "Cache-Control": "no-cache"
+            },
             signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -253,8 +271,11 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
             const manifestUrl = currentR2Config.manifestUrl || `${host}/photos.json`;
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
-            const res = await fetch(`${manifestUrl}?t=${Date.now()}`, {
-                headers: { "Accept": "application/json" },
+            const res = await fetch(`${manifestUrl}?_t=${Date.now()}`, {
+                headers: { 
+                    "Accept": "application/json",
+                    "Cache-Control": "no-cache"
+                },
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -273,8 +294,8 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     }
 
     // Nếu tìm thấy danh sách ảnh mới từ R2, kiểm tra xem có thay đổi không
-    // Chú ý: Chỉ ghi đè nếu R2 thực sự có ảnh mới hoặc album ban đầu chưa có ảnh
-    if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+    // Chú ý: Cập nhật và lưu vào localStorage để tránh lệch trạng thái
+    if (newImages && Array.isArray(newImages)) {
         const currentList = album.images || [];
         const currentSet = new Set(currentList.map(item => typeof item === "string" ? item : (item.file || item.src || "")));
 
@@ -287,6 +308,9 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
         if (currentList.length === 0 || hasNewItems || currentList.length !== newImages.length) {
             console.log(`[R2 Auto-Sync] Cập nhật ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
             album.images = newImages;
+            try {
+                localStorage.setItem(`r2_album_${album.id}`, JSON.stringify(newImages));
+            } catch (_) {}
             updateTabBadge(album.id, newImages.length);
 
             if (rerenderIfChanged && album.id === activeAlbumId) {
@@ -1989,13 +2013,16 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
                         setTimeout(() => cardEl.remove(), 350);
                     }
 
-                    // Cập nhật danh sách ảnh trong bộ nhớ client
+                    // Cập nhật danh sách ảnh trong bộ nhớ client và localStorage
                     const album = currentR2Config?.albums?.find(a => a.folder === albumFolder || a.id === albumFolder);
                     if (album && Array.isArray(album.images)) {
                         album.images = album.images.filter(img => {
                             const f = typeof img === "string" ? img : (img.file || img.src || "");
                             return f !== filename;
                         });
+                        try {
+                            localStorage.setItem(`r2_album_${album.id}`, JSON.stringify(album.images));
+                        } catch (_) {}
                         updateTabBadge(album.id, album.images.length);
                     }
 

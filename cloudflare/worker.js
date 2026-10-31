@@ -57,8 +57,8 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // 1. API ĐỒNG BỘ ẢNH TỰ ĐỘNG: /api/photos?album=01-pre-wedding
-    if (url.pathname === "/api/photos" || url.pathname === "/api/photos/") {
+    // 1. API ĐỒNG BỘ ẢNH TỰ ĐỘNG: GET /api/photos?album=01-pre-wedding
+    if ((request.method === "GET" || request.method === "HEAD") && (url.pathname === "/api/photos" || url.pathname === "/api/photos/")) {
       const album = url.searchParams.get("album") || "01-pre-wedding";
 
       try {
@@ -123,7 +123,7 @@ export default {
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": "public, max-age=30, s-maxage=30"
+            "Cache-Control": "no-cache, no-store, must-revalidate"
           }
         });
       } catch (err) {
@@ -221,10 +221,6 @@ export default {
           `${album}/${filename}`
         ];
 
-        // 1. Gửi lệnh xóa đồng thời ở tất cả các thư mục liên quan trên R2 (thumb, full, thumbs, root)
-        await Promise.all(keysToDelete.map(key => env.MY_BUCKET.delete(key)));
-
-        // 2. KIỂM TRA LẠI TRÊN R2 XEM CÁC FILE ĐÃ THỰC SỰ ĐƯỢC XÓA SẠCH CHƯA
         // Hàm kiểm tra sự tồn tại của file bằng head() (nhanh, nhẹ) hoặc get()
         const checkKeyExists = async (key) => {
           try {
@@ -235,17 +231,27 @@ export default {
           }
         };
 
+        const initialChecks = await Promise.all(keysToDelete.map(async (key) => {
+          const exists = await checkKeyExists(key);
+          return { key, exists };
+        }));
+        const existingKeys = initialChecks.filter(r => r.exists).map(r => r.key);
+
+        // 1. Gửi lệnh xóa đồng thời ở tất cả các thư mục liên quan trên R2 (thumb, full, thumbs, root)
+        await Promise.all(keysToDelete.map(key => env.MY_BUCKET.delete(key)));
+
+        // 2. KIỂM TRA LẠI TRÊN R2 XEM CÁC FILE ĐÃ THỰC SỰ ĐƯỢC XÓA SẠCH CHƯA
         let remaining = [];
-        // Kiểm tra tối đa 2 lần để đảm bảo tính nhất quán trên R2
-        for (let attempt = 0; attempt < 2; attempt++) {
+        // Kiểm tra tối đa 3 lần để đảm bảo tính nhất quán trên R2
+        for (let attempt = 0; attempt < 3; attempt++) {
           const verifyChecks = await Promise.all(keysToDelete.map(async (key) => {
             const exists = await checkKeyExists(key);
             return { key, exists };
           }));
           remaining = verifyChecks.filter(r => r.exists).map(r => r.key);
           if (remaining.length === 0) break;
-          // Nếu vẫn còn file, đợi 250ms rồi thử lại
-          await new Promise(r => setTimeout(r, 250));
+          // Nếu vẫn còn file, đợi 200ms rồi thử lại
+          await new Promise(r => setTimeout(r, 200));
         }
 
         if (remaining.length > 0) {
@@ -265,12 +271,13 @@ export default {
           verified: true,
           album: album,
           file: filename,
-          message: `Đã kiểm tra R2 và xác nhận xóa vĩnh viễn ảnh '${filename}' thành công!`,
-          deletedKeys: keysToDelete
+          deletedKeys: existingKeys.length > 0 ? existingKeys : keysToDelete,
+          message: `Đã kiểm tra R2 và xác nhận xóa vĩnh viễn ảnh '${filename}' thành công!`
         }), {
           headers: {
             ...corsHeaders,
-            "Content-Type": "application/json; charset=utf-8"
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-cache, no-store, must-revalidate"
           }
         });
       } catch (err) {
