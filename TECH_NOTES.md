@@ -42,7 +42,10 @@ Tài liệu này ghi chú chi tiết toàn bộ kiến trúc, các lỗi đã t�
 3. **KHÔNG gán transition CSS khi đang có cử chỉ vuốt/kéo (Touchmove/Drag)**:
    - ❌ *Sai lầm*: Để `transition: transform 0.22s` thường trực trên thẻ ảnh.
    - ✅ *Đúng đắn*: Dùng selector `.lg-outer.lg-zoom-dragging` để gán `transition: none !important`.
-4. **KHÔNG quên bump Cache Busters (`?v=...`) sau mỗi lần sửa CSS/JS**:
+4. **KHÔNG gọi `renderActiveAlbum` trong khi Lightbox đang mở**:
+   - ❌ *Sai lầm*: Gọi `renderActiveAlbum()` để cập nhật dữ liệu sau khi xóa ảnh trong Lightbox. Hàm này gọi `lightGalleryInstance.destroy(true)` phá hủy toàn bộ instance và đá văng người dùng ra ngoài!
+   - ✅ *Đúng đắn*: Dùng `lightGalleryInstance.updateSlides(newDynamicEl, targetOldIdx)` để nạp danh sách ảnh mới và lập tức chuyển mượt mà sang ảnh kế tiếp mà không đóng popup. Cập nhật ngầm trên lưới và hoãn re-render grid đầy đủ cho đến khi người dùng đóng Lightbox (`lgAfterClose`).
+5. **KHÔNG quên bump Cache Busters (`?v=...`) sau mỗi lần sửa CSS/JS**:
    - Vì Cloudflare CDN và trình duyệt người dùng cache rất mạnh, luôn cần nâng số version đồng bộ trên cả:
      - `index.html` (thẻ `<link href="css/style.css?v=...">` và `<script src="js/main.js?v=...">`)
      - `js/main.js` (`import ... from './gallery.js?v=...'` và `config-loader.js?v=...`)

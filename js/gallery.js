@@ -23,6 +23,7 @@ let activeAlbumId = "03-vu-quy-tan-hon";
 let isSyncing = false;
 let isGalleryOpen = false;
 let isGalleryInteractionsSetup = false;
+let hasPendingGridRerender = false;
 let imageObserver = null;
 const PAGE_SIZE = 25;
 const currentVisibleCounts = {};
@@ -344,6 +345,60 @@ async function syncAllAlbumsFromR2() {
  * - Lazy Loading: Ảnh lưới chỉ tải khi cuộn tới gần (tiết kiệm băng thông & chống giật lag)
  * - Safe Thumbnail: Chỉ bật lgThumbnail khi đã có thumbs chuẩn (tránh tải đồng thời 40 ảnh 17MB gốc)
  */
+/**
+ * Tạo danh sách dynamic elements cho LightGallery từ dữ liệu album
+ */
+function buildAlbumDynamicElements(album) {
+    if (!album) return [];
+    const host = (currentR2Config?.host || "https://wedding.phuocducthusuong.com").replace(/\/$/, "");
+    const rawImages = Array.isArray(album.images) ? album.images : [];
+    const images = [...rawImages].sort((a, b) => {
+        const nameA = typeof a === "string" ? a : (a.file || a.src || "");
+        const nameB = typeof b === "string" ? b : (b.file || b.src || "");
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+    });
+    const hasThumbs = Boolean(album.hasThumbs);
+    const downloadDomain = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) 
+        ? window.location.origin 
+        : "https://wedding.phuocducthusuong.com";
+    const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
+    const fullDir = album?.fullDir || "full";
+
+    return images.map((item, index) => {
+        const filename = typeof item === "string" ? item : (item.file || item.src || "");
+        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
+        const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
+        const fullUrl = getFullUrl(album, filename, hasThumbs, host);
+        const downloadUrl = `${downloadDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
+
+        return {
+            src: fullUrl,
+            thumb: thumbUrl,
+            downloadUrl: downloadUrl,
+            download: filename,
+            subHtml: `<div class='lg-caption-wrap'><p>${imageTitle}</p></div>`
+        };
+    });
+}
+
+/**
+ * Cập nhật lại chỉ số data-gallery-index và nhãn trên lưới ảnh sau khi xóa một ảnh
+ */
+function updateGridAfterDeletion(album) {
+    const grid = document.getElementById("gallery-grid");
+    if (!grid || !album) return;
+
+    const cards = grid.querySelectorAll(".r2-gallery-item:not(.r2-item-deleting)");
+    cards.forEach((card, idx) => {
+        card.setAttribute("data-gallery-index", idx.toString());
+        const title = `${album.title} - Ảnh ${idx + 1}`;
+        card.setAttribute("aria-label", `Xem ảnh ${idx + 1}/${album.images.length}: ${title}`);
+    });
+
+    const visibleCount = currentVisibleCounts[album.id] || PAGE_SIZE;
+    renderLoadMoreButton(album.id, album.images.length, visibleCount);
+}
+
 function renderActiveAlbum(albumId) {
     const gridContainer = document.getElementById("gallery-grid");
     if (!gridContainer || !currentR2Config) return;
@@ -392,27 +447,7 @@ function renderActiveAlbum(albumId) {
     const visibleCount = currentVisibleCounts[albumId] || PAGE_SIZE;
 
     // 1. Chuẩn bị danh sách dynamicEl cho toàn bộ ảnh trong album (phục vụ Lightbox duyệt cả album)
-    const dynamicEl = images.map((item, index) => {
-        const filename = typeof item === "string" ? item : (item.file || item.src || "");
-        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
-        const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
-        const fullUrl = getFullUrl(album, filename, hasThumbs, host);
-
-        const downloadDomain = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) 
-            ? window.location.origin 
-            : "https://wedding.phuocducthusuong.com";
-        const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
-        const fullDir = album?.fullDir || "full";
-        const downloadUrl = `${downloadDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
-
-        return {
-            src: fullUrl,
-            thumb: thumbUrl,
-            downloadUrl: downloadUrl,
-            download: filename,
-            subHtml: `<div class='lg-caption-wrap'><p>${imageTitle}</p></div>`
-        };
-    });
+    const dynamicEl = buildAlbumDynamicElements(album);
 
     // 2. Chỉ render vào DOM đúng số lượng ảnh hiển thị (visibleCount) -> Tuyệt đối không tạo thẻ DOM ẩn
     let htmlContent = "";
@@ -1083,10 +1118,22 @@ function setupGalleryInteractions(gridContainer) {
         window.dispatchEvent(new CustomEvent("wedding-gallery-state-changed", { detail: { isOpen: false } }));
     });
 
+    gridContainer.addEventListener("lgUpdateSlides", () => {
+        updateDownloadButton();
+        injectLightboxDeleteButton();
+        cleanDummyImages();
+    });
+
     gridContainer.addEventListener("lgAfterClose", () => {
         const container = document.querySelector(".lg-container");
         if (container) container.style.display = "";
         cleanDummyImages();
+        if (hasPendingGridRerender) {
+            hasPendingGridRerender = false;
+            setTimeout(() => {
+                renderActiveAlbum(activeAlbumId);
+            }, 60);
+        }
     });
 
     // 2. Gắn phím mũi tên & Lăn chuột toàn cục (chỉ gắn 1 lần duy nhất)
@@ -2027,18 +2074,61 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
                     }
 
                     if (isFromLightbox && lightGalleryInstance) {
-                        // Nếu đang mở Lightbox, nhảy sang ảnh tiếp theo và làm mới
                         const remaining = album?.images?.length || 0;
                         if (remaining <= 0) {
+                            // Đã xóa hết sạch ảnh trong album: đóng Lightbox và hiện trạng thái rỗng
                             lightGalleryInstance.closeGallery();
-                        } else {
-                            lightGalleryInstance.goToNextSlide();
+                            setTimeout(() => {
+                                renderActiveAlbum(activeAlbumId);
+                            }, 350);
+                            return;
                         }
-                        setTimeout(() => {
-                            renderActiveAlbum(activeAlbumId);
-                        }, 400);
+
+                        // Reset zoom trước khi chuyển ảnh để tránh giật scale
+                        if (lightGalleryInstance.zoomPlugin && typeof lightGalleryInstance.zoomPlugin.resetZoom === "function") {
+                            try {
+                                lightGalleryInstance.zoomPlugin.resetZoom();
+                            } catch (_) {}
+                        }
+
+                        // Tạo danh sách dynamic elements mới từ các ảnh còn lại trong album
+                        const newDynamicEl = buildAlbumDynamicElements(album);
+
+                        // Xác định ảnh tiếp theo cần hiển thị:
+                        // Nếu không phải ảnh cuối, mục tiêu chuyển tiếp là ảnh liền kề phía sau (currentIdx + 1)
+                        // Nếu đang là ảnh cuối cùng của album, mục tiêu là ảnh liền kề phía trước (currentIdx - 1)
+                        const currentIdx = lightGalleryInstance.index || 0;
+                        let targetOldIdx;
+                        if (currentIdx < (lightGalleryInstance.galleryItems?.length || 0) - 1) {
+                            targetOldIdx = currentIdx + 1;
+                        } else {
+                            targetOldIdx = Math.max(0, currentIdx - 1);
+                        }
+
+                        if (!lightGalleryInstance.galleryItems?.[targetOldIdx]) {
+                            targetOldIdx = 0;
+                        }
+
+                        if (typeof lightGalleryInstance.updateSlides === "function") {
+                            // updateSlides giữ nguyên Lightbox mở, tự động cập nhật thumbnails và hiện ngay ảnh tiếp theo
+                            lightGalleryInstance.updateSlides(newDynamicEl, targetOldIdx);
+                            setTimeout(() => {
+                                updateDownloadButton();
+                                injectLightboxDeleteButton();
+                            }, 80);
+                        } else {
+                            // Fallback nếu không có updateSlides
+                            lightGalleryInstance.goToNextSlide();
+                            lightGalleryInstance.galleryItems = newDynamicEl;
+                        }
+
+                        // Đánh dấu cần render lại grid đầy đủ khi người dùng đóng Lightbox
+                        hasPendingGridRerender = true;
+
+                        // Cập nhật ngầm trên lưới ảnh (xóa card, đánh lại index)
+                        if (album) updateGridAfterDeletion(album);
                     } else {
-                        // Cập nhật lại dynamic elements
+                        // Xóa từ lưới bên ngoài (không mở Lightbox)
                         setTimeout(() => {
                             renderActiveAlbum(activeAlbumId);
                         }, 300);
@@ -2056,29 +2146,34 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
 function injectLightboxDeleteButton() {
     if (!isR2Admin()) return;
     const toolbar = document.querySelector(".lg-toolbar");
-    if (!toolbar || toolbar.querySelector(".r2-lg-delete-btn")) return;
+    if (!toolbar) return;
 
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "lg-icon r2-lg-delete-btn";
-    delBtn.title = "Xóa vĩnh viễn ảnh này trên R2";
-    delBtn.setAttribute("aria-label", "Xóa ảnh");
-    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+    let delBtn = toolbar.querySelector(".r2-lg-delete-btn");
+    if (!delBtn) {
+        delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "lg-icon r2-lg-delete-btn";
+        delBtn.title = "Xóa vĩnh viễn ảnh này trên R2";
+        delBtn.setAttribute("aria-label", "Xóa ảnh");
+        delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        toolbar.appendChild(delBtn);
+    }
+
     delBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const idx = lightGalleryInstance?.index;
         if (idx === undefined || isNaN(idx)) return;
         const currentItem = lightGalleryInstance?.galleryItems?.[idx];
-        const filename = currentItem?.download || "";
+        const filename = currentItem?.download || currentItem?.src?.split("/").pop()?.split("?")[0] || "";
         const album = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
-        const card = document.querySelector(`.r2-gallery-item[data-gallery-index="${idx}"]`);
+        const card = document.querySelector(`.r2-gallery-item [data-filename="${filename}"]`)?.closest(".r2-gallery-item")
+            || document.querySelector(`.r2-gallery-item[data-gallery-index="${idx}"]`);
         
         if (filename && album) {
             handleDeletePhoto(album.folder, filename, card, true);
         }
     };
-    toolbar.appendChild(delBtn);
 }
 
 function initAdminTriggers() {
