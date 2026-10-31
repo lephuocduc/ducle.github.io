@@ -12,6 +12,35 @@
  *    (Hoặc dùng domain *.workers.dev mặc định và dán vào apiUrl trong config.js)
  */
 
+async function listAllBucketFiles(bucket, prefix, extensions) {
+  const files = [];
+  let truncated = true;
+  let cursor = undefined;
+
+  while (truncated) {
+    const res = await bucket.list({
+      prefix: prefix,
+      cursor: cursor,
+      limit: 1000
+    });
+
+    const matched = (res.objects || [])
+      .map(obj => obj.key.slice(prefix.length))
+      .filter(filename => {
+        if (!filename || filename.includes("/")) return false;
+        const lower = filename.toLowerCase();
+        return extensions.some(ext => lower.endsWith(ext));
+      });
+
+    files.push(...matched);
+    truncated = Boolean(res.truncated);
+    cursor = res.cursor;
+    if (files.length >= 5000) break;
+  }
+
+  return files;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -44,43 +73,43 @@ export default {
 
         const imageExtensions = [".webp", ".jpg", ".jpeg", ".png", ".gif", ".heic"];
 
-        // Danh sách thư mục ưu tiên quét ảnh:
-        // 1. {album}/thumb/ (Chuẩn mới: ảnh nhỏ)
-        // 2. {album}/thumbs/ (Tương thích ngược)
-        // 3. {album}/full/ (Nếu chưa có thumb)
-        // 4. {album}/ (Gốc của album)
-        const candidates = [
-          { dir: `${album}/thumb/`, name: "thumb", isThumb: true },
-          { dir: `${album}/thumbs/`, name: "thumbs", isThumb: true },
-          { dir: `${album}/full/`, name: "full", isThumb: false },
-          { dir: `${album}/`, name: "", isThumb: false }
-        ];
-
-        let files = [];
+        // 1. Quét thư mục ảnh nhỏ: ưu tiên {album}/thumb/, nếu không có thì thử {album}/thumbs/
         let detectedThumbDir = "thumb";
-        let hasThumbs = false;
-
-        for (const candidate of candidates) {
-          const listed = await env.MY_BUCKET.list({
-            prefix: candidate.dir,
-            limit: 1000
-          });
-
-          const matched = (listed.objects || [])
-            .map(obj => obj.key.slice(candidate.dir.length))
-            .filter(filename => {
-              if (!filename || filename.includes("/")) return false;
-              const lower = filename.toLowerCase();
-              return imageExtensions.some(ext => lower.endsWith(ext));
-            });
-
-          if (matched.length > 0) {
-            files = matched;
-            detectedThumbDir = candidate.isThumb ? candidate.name : "thumb";
-            hasThumbs = candidate.isThumb;
-            break;
+        let thumbFiles = await listAllBucketFiles(env.MY_BUCKET, `${album}/thumb/`, imageExtensions);
+        if (thumbFiles.length === 0) {
+          thumbFiles = await listAllBucketFiles(env.MY_BUCKET, `${album}/thumbs/`, imageExtensions);
+          if (thumbFiles.length > 0) {
+            detectedThumbDir = "thumbs";
           }
         }
+
+        // 2. Quét thư mục ảnh lớn: {album}/full/
+        const fullFiles = await listAllBucketFiles(env.MY_BUCKET, `${album}/full/`, imageExtensions);
+
+        let files = [];
+        let hasThumbs = false;
+
+        // 3. NGUYÊN TẮC: Nếu thiếu 1 trong 2 ảnh ở thumb/ hoặc full/ thì BỎ QUA ảnh đó
+        if (thumbFiles.length > 0 && fullFiles.length > 0) {
+          // Tạo Map không phân biệt hoa thường để đối chiếu
+          const fullMap = new Map();
+          fullFiles.forEach(file => fullMap.set(file.toLowerCase(), file));
+
+          // Chỉ giữ lại các ảnh có MẶT Ở CẢ 2 THƯ MỤC
+          files = thumbFiles.filter(thumbFile => fullMap.has(thumbFile.toLowerCase()));
+          hasThumbs = true;
+        } else if (thumbFiles.length === 0 && fullFiles.length === 0) {
+          // Fallback trường hợp album cũ lưu trực tiếp ở thư mục gốc album
+          files = await listAllBucketFiles(env.MY_BUCKET, `${album}/`, imageExtensions);
+          hasThumbs = false;
+        } else {
+          // Thiếu hẳn 1 trong 2 folder -> Không đủ cả 2 ảnh nên bỏ qua toàn bộ
+          files = [];
+          hasThumbs = false;
+        }
+
+        // Sắp xếp thứ tự tự nhiên (ví dụ 1, 2, ..., 10, 11)
+        files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
 
         return new Response(JSON.stringify({
           success: true,

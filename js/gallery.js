@@ -398,7 +398,6 @@ function renderActiveAlbum(albumId) {
 
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
-        const fallbackUrl = fullUrl;
 
         htmlContent += `
             <div class="r2-gallery-item" 
@@ -412,7 +411,7 @@ function renderActiveAlbum(albumId) {
                          loading="lazy" 
                          decoding="async"
                          class="r2-thumb-img"
-                         onerror="this.onerror=null; this.src='${fallbackUrl}';" />
+                         onerror="this.onerror=null; const card=this.closest('.r2-gallery-item'); if(card) card.remove();" />
                     <div class="r2-thumb-skeleton"></div>
                     <div class="r2-hover-overlay">
                         <i class="fas fa-magnifying-glass-plus"></i>
@@ -536,13 +535,19 @@ function initLazyImages(container) {
                     if (src) {
                         img.src = src;
                         img.removeAttribute("data-src");
-                        if (img.complete) {
+                        if (img.complete && img.naturalWidth > 0) {
                             img.classList.add("loaded");
                             const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
                             if (skeleton) skeleton.style.display = "none";
                         } else {
                             img.addEventListener("load", () => {
                                 img.classList.add("loaded");
+                                const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
+                                if (skeleton) skeleton.style.display = "none";
+                            }, { once: true });
+                            img.addEventListener("error", () => {
+                                const card = img.closest(".r2-gallery-item");
+                                if (card) card.remove();
                                 const skeleton = img.parentElement?.querySelector(".r2-thumb-skeleton");
                                 if (skeleton) skeleton.style.display = "none";
                             }, { once: true });
@@ -861,7 +866,6 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                 if (!filename) continue;
 
                 const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
-                const fallbackUrl = `${host}/${album.folder}/${filename}`;
 
                 const card = document.createElement("div");
                 card.className = "r2-gallery-item";
@@ -877,7 +881,7 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                              loading="lazy" 
                              decoding="async"
                              class="r2-thumb-img"
-                             onerror="this.onerror=null; this.src='${fallbackUrl}';" />
+                             onerror="this.onerror=null; const c=this.closest('.r2-gallery-item'); if(c) c.remove();" />
                         <div class="r2-thumb-skeleton"></div>
                         <div class="r2-hover-overlay">
                             <i class="fas fa-magnifying-glass-plus"></i>
@@ -995,22 +999,28 @@ function setupGalleryInteractions(gridContainer) {
         }
     });
 
-    // Xử lý khi ảnh full tải lỗi -> Tự động thử lại hoặc fallback về thumbnail
+    // Xử lý khi ảnh full tải lỗi -> Tự động bỏ qua ảnh này và nhảy sang ảnh tiếp theo
     gridContainer.addEventListener("lgSlideItemLoadError", (event) => {
         const detail = event.detail || {};
         const index = detail.index !== undefined ? detail.index : 0;
-        console.warn("[lgSlideItemLoadError] Slide load error at index:", index);
-        const galleryItem = lightGalleryInstance?.galleryItems?.[index];
-        if (galleryItem && galleryItem.thumb) {
+        console.warn("[lgSlideItemLoadError] Thiếu ảnh full tại index:", index, "-> Bỏ qua và chuyển tiếp");
+        
+        // Ẩn/xóa card tương ứng trên grid để người xem không bấm lại vào ảnh lỗi
+        const card = gridContainer.querySelector(`.r2-gallery-item[data-gallery-index="${index}"]`);
+        if (card) card.remove();
+
+        // Tự động bỏ qua và chuyển sang ảnh kế tiếp trong LightGallery
+        if (lightGalleryInstance) {
             const slides = document.querySelectorAll(".lg-item");
             const currentSlide = slides[index];
             if (currentSlide) {
-                const img = currentSlide.querySelector(".lg-image");
-                if (img && img.src !== galleryItem.thumb) {
-                    console.log("[lgSlideItemLoadError] Fallback to thumb:", galleryItem.thumb);
-                    img.src = galleryItem.thumb;
-                }
+                currentSlide.classList.add("lg-complete");
             }
+            setTimeout(() => {
+                if (lightGalleryInstance.index === index) {
+                    lightGalleryInstance.goToNextSlide();
+                }
+            }, 120);
         }
     });
 
