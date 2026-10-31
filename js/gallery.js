@@ -2064,7 +2064,7 @@ function initAdminTriggers() {
         }
     }
 
-    // 2. Phím tắt bí mật: Ctrl + Shift + A (hoặc Cmd + Shift + A trên Mac)
+    // 2. Phím tắt bí mật trên bàn phím: Ctrl + Shift + A (hoặc Cmd + Shift + A trên Mac)
     window.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "A" || e.key === "a")) {
             e.preventDefault();
@@ -2072,25 +2072,6 @@ function initAdminTriggers() {
                 showToast("Bạn đã ở Chế độ Quản trị viên.", "info");
             } else {
                 openAdminPinModal();
-            }
-        }
-    });
-
-    // 3. Cử chỉ bí mật: Nhấp 4 lần liên tiếp vào tiêu đề album hoặc thanh tabs
-    let tapCount = 0;
-    let tapTimer = null;
-    document.addEventListener("click", (e) => {
-        if (e.target.closest("#gallery-tabs") || e.target.closest(".gallery-section .section-title")) {
-            tapCount++;
-            clearTimeout(tapTimer);
-            tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
-            if (tapCount >= 4) {
-                tapCount = 0;
-                if (!isR2Admin()) {
-                    openAdminPinModal();
-                } else {
-                    showToast("Bạn đang ở Chế độ Quản trị viên.", "info");
-                }
             }
         }
     });
