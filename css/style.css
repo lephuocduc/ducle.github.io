@@ -5103,6 +5103,7 @@ html.lg-body-no-scroll {
     .gallery-tabs {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
+        align-items: stretch !important;
         gap: 6px !important;
         padding: 0 !important;
         border-radius: 0 !important;
@@ -5124,7 +5125,7 @@ html.lg-body-no-scroll {
     .gallery-tab-btn {
         width: 100% !important;
         min-height: 40px !important;
-        height: auto !important;
+        height: 100% !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;

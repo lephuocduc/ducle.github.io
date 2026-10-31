@@ -180,7 +180,9 @@ function renderTabs() {
 
         let titleHtml = album.tabTitle || album.title;
         if (!album.tabTitle) {
-            if (album.id === "03-vu-quy-tan-hon") {
+            if (album.id === "02-tiec-mung-vu-quy") {
+                titleHtml = 'Tiệc Mừng <span class="tab-nowrap">Vu Quy</span>';
+            } else if (album.id === "03-vu-quy-tan-hon") {
                 titleHtml = 'Lễ Vu Quy &amp; <br class="tab-break-mobile"><span class="tab-nowrap">Tân Hôn</span>';
             } else if (album.id === "04-tiec-cuoi-asianaplaza") {
                 titleHtml = 'Tiệc Cưới <br class="tab-break-mobile"><span class="tab-nowrap">Asiana Plaza</span>';
