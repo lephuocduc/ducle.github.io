@@ -48,13 +48,13 @@ export default {
     // Headers CORS cho phép trang web gọi API an toàn
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, HEAD, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Admin-Token, *",
       "Access-Control-Max-Age": "86400",
     };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+      return new Response(null, { status: 204, headers: corsHeaders });
     }
 
     // 1. API ĐỒNG BỘ ẢNH TỰ ĐỘNG: /api/photos?album=01-pre-wedding
@@ -134,7 +134,116 @@ export default {
       }
     }
 
-    // 2. PHỤC VỤ GIAO DIỆN WEB TĨNH (HTML, CSS, JS, Fonts, v.v.) TỰ ĐỘNG
+    // 2. API XÁC THỰC MÃ PIN QUẢN TRỊ VIÊN: /api/admin/verify
+    if (url.pathname === "/api/admin/verify" || url.pathname === "/api/admin/verify/") {
+      const authHeader = request.headers.get("Authorization") || request.headers.get("X-Admin-Token") || url.searchParams.get("pin") || url.searchParams.get("token") || "";
+      const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+      const expectedPin = String(env.ADMIN_PIN || env.admin_pin || env.ADMINPIN || env.ADMIN_SECRET || env.admin_secret || env.ADMIN_KEY || "").trim();
+
+      if (!expectedPin) {
+        const availableKeys = Object.keys(env || {}).filter(k => k !== "MY_BUCKET" && k !== "ASSETS");
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: "Chưa thiết lập biến bí mật 'ADMIN_PIN' trong Cloudflare Worker Settings. Các biến hiện có: [" + availableKeys.join(", ") + "]" 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const isValid = Boolean(token && token === expectedPin);
+      return new Response(JSON.stringify({ 
+        success: isValid, 
+        message: isValid ? "Mã PIN chính xác" : "Mã PIN không đúng" 
+      }), {
+        status: isValid ? 200 : 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    // 3. API XÓA ẢNH DÀNH RIÊNG CHO QUẢN TRỊ VIÊN: DELETE /api/photos?album={album}&file={file}
+    if (request.method === "DELETE" && (url.pathname === "/api/photos" || url.pathname === "/api/photos/")) {
+      try {
+        if (!env.MY_BUCKET) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: "Chưa cấu hình R2 Bucket Binding với tên biến 'MY_BUCKET'." 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        // Xác thực mã PIN bí mật từ Cloudflare secret ADMIN_PIN
+        const authHeader = request.headers.get("Authorization") || request.headers.get("X-Admin-Token") || url.searchParams.get("pin") || url.searchParams.get("token") || "";
+        const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+        const expectedPin = String(env.ADMIN_PIN || env.admin_pin || env.ADMINPIN || env.ADMIN_SECRET || env.admin_secret || env.ADMIN_KEY || "").trim();
+
+        if (!expectedPin) {
+          const availableKeys = Object.keys(env || {}).filter(k => k !== "MY_BUCKET" && k !== "ASSETS");
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: "Chưa thiết lập biến bí mật 'ADMIN_PIN' trong Cloudflare Worker Settings. Các biến hiện có: [" + availableKeys.join(", ") + "]" 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        if (!token || token !== expectedPin) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: "Mã PIN quản trị không chính xác hoặc bạn không có quyền xóa ảnh." 
+          }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        const album = (url.searchParams.get("album") || "").replace(/^\/|\/$/g, "");
+        const filename = (url.searchParams.get("file") || "").trim();
+
+        if (!album || !filename || filename.includes("/") || filename.includes("..")) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: "Tên album hoặc tên file không hợp lệ." 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        // XÓA ĐỒNG THỜI CẢ THƯ MỤC THUMB VÀ FULL (và thumbs nếu có)
+        const keysToDelete = [
+          `${album}/thumb/${filename}`,
+          `${album}/thumbs/${filename}`,
+          `${album}/full/${filename}`,
+          `${album}/${filename}`
+        ];
+
+        await Promise.all(keysToDelete.map(key => env.MY_BUCKET.delete(key)));
+
+        return new Response(JSON.stringify({
+          success: true,
+          album: album,
+          file: filename,
+          message: `Đã xóa vĩnh viễn ảnh '${filename}' khỏi cả 2 folder thumb và full trên R2!`,
+          deletedKeys: keysToDelete
+        }), {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json; charset=utf-8"
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    // 4. PHỤC VỤ GIAO DIỆN WEB TĨNH (HTML, CSS, JS, Fonts, v.v.) TỰ ĐỘNG
     if (env.ASSETS) {
       const assetRes = await env.ASSETS.fetch(request);
       if (assetRes.status !== 404) {

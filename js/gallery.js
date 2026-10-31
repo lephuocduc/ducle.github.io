@@ -69,7 +69,11 @@ export function initGalleryModule(containerId, config) {
     }
 
     // 1. Render giao diện ngay tức thì với dữ liệu sẵn có (không để người dùng chờ)
+    ensureAdminModalsInDOM();
+    initAdminTriggers();
+    updateAdminUI();
     renderTabs();
+    renderAdminBadge();
     renderActiveAlbum(activeAlbumId);
 
     // 2. Chạy ngầm tiến trình tự động đồng bộ ảnh từ Cloudflare R2 (Stale-While-Revalidate)
@@ -413,6 +417,7 @@ function renderActiveAlbum(albumId) {
                          class="r2-thumb-img"
                          onerror="this.onerror=null; const card=this.closest('.r2-gallery-item'); if(card) card.remove();" />
                     <div class="r2-thumb-skeleton"></div>
+                    <button type="button" class="r2-card-delete-btn" title="Xóa ảnh này khỏi R2" aria-label="Xóa ảnh" data-filename="${filename}" data-album="${album.folder}"><i class="fas fa-trash-alt"></i></button>
                     <div class="r2-hover-overlay">
                         <i class="fas fa-magnifying-glass-plus"></i>
                         <span class="r2-hover-text">Xem Ảnh</span>
@@ -495,6 +500,7 @@ function bindCardClicks(container) {
         const openIdx = parseInt(card.getAttribute("data-gallery-index"), 10);
 
         const handleOpen = (e) => {
+            if (e.target.closest(".r2-card-delete-btn")) return;
             e.preventDefault();
             if (lightGalleryInstance && !isNaN(openIdx)) {
                 lightGalleryInstance.openGallery(openIdx);
@@ -883,6 +889,7 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                              class="r2-thumb-img"
                              onerror="this.onerror=null; const c=this.closest('.r2-gallery-item'); if(c) c.remove();" />
                         <div class="r2-thumb-skeleton"></div>
+                        <button type="button" class="r2-card-delete-btn" title="Xóa ảnh này khỏi R2" aria-label="Xóa ảnh" data-filename="${filename}" data-album="${album.folder}"><i class="fas fa-trash-alt"></i></button>
                         <div class="r2-hover-overlay">
                             <i class="fas fa-magnifying-glass-plus"></i>
                             <span class="r2-hover-text">Xem Ảnh</span>
@@ -972,6 +979,7 @@ function setupGalleryInteractions(gridContainer) {
             lgOuter.classList.add("lg-thumb-open");
         }
         updateDownloadButton();
+        injectLightboxDeleteButton();
         cleanDummyImages();
         window.dispatchEvent(new CustomEvent("wedding-gallery-state-changed", { detail: { isOpen: true } }));
     });
@@ -1026,6 +1034,7 @@ function setupGalleryInteractions(gridContainer) {
 
     gridContainer.addEventListener("lgAfterSlide", () => {
         updateDownloadButton();
+        injectLightboxDeleteButton();
         cleanDummyImages();
     });
 
@@ -1688,3 +1697,402 @@ function setupSwipeToDismissAndBackdropClick() {
         }
     }, true);
 }
+
+/* ==========================================================================
+   R2 GALLERY ADMIN & PHOTO DELETION ENGINE
+   ========================================================================== */
+
+const R2_ADMIN_KEY = "wedding_r2_admin_pin";
+
+export function isR2Admin() {
+    return Boolean(sessionStorage.getItem(R2_ADMIN_KEY));
+}
+
+export function getR2AdminPin() {
+    return sessionStorage.getItem(R2_ADMIN_KEY) || "";
+}
+
+function updateAdminUI() {
+    if (isR2Admin()) {
+        document.body.classList.add("is-r2-admin");
+    } else {
+        document.body.classList.remove("is-r2-admin");
+    }
+}
+
+function renderAdminBadge() {
+    let wrap = document.getElementById("r2-admin-badge-wrap");
+    const parent = document.querySelector(".gallery-content-wrap") || document.getElementById("gallery-grid")?.parentElement;
+    if (!parent) return;
+
+    if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.id = "r2-admin-badge-wrap";
+        wrap.className = "r2-admin-badge-wrap";
+        wrap.innerHTML = `
+            <div class="r2-admin-badge">
+                <i class="fas fa-user-shield"></i>
+                <span>Chế độ Quản trị (Đã bật quyền xóa ảnh R2)</span>
+                <button type="button" class="r2-admin-logout-btn" id="r2-admin-logout" title="Thoát quyền quản trị">
+                    <i class="fas fa-sign-out-alt"></i> Thoát
+                </button>
+            </div>
+        `;
+        parent.insertBefore(wrap, parent.firstChild);
+
+        wrap.querySelector("#r2-admin-logout")?.addEventListener("click", () => {
+            sessionStorage.removeItem(R2_ADMIN_KEY);
+            updateAdminUI();
+            showToast("Đã thoát khỏi Chế độ Quản trị viên.", "info");
+            renderActiveAlbum(activeAlbumId);
+        });
+    }
+}
+
+function ensureAdminModalsInDOM() {
+    if (document.getElementById("r2-admin-pin-modal")) return;
+
+    const modalHTML = `
+        <!-- Modal Nhập PIN Quản Trị -->
+        <div id="r2-admin-pin-modal" class="r2-custom-modal" role="dialog" aria-modal="true">
+            <div class="r2-custom-modal-card">
+                <div class="r2-modal-icon-wrap"><i class="fas fa-lock"></i></div>
+                <h3>Xác thực Quản trị viên</h3>
+                <p>Nhập mã PIN bí mật của Cô Dâu & Chú Rể để bật tính năng quản trị và xóa ảnh trên Cloudflare R2.</p>
+                <form id="r2-admin-pin-form">
+                    <div class="r2-pin-input-group">
+                        <input type="password" id="r2-admin-pin-input" placeholder="Nhập mã PIN bí mật..." autocomplete="off" />
+                        <button type="button" class="r2-pin-toggle-btn" id="r2-admin-pin-toggle" aria-label="Hiện mật khẩu">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="r2-admin-pin-error" style="color:#ef5350;font-size:0.88rem;margin-bottom:14px;display:none;font-weight:600;"></div>
+                    <div class="r2-modal-actions">
+                        <button type="button" class="r2-btn-cancel" id="r2-admin-pin-cancel">Hủy bỏ</button>
+                        <button type="submit" class="r2-btn-gold"><i class="fas fa-shield-alt"></i> Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Hộp thoại Xác nhận Xóa ảnh -->
+        <div id="r2-admin-confirm-modal" class="r2-custom-modal" role="dialog" aria-modal="true">
+            <div class="r2-custom-modal-card">
+                <div class="r2-modal-icon-wrap r2-modal-icon-danger"><i class="fas fa-trash-alt"></i></div>
+                <h3 id="r2-confirm-title">Xác nhận xóa vĩnh viễn</h3>
+                <p id="r2-confirm-message">Bạn có chắc chắn muốn xóa bức ảnh này?</p>
+                <div class="r2-modal-actions">
+                    <button type="button" class="r2-btn-cancel" id="r2-confirm-cancel-btn">Hủy bỏ</button>
+                    <button type="button" class="r2-btn-danger" id="r2-confirm-ok-btn"><i class="fas fa-trash-alt"></i> Xóa vĩnh viễn</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast thông báo -->
+        <div id="r2-toast-container" class="r2-toast-container"></div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    setupAdminModalEvents();
+
+    // Lắng nghe click nút xóa trên lưới ảnh (Event Delegation)
+    document.addEventListener("click", (e) => {
+        const deleteBtn = e.target.closest(".r2-card-delete-btn");
+        if (!deleteBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const filename = deleteBtn.getAttribute("data-filename");
+        const albumFolder = deleteBtn.getAttribute("data-album");
+        const card = deleteBtn.closest(".r2-gallery-item");
+
+        if (filename && albumFolder) {
+            handleDeletePhoto(albumFolder, filename, card, false);
+        }
+    });
+}
+
+function setupAdminModalEvents() {
+    const modal = document.getElementById("r2-admin-pin-modal");
+    if (!modal) return;
+    const form = document.getElementById("r2-admin-pin-form");
+    const input = document.getElementById("r2-admin-pin-input");
+    const cancelBtn = document.getElementById("r2-admin-pin-cancel");
+    const toggleBtn = document.getElementById("r2-admin-pin-toggle");
+    const errorEl = document.getElementById("r2-admin-pin-error");
+
+    const closeModal = () => {
+        modal.classList.remove("active");
+        if (input) input.value = "";
+        if (errorEl) errorEl.style.display = "none";
+    };
+
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+    if (toggleBtn && input) {
+        toggleBtn.onclick = () => {
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            toggleBtn.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        };
+    }
+
+    if (form && input) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const pin = input.value.trim();
+            if (!pin) return;
+
+            // Xác thực mã PIN hoàn toàn qua Cloudflare Worker (so khớp với secret ADMIN_PIN)
+            const host = getR2Host();
+            const verifyUrl = `${host}/api/admin/verify?pin=${encodeURIComponent(pin)}`;
+            let isValid = false;
+            let errMsg = "Mã PIN không chính xác. Vui lòng thử lại!";
+
+            try {
+                const res = await fetch(verifyUrl, {
+                    method: "GET",
+                    headers: { 
+                        "Authorization": `Bearer ${pin}`,
+                        "X-Admin-Token": pin
+                    }
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    isValid = true;
+                } else {
+                    isValid = false;
+                    if (data.error) errMsg = data.error;
+                }
+            } catch (err) {
+                isValid = false;
+                errMsg = "Không thể kết nối đến máy chủ xác thực: " + err.message;
+            }
+
+            if (isValid) {
+                sessionStorage.setItem(R2_ADMIN_KEY, pin);
+                updateAdminUI();
+                closeModal();
+                showToast("✨ Đã kích hoạt Chế độ Quản trị! Bạn có thể xóa ảnh trực tiếp.", "success");
+                renderAdminBadge();
+                renderActiveAlbum(activeAlbumId);
+            } else {
+                if (errorEl) {
+                    errorEl.textContent = errMsg;
+                    errorEl.style.display = "block";
+                }
+            }
+        };
+    }
+}
+
+export function openAdminPinModal() {
+    ensureAdminModalsInDOM();
+    const modal = document.getElementById("r2-admin-pin-modal");
+    const input = document.getElementById("r2-admin-pin-input");
+    const errorEl = document.getElementById("r2-admin-pin-error");
+    if (errorEl) errorEl.style.display = "none";
+    if (input) input.value = "";
+    modal.classList.add("active");
+    if (input) setTimeout(() => input.focus(), 150);
+}
+
+function showConfirmModal({ title, message, onConfirm }) {
+    ensureAdminModalsInDOM();
+    const modal = document.getElementById("r2-admin-confirm-modal");
+    const titleEl = document.getElementById("r2-confirm-title");
+    const msgEl = document.getElementById("r2-confirm-message");
+    const okBtn = document.getElementById("r2-confirm-ok-btn");
+    const cancelBtn = document.getElementById("r2-confirm-cancel-btn");
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.innerHTML = message;
+
+    const closeModal = () => {
+        modal.classList.remove("active");
+        if (okBtn) okBtn.onclick = null;
+        if (cancelBtn) cancelBtn.onclick = null;
+    };
+
+    if (okBtn) {
+        okBtn.onclick = () => {
+            closeModal();
+            if (typeof onConfirm === "function") onConfirm();
+        };
+    }
+
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+    modal.classList.add("active");
+}
+
+function showToast(msg, type = "info") {
+    let container = document.getElementById("r2-toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "r2-toast-container";
+        container.className = "r2-toast-container";
+        document.body.appendChild(container);
+    }
+    const icon = type === "success" 
+        ? '<i class="fas fa-check-circle"></i>' 
+        : (type === "error" ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-info-circle"></i>');
+    const toast = document.createElement("div");
+    toast.className = `r2-toast r2-toast-${type}`;
+    toast.innerHTML = `${icon} <span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(15px)";
+        setTimeout(() => toast.remove(), 300);
+    }, 3800);
+}
+
+async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox = false) {
+    if (!isR2Admin()) {
+        openAdminPinModal();
+        return;
+    }
+
+    showConfirmModal({
+        title: "Xác nhận xóa vĩnh viễn",
+        message: `Bạn có chắc chắn muốn xóa vĩnh viễn ảnh <strong>"${filename}"</strong> khỏi cả 2 thư mục <code>thumb/</code> và <code>full/</code> trên Cloudflare R2 không?<br><span style="color:#ef5350;font-size:0.85rem;display:inline-block;margin-top:6px;">⚠️ Hành động này không thể hoàn tác!</span>`,
+        onConfirm: async () => {
+            showToast(`Đang xóa ảnh ${filename} trên R2...`, "info");
+            try {
+                const host = getR2Host();
+                const token = getR2AdminPin();
+                const deleteUrl = `${host}/api/photos?album=${encodeURIComponent(albumFolder)}&file=${encodeURIComponent(filename)}&pin=${encodeURIComponent(token)}`;
+
+                const res = await fetch(deleteUrl, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "X-Admin-Token": token
+                    }
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success) {
+                    showToast(`✨ Đã xóa vĩnh viễn ảnh ${filename} khỏi cả 2 folder trên R2!`, "success");
+
+                    // Hiệu ứng xóa thẻ mượt mà trên lưới
+                    if (cardEl) {
+                        cardEl.classList.add("r2-item-deleting");
+                        setTimeout(() => cardEl.remove(), 350);
+                    }
+
+                    // Cập nhật danh sách ảnh trong bộ nhớ client
+                    const album = currentR2Config?.albums?.find(a => a.folder === albumFolder || a.id === albumFolder);
+                    if (album && Array.isArray(album.images)) {
+                        album.images = album.images.filter(img => {
+                            const f = typeof img === "string" ? img : (img.file || img.src || "");
+                            return f !== filename;
+                        });
+                        updateTabBadge(album.id, album.images.length);
+                    }
+
+                    if (isFromLightbox && lightGalleryInstance) {
+                        // Nếu đang mở Lightbox, nhảy sang ảnh tiếp theo và làm mới
+                        const remaining = album?.images?.length || 0;
+                        if (remaining <= 0) {
+                            lightGalleryInstance.closeGallery();
+                        } else {
+                            lightGalleryInstance.goToNextSlide();
+                        }
+                        setTimeout(() => {
+                            renderActiveAlbum(activeAlbumId);
+                        }, 400);
+                    } else {
+                        // Cập nhật lại dynamic elements
+                        setTimeout(() => {
+                            renderActiveAlbum(activeAlbumId);
+                        }, 300);
+                    }
+                } else {
+                    showToast(data.error || "Không thể xóa ảnh trên Cloudflare R2", "error");
+                }
+            } catch (err) {
+                showToast("Lỗi kết nối máy chủ: " + err.message, "error");
+            }
+        }
+    });
+}
+
+function injectLightboxDeleteButton() {
+    if (!isR2Admin()) return;
+    const toolbar = document.querySelector(".lg-toolbar");
+    if (!toolbar || toolbar.querySelector(".r2-lg-delete-btn")) return;
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "lg-icon r2-lg-delete-btn";
+    delBtn.title = "Xóa vĩnh viễn ảnh này trên R2";
+    delBtn.setAttribute("aria-label", "Xóa ảnh");
+    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+    delBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = lightGalleryInstance?.index;
+        if (idx === undefined || isNaN(idx)) return;
+        const currentItem = lightGalleryInstance?.galleryItems?.[idx];
+        const filename = currentItem?.download || "";
+        const album = currentR2Config?.albums?.find(a => a.id === activeAlbumId);
+        const card = document.querySelector(`.r2-gallery-item[data-gallery-index="${idx}"]`);
+        
+        if (filename && album) {
+            handleDeletePhoto(album.folder, filename, card, true);
+        }
+    };
+    toolbar.appendChild(delBtn);
+}
+
+function initAdminTriggers() {
+    // 1. Kiểm tra tham số URL ?admin
+    if (typeof window !== "undefined" && window.location.search.includes("admin")) {
+        if (!isR2Admin()) {
+            setTimeout(() => openAdminPinModal(), 500);
+        } else {
+            showToast("✨ Bạn đang ở Chế độ Quản trị viên.", "info");
+        }
+    }
+
+    // 2. Phím tắt bí mật: Ctrl + Shift + A (hoặc Cmd + Shift + A trên Mac)
+    window.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "A" || e.key === "a")) {
+            e.preventDefault();
+            if (isR2Admin()) {
+                showToast("Bạn đã ở Chế độ Quản trị viên.", "info");
+            } else {
+                openAdminPinModal();
+            }
+        }
+    });
+
+    // 3. Cử chỉ bí mật: Nhấp 4 lần liên tiếp vào tiêu đề album hoặc thanh tabs
+    let tapCount = 0;
+    let tapTimer = null;
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("#gallery-tabs") || e.target.closest(".gallery-section .section-title")) {
+            tapCount++;
+            clearTimeout(tapTimer);
+            tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+            if (tapCount >= 4) {
+                tapCount = 0;
+                if (!isR2Admin()) {
+                    openAdminPinModal();
+                } else {
+                    showToast("Bạn đang ở Chế độ Quản trị viên.", "info");
+                }
+            }
+        }
+    });
+}
+

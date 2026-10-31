@@ -5069,5 +5069,304 @@ html.lg-body-no-scroll {
     }
 }
 
+/* ==========================================================================
+   R2 GALLERY ADMIN & PHOTO DELETION STYLES
+   ========================================================================== */
+
+/* Nút xóa trên từng thẻ ảnh */
+.r2-card-delete-btn {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(180, 20, 20, 0.9);
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    color: #ffffff;
+    font-size: 0.85rem;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+body.is-r2-admin .r2-card-delete-btn {
+    display: flex;
+}
+
+.r2-card-delete-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.15);
+}
+
+.r2-card-delete-btn:active {
+    transform: scale(0.92);
+}
+
+/* Badge hiển thị trạng thái Quản trị viên */
+.r2-admin-badge-wrap {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    margin: -10px 0 15px 0;
+}
+
+body.is-r2-admin .r2-admin-badge-wrap {
+    display: flex;
+}
+
+.r2-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(43, 0, 0, 0.88);
+    border: 1px solid var(--color-gold, #d4af37);
+    color: var(--color-gold-light, #f7e7ce);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(6px);
+}
+
+.r2-admin-logout-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: all 0.2s ease;
+}
+
+.r2-admin-logout-btn:hover {
+    background: #c62828;
+    border-color: #ef5350;
+}
+
+/* Modal nhập PIN và Hộp thoại xác nhận */
+.r2-custom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(10, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.r2-custom-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.r2-custom-modal-card {
+    background: linear-gradient(145deg, #2b0000 0%, #150000 100%);
+    border: 1.5px solid var(--color-gold, #d4af37);
+    border-radius: 16px;
+    padding: 28px 24px;
+    max-width: 420px;
+    width: 100%;
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2);
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.r2-custom-modal.active .r2-custom-modal-card {
+    transform: scale(1);
+}
+
+.r2-modal-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid var(--color-gold, #d4af37);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--color-gold, #d4af37);
+    margin-bottom: 14px;
+}
+
+.r2-modal-icon-danger {
+    background: rgba(211, 47, 47, 0.2);
+    border-color: #d32f2f;
+    color: #ef5350;
+}
+
+.r2-custom-modal-card h3 {
+    margin: 0 0 8px 0;
+    font-family: var(--font-heading, serif);
+    font-size: 1.35rem;
+    color: var(--color-gold-light, #f7e7ce);
+}
+
+.r2-custom-modal-card p {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+}
+
+.r2-pin-input-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.r2-pin-input-group input {
+    width: 100%;
+    padding: 12px 42px 12px 16px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 1.05rem;
+    text-align: center;
+    letter-spacing: 2px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.r2-pin-input-group input:focus {
+    border-color: var(--color-gold, #d4af37);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+}
+
+.r2-pin-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.r2-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.r2-modal-actions button {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.r2-btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.r2-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.r2-btn-danger {
+    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+    border: 1px solid #ef5350;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(198, 40, 40, 0.4);
+}
+
+.r2-btn-danger:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+}
+
+.r2-btn-gold {
+    background: linear-gradient(135deg, #d4af37 0%, #aa820a 100%);
+    border: 1px solid #f7e7ce;
+    color: #1a0000;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+}
+
+.r2-btn-gold:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+/* Nút xóa trong Lightbox toolbar */
+.lg-toolbar .r2-lg-delete-btn {
+    color: #ef5350 !important;
+    transition: all 0.2s ease;
+}
+
+.lg-toolbar .r2-lg-delete-btn:hover {
+    color: #ff1744 !important;
+    transform: scale(1.15);
+}
+
+/* Toast thông báo */
+.r2-toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.r2-toast {
+    pointer-events: auto;
+    background: rgba(30, 0, 0, 0.92);
+    border: 1px solid var(--color-gold, #d4af37);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: r2ToastSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.r2-toast-success i { color: #4caf50; font-size: 1.1rem; }
+.r2-toast-error i { color: #f44336; font-size: 1.1rem; }
+.r2-toast-info i { color: var(--color-gold, #d4af37); font-size: 1.1rem; }
+
+@keyframes r2ToastSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hiệu ứng xóa thẻ mượt mà */
+.r2-item-deleting {
+    transition: transform 0.4s ease, opacity 0.4s ease !important;
+    transform: scale(0.6) !important;
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
 
 

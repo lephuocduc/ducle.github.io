@@ -164,9 +164,6 @@ export const weddingConfig = {
         }
     ],
 
-    // Mã PIN bảo mật để mở giao diện tải ảnh từ điện thoại trong ngày cưới (Mặc định: ngày cưới 251026)
-    adminPin: "251026",
-
     // Cấu hình Nguồn ảnh Cloudflare R2 & Danh sách 4 Album
     // Host domain: https://media.phuocducthusuong.com
     // Cấu trúc thư mục trên R2: {folder}/thumbs/{file} và {folder}/full/{file}
