@@ -178,9 +178,18 @@ function renderTabs() {
         btn.setAttribute("aria-selected", album.id === activeAlbumId ? "true" : "false");
         btn.setAttribute("data-album-id", album.id);
 
+        let titleHtml = album.tabTitle || album.title;
+        if (!album.tabTitle) {
+            if (album.id === "03-vu-quy-tan-hon") {
+                titleHtml = 'Lễ Vu Quy &amp; <br class="tab-break-mobile"><span class="tab-nowrap">Tân Hôn</span>';
+            } else if (album.id === "04-tiec-cuoi-asianaplaza") {
+                titleHtml = 'Tiệc Cưới <br class="tab-break-mobile"><span class="tab-nowrap">Asiana Plaza</span>';
+            }
+        }
+
         btn.innerHTML = `
             ${album.icon ? `<i class="fas ${album.icon}"></i>` : '<i class="fas fa-camera"></i>'}
-            <span class="tab-title">${album.title}</span>
+            <span class="tab-title">${titleHtml}</span>
             <span class="tab-count" id="tab-count-${album.id}">(${count})</span>
         `;
 
