@@ -221,13 +221,51 @@ export default {
           `${album}/${filename}`
         ];
 
+        // 1. Gửi lệnh xóa đồng thời ở tất cả các thư mục liên quan trên R2 (thumb, full, thumbs, root)
         await Promise.all(keysToDelete.map(key => env.MY_BUCKET.delete(key)));
 
+        // 2. KIỂM TRA LẠI TRÊN R2 XEM CÁC FILE ĐÃ THỰC SỰ ĐƯỢC XÓA SẠCH CHƯA
+        // Hàm kiểm tra sự tồn tại của file bằng head() (nhanh, nhẹ) hoặc get()
+        const checkKeyExists = async (key) => {
+          try {
+            const obj = env.MY_BUCKET.head ? await env.MY_BUCKET.head(key) : await env.MY_BUCKET.get(key);
+            return Boolean(obj);
+          } catch (_) {
+            return false;
+          }
+        };
+
+        let remaining = [];
+        // Kiểm tra tối đa 2 lần để đảm bảo tính nhất quán trên R2
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const verifyChecks = await Promise.all(keysToDelete.map(async (key) => {
+            const exists = await checkKeyExists(key);
+            return { key, exists };
+          }));
+          remaining = verifyChecks.filter(r => r.exists).map(r => r.key);
+          if (remaining.length === 0) break;
+          // Nếu vẫn còn file, đợi 250ms rồi thử lại
+          await new Promise(r => setTimeout(r, 250));
+        }
+
+        if (remaining.length > 0) {
+          return new Response(JSON.stringify({
+            success: false,
+            verified: false,
+            error: `Xác thực thất bại: File vẫn còn tồn tại trên R2 sau khi xóa (${remaining.join(", ")}). Vui lòng thử lại.`
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
+          });
+        }
+
+        // 3. Đảm bảo 100% file không còn tồn tại trên R2 trước khi thông báo thành công
         return new Response(JSON.stringify({
           success: true,
+          verified: true,
           album: album,
           file: filename,
-          message: `Đã xóa vĩnh viễn ảnh '${filename}' khỏi cả 2 folder thumb và full trên R2!`,
+          message: `Đã kiểm tra R2 và xác nhận xóa vĩnh viễn ảnh '${filename}' thành công!`,
           deletedKeys: keysToDelete
         }), {
           headers: {

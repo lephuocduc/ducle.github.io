@@ -1964,7 +1964,7 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
         title: "Xác nhận xóa vĩnh viễn",
         message: `Bạn có chắc chắn muốn xóa vĩnh viễn ảnh <strong>"${filename}"</strong> khỏi cả 2 thư mục <code>thumb/</code> và <code>full/</code> trên Cloudflare R2 không?<br><span style="color:#ef5350;font-size:0.85rem;display:inline-block;margin-top:6px;">⚠️ Hành động này không thể hoàn tác!</span>`,
         onConfirm: async () => {
-            showToast(`Đang xóa ảnh ${filename} trên R2...`, "info");
+            showToast(`Đang xóa và kiểm tra lại trên R2 cho ảnh ${filename}...`, "info");
             try {
                 const host = getR2Host();
                 const token = getR2AdminPin();
@@ -1981,7 +1981,7 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    showToast(`✨ Đã xóa vĩnh viễn ảnh ${filename} khỏi cả 2 folder trên R2!`, "success");
+                    showToast(data.message || `✨ Đã kiểm tra R2 và xác nhận xóa vĩnh viễn ảnh ${filename} thành công!`, "success");
 
                     // Hiệu ứng xóa thẻ mượt mà trên lưới
                     if (cardEl) {
