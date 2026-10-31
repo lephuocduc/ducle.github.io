@@ -62,3 +62,4 @@ Mỗi khi có cập nhật liên quan đến hình ảnh và gallery, luôn ki�
 4. **Pinch zoom 2 ngón tay**: Phóng to/thu nhỏ êm ru 60fps, thu nhỏ quá mức tự đàn hồi về giữa.
 5. **Rê kéo xem chi tiết (Pan/Drag)**: Thả tay ở đâu ảnh dừng cố định ở đó, không bị trôi hay giật về giữa.
 6. **Nút mũi tên Trái/Phải**: Hiện 2 bên mép ảnh kiểu bán trong suốt (mờ nhẹ), bấm chuyển ảnh mượt mà, không che khuất người trong ảnh. Tự động ẩn khi đang zoom.
+7. **Đồng bộ số lượng ảnh trên Tab Badge**: Số lượng ảnh trên từng tab luôn phản ánh đúng số file hợp lệ có mặt ở **cả 2 thư mục** `thumb/` và `full/` trên R2. Đồng bộ tự động và nhất quán giữa `data/config.js`, `photos.json` và Cloudflare Worker API.
