@@ -42,7 +42,7 @@ async function listAllBucketFiles(bucket, prefix, extensions) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // Headers CORS cho phép trang web gọi API an toàn
@@ -125,7 +125,7 @@ export default {
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": "no-cache, no-store, must-revalidate"
+            "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
           }
         });
       } catch (err) {
@@ -306,6 +306,18 @@ export default {
       });
     }
 
+    const isDownload = url.searchParams.has("download");
+    const cache = caches.default;
+    const cacheKey = new Request(url.toString(), request);
+
+    // Kiểm tra Edge Cache trước (nếu không phải download) để tiết kiệm 100% CPU Worker
+    if (!isDownload && request.method === "GET") {
+      try {
+        const cachedRes = await cache.match(cacheKey);
+        if (cachedRes) return cachedRes;
+      } catch (_) {}
+    }
+
     try {
       if (!env.MY_BUCKET) {
         return new Response("File not found", { status: 404, headers: corsHeaders });
@@ -333,13 +345,18 @@ export default {
       }
 
       // Nếu có query download, ép trình duyệt lưu trực tiếp file về máy dạng binary để không bao giờ mở tab mới
-      if (url.searchParams.has("download")) {
+      if (isDownload) {
         const dlName = url.searchParams.get("download") || key.split("/").pop() || "wedding-photo.jpg";
         headers.set("Content-Disposition", `attachment; filename="${dlName}"`);
         headers.set("Content-Type", "application/octet-stream");
+        return new Response(object.body, { headers });
       }
 
-      return new Response(object.body, { headers });
+      const response = new Response(object.body, { headers });
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      }
+      return response;
     } catch (err) {
       return new Response("Error fetching object: " + err.message, { status: 500, headers: corsHeaders });
     }

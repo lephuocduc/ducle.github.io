@@ -113,7 +113,7 @@ export function renderGallery(containerId, galleryData) {
  */
 function getDefaultR2Config() {
     return {
-        host: "https://wedding.phuocducthusuong.com",
+        host: "https://media.phuocducthusuong.com",
         apiUrl: "https://wedding.phuocducthusuong.com/api/photos",
         manifestUrl: "https://wedding.phuocducthusuong.com/photos.json",
         autoSync: true,
@@ -391,7 +391,7 @@ function formatPhotoDateTime(filename, fallbackTitle) {
  */
 function buildAlbumDynamicElements(album) {
     if (!album || album.type === "video") return [];
-    const host = (currentR2Config?.host || "https://wedding.phuocducthusuong.com").replace(/\/$/, "");
+    const host = (currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
     const rawImages = Array.isArray(album.images) ? album.images : [];
     const images = [...rawImages].sort((a, b) => {
         const nameA = typeof a === "string" ? a : (a.file || a.src || "");
@@ -656,14 +656,7 @@ function renderActiveAlbum(albumId) {
  * Format: {host}/{album.folder}/thumb/{filename}
  */
 function getR2Host(host) {
-    if (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) {
-        return window.location.origin;
-    }
-    const clean = (host || currentR2Config?.host || "https://wedding.phuocducthusuong.com").replace(/\/$/, "");
-    if (clean.includes("media.phuocducthusuong.com")) {
-        return "https://wedding.phuocducthusuong.com";
-    }
-    return clean;
+    return (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
 }
 
 function getThumbUrl(album, filename, hasThumbs, host) {

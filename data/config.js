@@ -4,10 +4,8 @@
  * Mọi thay đổi về thông tin, hình ảnh, địa điểm, ngân hàng... chỉ cần chỉnh sửa tại đây.
  */
 
-// Domain lưu trữ hình ảnh Cloudflare R2
-const R2_HOST = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com"))
-    ? window.location.origin
-    : "https://wedding.phuocducthusuong.com";
+// Domain lưu trữ hình ảnh Cloudflare R2 trực tiếp (Direct CDN siêu tốc, không giới hạn request, 0đ băng thông)
+const R2_HOST = "https://media.phuocducthusuong.com";
 
 export const weddingConfig = {
     // Nguồn ảnh Cloudflare R2 dùng chung toàn website
@@ -173,8 +171,8 @@ export const weddingConfig = {
         apiUrl: "https://wedding.phuocducthusuong.com/api/photos",
         // File manifest danh mục ảnh dự phòng trên R2
         manifestUrl: `${R2_HOST}/photos.json`,
-        // Bật chế độ tự động đồng bộ ảnh mới nhất từ R2
-        autoSync: true,
+        // Chỉ chạy autoSync khi có tham số ?admin hoặc ?sync để tiết kiệm 100% request Worker cho khách xem
+        autoSync: typeof window !== "undefined" && (window.location.search.includes("admin") || window.location.search.includes("sync")),
         defaultAlbumId: "03-vu-quy-tan-hon",
         albums: [
             {
