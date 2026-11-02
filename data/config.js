@@ -16,7 +16,7 @@ export const weddingConfig = {
     // Thông tin SEO & Meta
     seo: {
         title: "Duc & Suong’s Wedding - Phước Đức & Thu Sương | Song Hỷ Cát Tường",
-        ogImage: "assets/img/cover.webp",
+        ogImage: "assets/img/og-image.jpg",
         favicon: "assets/icons/favicon.svg"
     },
 

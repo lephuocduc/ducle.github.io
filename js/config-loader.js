@@ -3,7 +3,7 @@
  * Đọc dữ liệu từ data/config.js và tự động nạp thông tin SEO Meta
  */
 
-import { weddingConfig } from '../data/config.js?v=20261102-03';
+import { weddingConfig } from '../data/config.js?v=20261102-04';
 
 export function loadConfig() {
     if (!weddingConfig) {
@@ -37,10 +37,16 @@ export function loadConfig() {
         }
 
         const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', weddingConfig.seo.ogImage || '');
-
-        const twitterImage = document.querySelector('meta[name="twitter:image"]');
-        if (twitterImage) twitterImage.setAttribute('content', weddingConfig.seo.ogImage || '');
+        if (ogImage && weddingConfig.seo.ogImage) {
+            const fullOgUrl = weddingConfig.seo.ogImage.startsWith('http') 
+                ? weddingConfig.seo.ogImage 
+                : `${window.location.origin}/${weddingConfig.seo.ogImage.replace(/^\//, '')}`;
+            ogImage.setAttribute('content', fullOgUrl);
+            const ogSec = document.querySelector('meta[property="og:image:secure_url"]');
+            if (ogSec) ogSec.setAttribute('content', fullOgUrl);
+            const twImg = document.querySelector('meta[name="twitter:image"]');
+            if (twImg) twImg.setAttribute('content', fullOgUrl);
+        }
 
         const favicon = document.querySelector('link[rel="icon"]');
         if (favicon && weddingConfig.seo.favicon) favicon.setAttribute('href', weddingConfig.seo.favicon);
