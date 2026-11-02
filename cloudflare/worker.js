@@ -60,6 +60,17 @@ export default {
     // 1. API ĐỒNG BỘ ẢNH TỰ ĐỘNG: GET /api/photos?album=01-pre-wedding
     if ((request.method === "GET" || request.method === "HEAD") && (url.pathname === "/api/photos" || url.pathname === "/api/photos/")) {
       const album = url.searchParams.get("album") || "01-pre-wedding";
+      const hasCacheBuster = url.searchParams.has("_t");
+      const cache = caches.default;
+      const canonicalApiUrl = `${url.origin}/api/photos?album=${encodeURIComponent(album)}`;
+      const apiCacheKey = new Request(canonicalApiUrl, { method: "GET" });
+
+      if (!hasCacheBuster && request.method === "GET") {
+        try {
+          const cachedApiRes = await cache.match(apiCacheKey);
+          if (cachedApiRes) return cachedApiRes;
+        } catch (_) {}
+      }
 
       try {
         if (!env.MY_BUCKET) {
@@ -111,7 +122,7 @@ export default {
         // Sắp xếp thứ tự tự nhiên (ví dụ 1, 2, ..., 10, 11)
         files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
 
-        return new Response(JSON.stringify({
+        const apiResponse = new Response(JSON.stringify({
           success: true,
           album: album,
           hasThumbs: hasThumbs,
@@ -125,9 +136,14 @@ export default {
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
+            "Cache-Control": "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400"
           }
         });
+
+        if (request.method === "GET" && ctx && typeof ctx.waitUntil === "function") {
+          ctx.waitUntil(cache.put(apiCacheKey, apiResponse.clone()));
+        }
+        return apiResponse;
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 500,
@@ -267,7 +283,14 @@ export default {
           });
         }
 
-        // 3. Đảm bảo 100% file không còn tồn tại trên R2 trước khi thông báo thành công
+        // 3. Xóa ngay cache của /api/photos?album=... trên Edge Cache để khách truy cập thấy danh sách mới tức thì
+        try {
+          const canonicalApiUrl = `${url.origin}/api/photos?album=${encodeURIComponent(album)}`;
+          const apiCacheKey = new Request(canonicalApiUrl, { method: "GET" });
+          await caches.default.delete(apiCacheKey);
+        } catch (_) {}
+
+        // 4. Đảm bảo 100% file không còn tồn tại trên R2 trước khi thông báo thành công
         return new Response(JSON.stringify({
           success: true,
           verified: true,
@@ -310,8 +333,8 @@ export default {
     const cache = caches.default;
     const cacheKey = new Request(url.toString(), request);
 
-    // Kiểm tra Edge Cache trước (nếu không phải download) để tiết kiệm 100% CPU Worker
-    if (!isDownload && request.method === "GET") {
+    // Kiểm tra Edge Cache trước cho cả xem trực tiếp và download để tiết kiệm 100% CPU Worker
+    if (request.method === "GET") {
       try {
         const cachedRes = await cache.match(cacheKey);
         if (cachedRes) return cachedRes;
@@ -349,7 +372,11 @@ export default {
         const dlName = url.searchParams.get("download") || key.split("/").pop() || "wedding-photo.jpg";
         headers.set("Content-Disposition", `attachment; filename="${dlName}"`);
         headers.set("Content-Type", "application/octet-stream");
-        return new Response(object.body, { headers });
+        const dlRes = new Response(object.body, { headers });
+        if (ctx && typeof ctx.waitUntil === "function") {
+          ctx.waitUntil(cache.put(cacheKey, dlRes.clone()));
+        }
+        return dlRes;
       }
 
       const response = new Response(object.body, { headers });

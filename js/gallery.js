@@ -69,16 +69,22 @@ export function initGalleryModule(containerId, config) {
         activeAlbumId = defaultAlbum.id;
     }
 
-    // Phục hồi danh sách ảnh đã đồng bộ từ localStorage (nếu có) để không hiển thị lại ảnh đã xóa khi F5
+    // Dọn dẹp bộ nhớ đệm r2_album_* cũ (tránh lưu danh sách tên file cũ gây lỗi 404)
+    // và lọc bỏ các ảnh đã xóa được ghi nhận trong r2_deleted_*
     if (typeof localStorage !== "undefined" && currentR2Config?.albums) {
         currentR2Config.albums.forEach(album => {
             if (album.type === "video") return;
             try {
-                const cached = localStorage.getItem(`r2_album_${album.id}`);
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        album.images = parsed;
+                localStorage.removeItem(`r2_album_${album.id}`);
+                const deletedRaw = localStorage.getItem(`r2_deleted_${album.id}`);
+                if (deletedRaw && Array.isArray(album.images)) {
+                    const deletedList = JSON.parse(deletedRaw);
+                    if (Array.isArray(deletedList) && deletedList.length > 0) {
+                        const deletedSet = new Set(deletedList);
+                        album.images = album.images.filter(img => {
+                            const f = typeof img === "string" ? img : (img.file || img.src || "");
+                            return !deletedSet.has(f);
+                        });
                     }
                 }
             } catch (_) {}
@@ -255,20 +261,22 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     if (album.type === "video" || !album.folder) return;
 
     const host = getR2Host(currentR2Config.host);
+    const workerOrigin = getWorkerOrigin();
+    const isAdmin = isR2Admin();
     let newImages = null;
 
-    // CÁCH 1: Thử gọi Cloudflare Worker API (Tự động 100% khi bạn kéo thả ảnh lên R2)
-    const apiUrl = currentR2Config.apiUrl || `${host}/api/photos`;
+    // CÁCH 1: Gọi Cloudflare Worker API (Edge Cached cho khách, bypass cache cho Admin)
+    const apiUrl = currentR2Config.apiUrl || `${workerOrigin}/api/photos`;
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch(`${apiUrl}?album=${encodeURIComponent(album.folder)}&_t=${Date.now()}`, {
-            headers: { 
-                "Accept": "application/json",
-                "Cache-Control": "no-cache"
-            },
-            signal: controller.signal
-        });
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const query = isAdmin
+            ? `?album=${encodeURIComponent(album.folder)}&_t=${Date.now()}`
+            : `?album=${encodeURIComponent(album.folder)}`;
+        const fetchOpts = isAdmin
+            ? { headers: { "Accept": "application/json", "Cache-Control": "no-cache" }, signal: controller.signal }
+            : { headers: { "Accept": "application/json" }, signal: controller.signal };
+        const res = await fetch(`${apiUrl}${query}`, fetchOpts);
         clearTimeout(timeoutId);
 
         if (res.ok) {
@@ -295,12 +303,10 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
         try {
             const manifestUrl = currentR2Config.manifestUrl || `${host}/photos.json`;
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            const res = await fetch(`${manifestUrl}?_t=${Date.now()}`, {
-                headers: { 
-                    "Accept": "application/json",
-                    "Cache-Control": "no-cache"
-                },
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const suffix = isAdmin ? `?_t=${Date.now()}` : "";
+            const res = await fetch(`${manifestUrl}${suffix}`, {
+                headers: { "Accept": "application/json" },
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -319,12 +325,25 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
     }
 
     // Nếu tìm thấy danh sách ảnh mới từ R2, kiểm tra xem có thay đổi không
-    // Chú ý: Cập nhật và lưu vào localStorage để tránh lệch trạng thái
     if (newImages && Array.isArray(newImages)) {
+        // Lọc bỏ ảnh đã xóa trên thiết bị này (nếu có)
+        try {
+            const deletedRaw = typeof localStorage !== "undefined" ? localStorage.getItem(`r2_deleted_${album.id}`) : null;
+            if (deletedRaw) {
+                const deletedList = JSON.parse(deletedRaw);
+                if (Array.isArray(deletedList) && deletedList.length > 0) {
+                    const deletedSet = new Set(deletedList);
+                    newImages = newImages.filter(img => {
+                        const f = typeof img === "string" ? img : (img.file || img.src || "");
+                        return !deletedSet.has(f);
+                    });
+                }
+            }
+        } catch (_) {}
+
         const currentList = album.images || [];
         const currentSet = new Set(currentList.map(item => typeof item === "string" ? item : (item.file || item.src || "")));
 
-        // Chỉ cập nhật và re-render khi số lượng thay đổi hoặc có ảnh hoàn toàn mới
         const hasNewItems = newImages.some(img => {
             const name = typeof img === "string" ? img : (img.file || img.src || "");
             return !currentSet.has(name);
@@ -333,16 +352,17 @@ async function syncAlbumFromR2(albumId, rerenderIfChanged = true) {
         if (currentList.length === 0 || hasNewItems || currentList.length !== newImages.length) {
             console.log(`[R2 Auto-Sync] Cập nhật ảnh mới cho album ${album.title}: ${newImages.length} ảnh`);
             album.images = newImages;
-            try {
-                localStorage.setItem(`r2_album_${album.id}`, JSON.stringify(newImages));
-            } catch (_) {}
             updateTabBadge(album.id, newImages.length);
 
             if (rerenderIfChanged && album.id === activeAlbumId) {
-                renderActiveAlbum(activeAlbumId);
+                // TUYỆT ĐỐI KHÔNG gọi renderActiveAlbum khi Lightbox đang mở để không đóng Lightbox đột ngột
+                if (isGalleryOpen) {
+                    hasPendingGridRerender = true;
+                } else {
+                    renderActiveAlbum(activeAlbumId);
+                }
             }
         } else {
-            // Luôn đảm bảo số lượng trên tab badge hiển thị chuẩn xác theo R2
             updateTabBadge(album.id, newImages.length);
         }
     }
@@ -399,11 +419,6 @@ function buildAlbumDynamicElements(album) {
         return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
     });
     const hasThumbs = Boolean(album.hasThumbs);
-    const downloadDomain = (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) 
-        ? window.location.origin 
-        : "https://wedding.phuocducthusuong.com";
-    const cleanFolder = (album?.folder || album?.id || "01-pre-wedding").replace(/^\/|\/$/g, "");
-    const fullDir = album?.fullDir || "full";
 
     return images.map((item, index) => {
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
@@ -411,7 +426,7 @@ function buildAlbumDynamicElements(album) {
         const imageTitle = typeof item === "object" && item.title ? item.title : formatPhotoDateTime(filename, fallbackTitle);
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
-        const downloadUrl = `${downloadDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
+        const downloadUrl = `${fullUrl}?dl=1`;
 
         return {
             src: fullUrl,
@@ -659,6 +674,13 @@ function getR2Host(host) {
     return (host || currentR2Config?.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
 }
 
+function getWorkerOrigin() {
+    if (typeof window !== "undefined" && window.location.hostname.includes("phuocducthusuong.com")) {
+        return window.location.origin;
+    }
+    return "https://wedding.phuocducthusuong.com";
+}
+
 function getThumbUrl(album, filename, hasThumbs, host) {
     if (!filename) return "";
     if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("/")) {
@@ -699,11 +721,11 @@ function getFullUrl(album, filename, hasThumbs, host) {
 function bindCardClicks(container) {
     container.querySelectorAll(".r2-gallery-item:not([data-click-bound])").forEach(card => {
         card.setAttribute("data-click-bound", "true");
-        const openIdx = parseInt(card.getAttribute("data-gallery-index"), 10);
 
         const handleOpen = (e) => {
             if (e.target.closest(".r2-card-delete-btn")) return;
             e.preventDefault();
+            const openIdx = parseInt(card.getAttribute("data-gallery-index"), 10);
             if (lightGalleryInstance && !isNaN(openIdx)) {
                 lightGalleryInstance.openGallery(openIdx);
             }
@@ -1060,7 +1082,12 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
 
         const album = currentR2Config.albums.find(a => a.id === albumId);
         const host = (currentR2Config.host || "https://media.phuocducthusuong.com").replace(/\/$/, "");
-        const images = Array.isArray(album?.images) ? album.images : [];
+        const rawImages = Array.isArray(album?.images) ? album.images : [];
+        const images = [...rawImages].sort((a, b) => {
+            const nameA = typeof a === "string" ? a : (a.file || a.src || "");
+            const nameB = typeof b === "string" ? b : (b.file || b.src || "");
+            return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+        });
         const hasThumbs = Boolean(album?.hasThumbs);
         const gridContainer = document.getElementById("gallery-grid");
 
@@ -1125,9 +1152,11 @@ function setupGalleryInteractions(gridContainer) {
     const cleanDummyImages = () => {
         document.querySelectorAll(".lg-dummy-img").forEach(el => el.remove());
     };
-    // Bộ nhớ đệm file cho iOS Share Sheet (để kích hoạt tức thì khi chạm nút mà không mất User Activation)
+    // Bộ nhớ đệm file cho iOS Share Sheet (debounce 500ms khi dừng vuốt + tải từ CDN media.phuocducthusuong.com)
     let iosShareFilePromise = null;
     let iosShareUrl = null;
+    let iosShareDebounceTimer = null;
+    let iosShareAbortController = null;
 
     const isIOSDevice = () => {
         return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -1136,29 +1165,39 @@ function setupGalleryInteractions(gridContainer) {
 
     const prepareIosShareFile = () => {
         if (!isIOSDevice()) return;
-        const dlBtn = document.querySelector("#lg-download, .lg-download, [id^='lg-download']");
-        if (!dlBtn) return;
-        const url = dlBtn.getAttribute("href");
-        if (!url || url === iosShareUrl) return;
+        if (iosShareDebounceTimer) clearTimeout(iosShareDebounceTimer);
+        if (iosShareAbortController) {
+            try { iosShareAbortController.abort(); } catch (_) {}
+            iosShareAbortController = null;
+        }
 
-        const downloadAttr = dlBtn.getAttribute("download");
-        const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.jpg";
-        iosShareUrl = url;
+        iosShareDebounceTimer = setTimeout(() => {
+            const dlBtn = document.querySelector("#lg-download, .lg-download, [id^='lg-download']");
+            if (!dlBtn) return;
+            const url = dlBtn.getAttribute("href");
+            if (!url || url === iosShareUrl) return;
 
-        iosShareFilePromise = (async () => {
-            try {
-                const response = await fetch(url, { cache: "force-cache" });
-                if (!response.ok) return null;
-                const blob = await response.blob();
-                const lower = filename.toLowerCase();
-                let mimeType = "image/jpeg";
-                if (lower.endsWith(".png")) mimeType = "image/png";
-                else if (lower.endsWith(".webp")) mimeType = "image/webp";
-                return new File([blob], filename, { type: mimeType, lastModified: Date.now() });
-            } catch {
-                return null;
-            }
-        })();
+            const downloadAttr = dlBtn.getAttribute("download");
+            const filename = downloadAttr || url.split("/").pop().split("?")[0] || "wedding-photo.jpg";
+            iosShareUrl = url;
+            iosShareAbortController = new AbortController();
+            const signal = iosShareAbortController.signal;
+
+            iosShareFilePromise = (async () => {
+                try {
+                    const response = await fetch(url, { cache: "force-cache", signal });
+                    if (!response.ok) return null;
+                    const blob = await response.blob();
+                    const lower = filename.toLowerCase();
+                    let mimeType = "image/jpeg";
+                    if (lower.endsWith(".png")) mimeType = "image/png";
+                    else if (lower.endsWith(".webp")) mimeType = "image/webp";
+                    return new File([blob], filename, { type: mimeType, lastModified: Date.now() });
+                } catch {
+                    return null;
+                }
+            })();
+        }, 500);
     };
 
     const updateDownloadButton = () => {
@@ -2064,7 +2103,7 @@ function setupAdminModalEvents() {
             if (!pin) return;
 
             // Xác thực mã PIN hoàn toàn qua Cloudflare Worker (so khớp với secret ADMIN_PIN)
-            const host = getR2Host();
+            const host = getWorkerOrigin();
             const verifyUrl = `${host}/api/admin/verify?pin=${encodeURIComponent(pin)}`;
             let isValid = false;
             let errMsg = "Mã PIN không chính xác. Vui lòng thử lại!";
@@ -2183,7 +2222,7 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
         onConfirm: async () => {
             showToast(`Đang xóa và kiểm tra lại trên R2 cho ảnh ${filename}...`, "info");
             try {
-                const host = getR2Host();
+                const host = getWorkerOrigin();
                 const token = getR2AdminPin();
                 const deleteUrl = `${host}/api/photos?album=${encodeURIComponent(albumFolder)}&file=${encodeURIComponent(filename)}&pin=${encodeURIComponent(token)}`;
 
@@ -2214,7 +2253,13 @@ async function handleDeletePhoto(albumFolder, filename, cardEl, isFromLightbox =
                             return f !== filename;
                         });
                         try {
-                            localStorage.setItem(`r2_album_${album.id}`, JSON.stringify(album.images));
+                            localStorage.removeItem(`r2_album_${album.id}`);
+                            const delKey = `r2_deleted_${album.id}`;
+                            const existingDel = JSON.parse(localStorage.getItem(delKey) || "[]");
+                            if (Array.isArray(existingDel) && !existingDel.includes(filename)) {
+                                existingDel.push(filename);
+                                localStorage.setItem(delKey, JSON.stringify(existingDel));
+                            }
                         } catch (_) {}
                         updateTabBadge(album.id, album.images.length);
                     }

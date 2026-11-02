@@ -2,6 +2,10 @@
 .git/**
 .wrangler
 .wrangler/**
+.remote-code-express
+.remote-code-express/**
+scratch
+scratch/**
 test-dir
 test-dir/**
 tools
@@ -12,3 +16,4 @@ assets/audio
 assets/audio/**
 Appscript
 README.md
+TECH_NOTES.md
