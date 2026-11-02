@@ -375,6 +375,18 @@ async function syncAllAlbumsFromR2() {
  * - Safe Thumbnail: Chỉ bật lgThumbnail khi đã có thumbs chuẩn (tránh tải đồng thời 40 ảnh 17MB gốc)
  */
 /**
+ * Chuyển đổi tên file ảnh có định dạng YYYY-MM-DD_HH-mm-ss thành ngày giờ hiển thị
+ * Format: ngày - tháng - năm giờ - phút (ví dụ: 25-10-2026 17:46)
+ */
+function formatPhotoDateTime(filename, fallbackTitle) {
+    if (!filename || typeof filename !== "string") return fallbackTitle || "";
+    const match = filename.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})(?:-(\d{2}))?/);
+    if (!match) return fallbackTitle || "";
+    const [, year, month, day, hour, minute] = match;
+    return `${day}-${month}-${year} ${hour}:${minute}`;
+}
+
+/**
  * Tạo danh sách dynamic elements cho LightGallery từ dữ liệu album
  */
 function buildAlbumDynamicElements(album) {
@@ -395,7 +407,8 @@ function buildAlbumDynamicElements(album) {
 
     return images.map((item, index) => {
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
-        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
+        const fallbackTitle = `${album.title} - Ảnh ${index + 1}`;
+        const imageTitle = typeof item === "object" && item.title ? item.title : formatPhotoDateTime(filename, fallbackTitle);
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
         const downloadUrl = `${downloadDomain}/${cleanFolder}/${fullDir}/${filename}?download=${encodeURIComponent(filename)}`;
@@ -420,8 +433,12 @@ function updateGridAfterDeletion(album) {
     const cards = grid.querySelectorAll(".r2-gallery-item:not(.r2-item-deleting)");
     cards.forEach((card, idx) => {
         card.setAttribute("data-gallery-index", idx.toString());
-        const title = `${album.title} - Ảnh ${idx + 1}`;
+        const item = album.images[idx];
+        const filename = typeof item === "string" ? item : (item?.file || item?.src || "");
+        const fallbackTitle = `${album.title} - Ảnh ${idx + 1}`;
+        const title = typeof item === "object" && item?.title ? item.title : formatPhotoDateTime(filename, fallbackTitle);
         card.setAttribute("aria-label", `Xem ảnh ${idx + 1}/${album.images.length}: ${title}`);
+        card.setAttribute("title", title);
     });
 
     const visibleCount = currentVisibleCounts[album.id] || PAGE_SIZE;
@@ -586,8 +603,10 @@ function renderActiveAlbum(albumId) {
     for (let index = 0; index < renderLimit; index++) {
         const item = images[index];
         const filename = typeof item === "string" ? item : (item.file || item.src || "");
-        const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
         if (!filename) continue;
+
+        const fallbackTitle = `${album.title} - Ảnh ${index + 1}`;
+        const imageTitle = typeof item === "object" && item.title ? item.title : formatPhotoDateTime(filename, fallbackTitle);
 
         const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
         const fullUrl = getFullUrl(album, filename, hasThumbs, host);
@@ -597,6 +616,7 @@ function renderActiveAlbum(albumId) {
                  role="button" 
                  tabindex="0"
                  data-gallery-index="${index}" 
+                 title="${imageTitle}"
                  aria-label="Xem ảnh ${index + 1}/${images.length}: ${imageTitle}">
                 <div class="r2-thumb-wrap">
                     <img data-src="${thumbUrl}" 
@@ -1057,8 +1077,10 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
             for (let index = visibleCount; index < newCount && index < images.length; index++) {
                 const item = images[index];
                 const filename = typeof item === "string" ? item : (item.file || item.src || "");
-                const imageTitle = typeof item === "object" && item.title ? item.title : `${album.title} - Ảnh ${index + 1}`;
                 if (!filename) continue;
+
+                const fallbackTitle = `${album.title} - Ảnh ${index + 1}`;
+                const imageTitle = typeof item === "object" && item.title ? item.title : formatPhotoDateTime(filename, fallbackTitle);
 
                 const thumbUrl = getThumbUrl(album, filename, hasThumbs, host);
 
@@ -1067,6 +1089,7 @@ function renderLoadMoreButton(albumId, totalImages, visibleCount) {
                 card.setAttribute("role", "button");
                 card.setAttribute("tabindex", "0");
                 card.setAttribute("data-gallery-index", index.toString());
+                card.setAttribute("title", imageTitle);
                 card.setAttribute("aria-label", `Xem ảnh ${index + 1}/${images.length}: ${imageTitle}`);
 
                 card.innerHTML = `

@@ -5,4 +5,6 @@ test-dir/
 .wrangler/
 tools/.upload-progress.json
 tools/.upload-vuquy-progress.json
+scratch/
+
 
