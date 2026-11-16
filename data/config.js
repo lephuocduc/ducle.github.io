@@ -1309,12 +1309,11 @@ export const weddingConfig = {
                 // Danh sách video YouTube (dán link YouTube hoặc mã video vào mảng dưới đây)
                 // Hỗ trợ link thường (youtube.com/watch?v=...), rút gọn (youtu.be/...) hoặc chỉ cần mã video 11 ký tự
                 videos: [
-                    // Mẫu chèn video (bỏ comment và thay link/mã YouTube khi sẵn sàng):
-                    // {
-                    //     title: "Video Phóng Sự Cưới | Phước Đức & Thu Sương",
-                    //     url: "https://www.youtube.com/watch?v=MÃ_VIDEO_YOUTUBE",
-                    //     description: "Khoảnh khắc thiêng liêng và ngập tràn hạnh phúc trong ngày trọng đại"
-                    // }
+                    {
+                        title: "Video Phóng Sự Cưới | Phước Đức & Thu Sương (25.10.2026)",
+                        url: "https://youtu.be/23brX5m2tvs",
+                        description: "Khoảnh khắc thiêng liêng và ngập tràn hạnh phúc trong ngày trọng đại"
+                    }
                 ]
             }
         ]
